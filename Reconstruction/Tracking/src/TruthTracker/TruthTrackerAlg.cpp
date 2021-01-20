@@ -84,12 +84,14 @@ StatusCode TruthTrackerAlg::execute()
     ///Retrieve MC particle(s)
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
     mcParticleCol=m_mcParticleCol.get();
+    //if(m_mcParticleCol.exist()){mcParticleCol=m_mcParticleCol.get();}
     if(nullptr==mcParticleCol){
         debug()<<"MCParticleCollection not found"<<endmsg;
         return StatusCode::SUCCESS;
     }
     ///Retrieve DC digi
     const edm4hep::TrackerHitCollection* digiDCHitsCol=nullptr;
+    //if(m_DCDigiCol.exist()){digiDCHitsCol=m_DCDigiCol.get();}//FIXME DEBUG
     digiDCHitsCol=m_DCDigiCol.get();//FIXME DEBUG
     if(nullptr==digiDCHitsCol){
         debug()<<"TrackerHitCollection not found"<<endmsg;
@@ -117,8 +119,13 @@ StatusCode TruthTrackerAlg::execute()
 
     ///Retrieve silicon Track
     const edm4hep::TrackCollection* siTrackCol=nullptr;
-    if(m_siSubsetTrackCol.exist()) siTrackCol=m_siSubsetTrackCol.get();
-    if(nullptr!=siTrackCol) {
+    if(m_siSubsetTrackCol.exist()){
+        siTrackCol=m_siSubsetTrackCol.get();
+        debug()<<"SDTTrackCollection size "<<siTrackCol->size()<<endmsg;
+    }else{
+        debug()<<"SDTTrackCollection is empty"<<endmsg;
+    }
+    if(nullptr!=siTrackCol){
         ///New SDT track
         for(auto siTrack:*siTrackCol){
             edm4hep::Track sdtTrack=sdtTrackCol->create();
@@ -151,10 +158,11 @@ StatusCode TruthTrackerAlg::execute()
                 //if(Sim->MCParti!=current) continue;//TODO
                 sdtTrack.addToTrackerHits(digiDC);
             }
+            debug()<<"sdtTrack "<<sdtTrack<<endmsg;
         }
     }
 
-    ///Convert MCParticle to Track and ReconstructedParticle
+    ///Convert MCParticle to DC Track and ReconstructedParticle
     debug()<<"MCParticleCol size="<<mcParticleCol->size()<<endmsg;
     for(auto mcParticle : *mcParticleCol){
         /// skip mcParticleVertex do not have enough associated hits TODO
@@ -215,9 +223,15 @@ StatusCode TruthTrackerAlg::execute()
         //dcTrack.setChi2(gauss(digiDCHitsCol->size-5(),1));//FIXME
         dcTrack.setNdf(digiDCHitsCol->size()-5);
         //dcTrack.setDEdx();//TODO
+
+        debug()<<"D0 "<<trackState.D0<<" phi "<<trackState.phi<<" omega "
+            <<trackState.omega<<" Z0 "<<trackState.Z0<<" tanLambda "
+            <<trackState.tanLambda<<" referencePoint "
+            <<trackState.referencePoint
+            <<trackState.covMatrix<<endmsg;
         //set hits
         double radiusOfInnermostHit=1e9;
-        debug()<<"digiDCHitsCol size"<<digiDCHitsCol->size()<<endmsg;
+        debug()<<"digiDCHitsCol size "<<digiDCHitsCol->size()<<endmsg;
         for(auto digiDC : *digiDCHitsCol){
             //if(Sim->MCParti!=current) continue;//TODO
             edm4hep::Vector3d digiPos=digiDC.getPosition();
@@ -226,6 +240,9 @@ StatusCode TruthTrackerAlg::execute()
             dcTrack.addToTrackerHits(digiDC);
         }
         dcTrack.setRadiusOfInnermostHit(radiusOfInnermostHit);//TODO
+        debug()<<"trackState:location,D0,phi,omega,Z0,tanLambda"
+            <<",referencePoint,cov"<<std::endl<<trackState<<std::endl;
+        debug()<<"dcTrack"<<dcTrack<<endmsg;
 
         edm4hep::ReconstructedParticle dcRecParticle;
         if(m_writeRecParticle){
@@ -258,9 +275,6 @@ StatusCode TruthTrackerAlg::execute()
             <<" mcParticleMomSmeared("<<mcParticleMomSmeared<<")GeV "
             <<" Bxyz "<<B[0]/dd4hep::tesla<<" "<<B[1]/dd4hep::tesla
             <<" "<<B[2]/dd4hep::tesla<<" tesla"<<endmsg;
-        debug()<<"trackState:location,D0,phi,omega,Z0,tanLambda"
-            <<",referencePoint,cov"<<std::endl<<trackState<<std::endl;
-        debug()<<"dcTrack"<<dcTrack<<endmsg;
         if(m_writeRecParticle) debug()<<"dcRecParticle"<<dcRecParticle<<endmsg;
     }//end loop over MCParticleCol
 

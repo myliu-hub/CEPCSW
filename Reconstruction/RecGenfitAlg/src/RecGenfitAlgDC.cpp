@@ -208,7 +208,7 @@ StatusCode RecGenfitAlgDC::execute()
 
     ///retrieve Track and TrackHits
     const edm4hep::TrackCollection* dcTrackCol=nullptr;
-    dcTrackCol=m_dcTrackCol.get();
+    if(m_dcTrackCol.exist()) dcTrackCol=m_dcTrackCol.get();
     if(nullptr==dcTrackCol) {
         debug()<<"TrackCollection not found"<<endmsg;
         return StatusCode::SUCCESS;

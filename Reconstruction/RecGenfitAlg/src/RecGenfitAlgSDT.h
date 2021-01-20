@@ -68,10 +68,6 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         //Drift chamber rec hit and trac
         DataHandle<edm4hep::TrackerHitCollection> m_DCDigiCol{
             "DigiDCHitCollection", Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::SimTrackerHitCollection> m_DCSimHitCol{
-            "DCSimHitsCollection", Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
-            "DCTrackCollection", Gaudi::DataHandle::Reader, this};
         //Mc truth
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
             "MCParticle", Gaudi::DataHandle::Reader, this};

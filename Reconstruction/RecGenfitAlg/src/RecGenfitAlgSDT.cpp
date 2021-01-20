@@ -45,12 +45,8 @@ RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
     declareProperty("EventHeaderCollection", m_headerCol);
     declareProperty("MCParticleCollection", m_mcParticleCol,
             "Handle of the input MCParticle collection");
-    declareProperty("DriftChamberHitCollection", m_DCSimHitCol,
-            "Handle of the input DC SimTrakerHit collection");
     declareProperty("DriftChamberDigiCollection", m_DCDigiCol,
             "Handle of DC digi(TrakerHit) collection");
-    declareProperty("DCTrackCollection", m_DCTrackCol,
-            "Handle of DC track collection");
     declareProperty("DCHitAssociationCollection", m_DCHitAssociationCol,
             "Handle of simTrackerHit and TrackerHit association collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,

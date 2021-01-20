@@ -47,7 +47,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
             m_DCHitAssociationCol{ "DCHitAssociationCollection",
                 Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackCollection>
-            m_siSubsetTrackCol{ "SiSubsetTrackCollection",
+            m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
