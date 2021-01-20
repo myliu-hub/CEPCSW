@@ -239,11 +239,12 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
                     m_gridDriftChamber);
-            genfitTrack->setDebug(m_debug);
+            debug()<<"debug level="<<m_debug.value()<<endmsg;
+            genfitTrack->setDebug(m_debug.value());
             double eventStartTime=0;
             if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,sdtTrack,
                         eventStartTime)){
-                debug()<<"createGenfitTrack failed!"<<endmsg;
+                debug()<<"createGenfitTrackFromEDM4HepTrack failed!"<<endmsg;
                 return StatusCode::SUCCESS;
             }
             if(0==genfitTrack->addSimTrackerHits(sdtTrack,dcHitAssociationCol,
@@ -256,8 +257,8 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             ///call genfit fitting procedure
             ///-----------------------------------
-            m_genfitFitter->processTrack(genfitTrack,m_resortHits);
             m_genfitFitter->setDebug(m_debug);
+            m_genfitFitter->processTrack(genfitTrack,m_resortHits);
 
             ///-----------------------------------
             ///Store track
@@ -334,9 +335,10 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     TVector3 fittedMom;
     int fittedState=genfitTrack->getFittedState(fittedPos,fittedMom,fittedCov);
     HelixClass helix;//mm and GeV
-    float pos[3]={float(fittedPos.X()/dd4hep::mm),float(fittedPos.Y()/dd4hep::mm),
-        float(fittedPos.Z()/dd4hep::mm)};
-    float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),float(fittedMom.Z())};
+    float pos[3]={float(fittedPos.X()/dd4hep::mm),
+        float(fittedPos.Y()/dd4hep::mm),float(fittedPos.Z()/dd4hep::mm)};
+    float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),
+        float(fittedMom.Z())};
     helix.Initialize_VP(pos,mom,charge,m_genfitField->getBz(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
 
@@ -348,7 +350,8 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
             <<" ndf "<<m_nDofKal[pidType]
             <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
-        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]<m_ndfCut)){
+        if((0!=fittedState)||(!m_isFitted[pidType])||
+                (m_nDofKal[pidType]<m_ndfCut)){
             debug()<<"fitting failed"<<endmsg;
         }else{
             debug()<<"evt "<<m_evt<<" fit result: Pos("<<

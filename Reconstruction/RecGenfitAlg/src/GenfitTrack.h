@@ -60,22 +60,6 @@ class GenfitTrack {
     friend int GenfitFitter::processTrackWithRep(
             GenfitTrack* track, int repID=0, bool resort=false);
 
-    friend double GenfitFitter::extrapolateToHit(TVector3& poca,
-            TVector3& pocaDir,
-            TVector3& pocaOnWire, double& doca, const GenfitTrack* track,
-            TVector3 pos, TVector3 mom, TVector3 end0, TVector3 end1, int debug,
-            int repID=0, bool stopAtBoundary=false, bool calcJacobianNoise=false);
-
-    friend double GenfitFitter::extrapolateToCylinder(TVector3& pos,
-            TVector3& mom,
-            GenfitTrack* track, double radius, const TVector3 linePoint,
-            const TVector3 lineDirection, int hitID =0, int repID=0,
-            bool stopAtBoundary=false, bool calcJacobianNoise=false);
-
-    friend double GenfitFitter::extrapolateToPoint(TVector3& pos, TVector3& mom,
-            const GenfitTrack* genfitTrack, const TVector3& point, int repID=0,
-            bool stopAtBoundary = false, bool calcJacobianNoise = false) const;
-
     public:
     GenfitTrack(const GenfitField* field,
             const dd4hep::DDSegmentation::GridDriftChamber* seg,
@@ -129,6 +113,10 @@ class GenfitTrack {
     //void CopyATrack()const;
 
     ///Extrapolate to Hit
+    /// Extrapolate the track to the drift chamber hit
+    /// Output: poca pos and dir and poca distance to the hit wire
+    /// Input: genfit track, pos and mom, two ends of a wire
+    ///        pos, and mom are position & momentum at starting point
     double extrapolateToHit( TVector3& poca, TVector3& pocaDir,
             TVector3& pocaOnWire, double& doca, TVector3 pos, TVector3 mom,
             TVector3 end0,//one end of the hit wire
@@ -137,6 +125,23 @@ class GenfitTrack {
             int repID,
             bool stopAtBoundary,
             bool calcJacobianNoise) const;
+    /// Extrapolate the track to the point
+    /// Output: pos and mom of POCA point to point
+    /// Input: genfitTrack,point,repID,stopAtBoundary and calcAverageState
+    /// repID same with pidType
+    double extrapolateToPoint(TVector3& pos, TVector3& mom,
+            const TVector3& point, int repID=0, bool stopAtBoundary = false,
+            bool calcJacobianNoise = false) const;
+
+    /// Extrapolate the track to the cyliner at fixed raidus
+    /// Output: pos and mom at fixed radius
+    /// Input: genfitTrack, radius of cylinder at center of the origin,
+    ///        repID, stopAtBoundary and calcAverageState
+    double extrapolateToCylinder(TVector3& pos, TVector3& mom,
+            double radius, const TVector3 linePoint,
+            const TVector3 lineDirection, int hitID =0, int repID=0,
+            bool stopAtBoundary=false, bool calcJacobianNoise=false);
+
 
     bool getPosMomCovMOP(int hitID, TLorentzVector& pos, TVector3& mom,
             TMatrixDSym& cov, int repID=0) const;

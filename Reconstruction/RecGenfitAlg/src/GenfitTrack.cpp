@@ -625,7 +625,7 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
                 pocaDir, pocaOnWire, stopAtBoundary, calcJacobianNoise);
     }catch(genfit::Exception& e) {
         if(m_debug>=3)std::cout<<
-            "Exception in GenfigFitter::ExtrapolateToHit"<<e.what()<<std::endl;
+            "Exception in GenfitterTrack::extrapolateToHit"<<e.what()<<std::endl;
         return extrapoLen;
     }
 
@@ -640,7 +640,7 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
         <<","<<pocaOnWire.y()<<" "<<pocaOnWire.z()<<" doca "<<doca<<std::endl;
 
     return extrapoLen*(dd4hep::cm);
-}//end of ExtrapolateToHit
+}//end of extrapolateToHit
 
 
 ///Add space point measurement from edm4hep::Track to genfit track
@@ -726,16 +726,139 @@ int GenfitTrack::addSimTrackerHits(const edm4hep::Track& track,
     return hitID;
 }
 
+double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
+        const TVector3& point,
+        int repID,// same with pidType
+        bool stopAtBoundary,
+        bool calcJacobianNoise) const
+{
+    double trackLength(1e9*dd4hep::cm);
+    if(!getFitStatus(repID)->isFitted()) return trackLength;
+    try{
+        // get track rep
+        genfit::AbsTrackRep* rep = getRep(repID);
+        if(nullptr == rep) {
+            if(m_debug>=2)std::cout<<"In extrapolateToPoint rep "
+                <<repID<<" not exist!"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        /// extrapolate to point
+        //genfit::StateOnPlane state(*(&(track->getTrack()->getFittedState(0,rep))));
+
+        // get track point with fitter info
+        genfit::TrackPoint* tp = getTrack()->getPointWithFitterInfo(0,rep);
+        if(nullptr == tp) {
+            if(m_debug>=2)std::cout<<
+                "In extrapolateToPoint TrackPoint is null"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        // get fitted state on plane of this track point
+        genfit::KalmanFittedStateOnPlane* state =
+            static_cast<genfit::KalmanFitterInfo*>(
+                    tp->getFitterInfo(rep))->getBackwardUpdate();
+
+        if(nullptr == state) {
+            if(m_debug>=2)std::cout<<
+                "In extrapolateToPoint KalmanFittedStateOnPlane is null"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+        trackLength = rep->extrapolateToPoint(*state,
+                point*(1/dd4hep::cm),stopAtBoundary, calcJacobianNoise);
+        rep->getPosMom(*state,pos,mom);//FIXME exception exist
+        pos = pos*dd4hep::cm;
+        mom = mom*dd4hep::GeV;
+    } catch(genfit::Exception& e){
+        if(m_debug>=3)std::cout
+            <<"Exception in GenfitTrack::extrapolateToPoint"
+            << e.what()<<std::endl;
+        trackLength = 1e9*dd4hep::cm;
+    }
+    return trackLength*dd4hep::cm;
+}//end of extrapolateToPoint
+
+/// Extrapolate the track to the cyliner at fixed raidus
+/// position & momentum as starting point
+/// position and momentum at global coordinate in dd4hepUnit
+/// return trackLength in dd4hepUnit
+    double
+GenfitTrack::extrapolateToCylinder(TVector3& pos, TVector3& mom,
+        double radius, const TVector3 linePoint,
+        const TVector3 lineDirection, int hitID, int repID,
+        bool stopAtBoundary, bool calcJacobianNoise)
+{
+    double trackLength(1e9*dd4hep::cm);
+    if(!getFitStatus(repID)->isFitted()) return trackLength;
+    try{
+        // get track rep
+        genfit::AbsTrackRep* rep = getRep(repID);
+        if(nullptr == rep) {
+            if(m_debug>=2)std::cout<<"In extrapolateToCylinder rep is null"
+                <<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        // get track point with fitter info
+        genfit::TrackPoint* tp =
+            getTrack()->getPointWithFitterInfo(hitID,rep);
+        if(nullptr == tp) {
+            if(m_debug>=2)std::cout<<
+                "In extrapolateToCylinder TrackPoint is null"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        // get fitted state on plane of this track point
+        genfit::KalmanFittedStateOnPlane* state =
+            static_cast<genfit::KalmanFitterInfo*>(
+                    tp->getFitterInfo(rep))->getBackwardUpdate();
+
+        if(nullptr == state){
+            if(m_debug>=2)std::cout<<"In extrapolateToCylinder "
+                <<"no KalmanFittedStateOnPlane in backwardUpdate"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+        rep->setPosMom(*state, pos*(1/dd4hep::cm), mom*(1/dd4hep::GeV));
+
+        /// extrapolate
+        trackLength = rep->extrapolateToCylinder(*state,
+                radius/dd4hep::cm, linePoint*(1/dd4hep::cm), lineDirection,
+                stopAtBoundary, calcJacobianNoise);
+        // get pos&mom at extrapolated point on the cylinder
+        rep->getPosMom(*state,pos,mom);//FIXME exception exist
+        pos = pos*dd4hep::cm;
+        mom = mom*dd4hep::GeV;
+    } catch(genfit::Exception& e){
+        if(m_debug>=3)std::cout
+            <<"Exception in GenfitTrack::extrapolateToCylinder "
+            << e.what()<<std::endl;
+        trackLength = 1e9*dd4hep::cm;
+    }
+    return trackLength*dd4hep::cm;
+}
+
 bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
         int pidType, int ndfCut, double chi2Cut)
 {
 
+    if(m_debug>0)std::cout<<m_name<<" store track ndfCut "<<ndfCut<<" chi2Cut "
+        <<chi2Cut<<std::endl;
     /// Get fit status
-    const genfit::FitStatus* fitState = m_track->getFitStatus();
+    const genfit::FitStatus* fitState = getFitStatus();
     double ndf = fitState->getNdf();
-    if(ndf>ndfCut) return false;
+    if(ndf>ndfCut){
+        if(m_debug>0){
+            std::cout<<m_name<<" cut by ndf="<<ndf<<">"<<ndfCut<<std::endl;
+        }
+        return false;
+    }
     double chi2 = fitState->getChi2();
-    if(chi2>chi2Cut) return false;
+    if(chi2>chi2Cut){
+        if(m_debug>0){
+            std::cout<<m_name<<" cut by chi2="<<chi2<<">"<<chi2Cut<<std::endl;
+        }
+        return false;
+    }
     double charge = fitState->getCharge();
     int isFitted = fitState->isFitted();
     int isConverged = fitState->isFitConverged();
@@ -744,41 +867,54 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     TLorentzVector fittedPos;
     TVector3 fittedMom;
     int fittedState=getFittedState(fittedPos,fittedMom,fittedCov);
-    if(m_debug>=2)std::cout<<"fit result: get status OK? pidType "
+    if(m_debug>0)std::cout<<m_name<<" fit result: get status OK? pidType "
         <<pidType<<" fittedState==0 " <<(0==fittedState)<<" isFitted "<<isFitted
-        <<" isConverged "<<isConverged<<" ndf "<<ndf<<std::endl;
+            <<" isConverged "<<isConverged<<" ndf "<<ndf<<std::endl;
     if((0!=fittedState) || (!isFitted) || !isConvergedFully || (ndf<ndfCut)){
-        if(m_debug>=2)std::cout<<" fitting failed"<<std::endl;
+        if(m_debug>0)std::cout<<m_name<<" fitting failed"<<std::endl;
     }else{
-        if(m_debug>=2)std::cout<<"fit result: Pos("<<
+        if(m_debug>0)std::cout<<m_name<<" fit result: Pos("<<
             fittedPos.X()<<" "<<
-            fittedPos.Y()<<" "<<
-            fittedPos.Z()<<") mom("<<
-            fittedMom.X()<<" "<<
-            fittedMom.Y()<<" "<<
-            fittedMom.Z()<<") p_tot "<<
-            fittedMom.Mag()<<" pt "<<
-            fittedMom.Perp()<<
-            " chi2 "<<chi2<<
-            " ndf "<<ndf
-            <<std::endl;
+                fittedPos.Y()<<" "<<
+                fittedPos.Z()<<") mom("<<
+                fittedMom.X()<<" "<<
+                fittedMom.Y()<<" "<<
+                fittedMom.Z()<<") p_tot "<<
+                fittedMom.Mag()<<" pt "<<
+                fittedMom.Perp()<<
+                " chi2 "<<chi2<<
+                " ndf "<<ndf
+                <<std::endl;
     }
-    float pos[3]={float(fittedPos.X()),float(fittedPos.Y()),float(fittedPos.Z())};
-    float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),float(fittedMom.Z())};
+
+    ///track status at POCA to origin
+    const TVector3 origin(0,0,0);
+    TVector3 pocaToOrigin_pos(1e9*dd4hep::cm,1e9*dd4hep::cm,1e9*dd4hep::cm);
+    TVector3 pocaToOrigin_mom(1e9*dd4hep::GeV,1e9*dd4hep::GeV,1e9*dd4hep::GeV);
+    if(extrapolateToPoint(pocaToOrigin_pos,pocaToOrigin_mom,origin)
+            > 1e6*dd4hep::cm){
+        if(m_debug>0)std::cout<<m_name<<" extrapolate to origin failed"<<std::endl;
+        return false;
+    }
+
+    float pos[3]={float(pocaToOrigin_pos.X()),float(pocaToOrigin_pos.Y()),
+        float(pocaToOrigin_pos.Z())};
+    float mom[3]={float(pocaToOrigin_mom.X()),float(pocaToOrigin_mom.Y()),float(pocaToOrigin_mom.Z())};
+
+    if(m_debug>0){std::cout<<m_name<<" fit result poca: Pos("<<
+        pocaToOrigin_pos.X()<<" "<<
+            pocaToOrigin_pos.Y()<<" "<<
+            pocaToOrigin_pos.Z()<<") mom("<<
+            pocaToOrigin_mom.X()<<" "<<
+            pocaToOrigin_mom.Y()<<" "<<
+            pocaToOrigin_mom.Z()<<") p_tot "<<
+            pocaToOrigin_mom.Mag()<<" pt "<<
+            pocaToOrigin_mom.Perp()<<
+            " chi2 "<<chi2<< " ndf "<<ndf <<std::endl;
+    }
+
     HelixClass helix;
-    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBz(fittedPos.Vect()));
-
-
-    /////track status at POCA to origin
-    //TVector3 origin(pivot);
-    //TVector3 pocaToOrigin_pos(1e9*dd4hep::cm,1e9*dd4hep::cm,1e9*dd4hep::cm);
-    //TVector3 pocaToOrigin_mom(1e9*dd4hep::GeV,1e9*dd4hep::GeV,1e9*dd4hep::GeV);
-
-    //if(ExtrapolateToPoint(pocaToOrigin_pos,pocaToOrigin_mom,
-    //            m_track,origin) > 1e6*dd4hep::cm){
-    //    log<<"extrapolate to origin failed";
-    //    return false;
-    //}
+    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBz(origin));
 
 
     //new TrackState
@@ -834,4 +970,3 @@ void GenfitTrack::pivotToFirstLayer(edm4hep::Vector3d& pos,
     firstPos=pos;
     firstMom=mom;
 }
-
