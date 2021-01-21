@@ -61,7 +61,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         const GenfitField* m_genfitField;//The pointer to a GenfitField
 
         void debugTrack(int pidType,const GenfitTrack* genfitTrack);
-        void debugEvent();
+        void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
+                double eventStartTime);
 
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
@@ -133,6 +134,10 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_tkId;
         NTuple::Item<int> m_mcIndex;//number of navigated mcParicle
         NTuple::Matrix<double> m_truthPocaMc;//2 dim matched particle and 3 pos.
+        NTuple::Item<double> m_seedMomP;//for single track
+        NTuple::Item<double> m_seedMomPt;
+        NTuple::Array<double> m_seedMom;
+        NTuple::Array<double> m_seedPos;
         NTuple::Matrix<double> m_pocaPosMc;//2 dim matched particle and 3 pos.
         NTuple::Matrix<double> m_pocaMomMc;//2 dim matched particle and 3 mom.
         NTuple::Array<double> m_pocaMomMcP;//2 dim matched particle and p

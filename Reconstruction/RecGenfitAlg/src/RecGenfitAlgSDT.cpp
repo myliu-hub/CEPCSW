@@ -126,6 +126,10 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("evt",m_evt);
             sc=m_tuple->addItem("tkId",m_tkId);
             sc=m_tuple->addItem("mcIndex",m_mcIndex,0,100);//max. 100 particles
+            sc=m_tuple->addItem("seedMomP",m_seedMomP);//for single track debug
+            sc=m_tuple->addItem("seedMomPt",m_seedMomPt);
+            sc=m_tuple->addItem("seedMom",3,m_seedMom);
+            sc=m_tuple->addItem("seedPos",3,m_seedPos);
             sc=m_tuple->addItem("truthPocaMc",m_mcIndex,m_truthPocaMc,3);
             sc=m_tuple->addItem("pocaPosMc",m_mcIndex,m_pocaPosMc,3);
             sc=m_tuple->addItem("pocaMomMc",m_mcIndex,m_pocaMomMc,3);
@@ -225,6 +229,7 @@ StatusCode RecGenfitAlgSDT::execute()
     edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
         m_SDTRecParticleCol.createAndPut();
 
+    double eventStartTime=0;
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
@@ -241,7 +246,6 @@ StatusCode RecGenfitAlgSDT::execute()
                     m_gridDriftChamber);
             debug()<<"debug level="<<m_debug.value()<<endmsg;
             genfitTrack->setDebug(m_debug.value());
-            double eventStartTime=0;
             if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,sdtTrack,
                         eventStartTime)){
                 debug()<<"createGenfitTrackFromEDM4HepTrack failed!"<<endmsg;
@@ -280,7 +284,8 @@ StatusCode RecGenfitAlgSDT::execute()
     }//end loop over a track
     m_nRecTrack++;
 
-    if(m_tuple) debugEvent();
+    if(m_tuple) debugEvent(sdtTrackCol,eventStartTime);
+
 
 
     //if(m_genfitDisplay) while(1){
@@ -367,8 +372,34 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     }
 }
 
-void RecGenfitAlgSDT::debugEvent()
+void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
+        double eventStartTime)
 {
+    int iSdtTrack=0;
+    for(auto sdtTrack: *sdtTrackCol){
+        if(iSdtTrack>0) break;//TODO debug for single track only
+        edm4hep::TrackState trackStat=sdtTrack.getTrackStates(0);//FIXME?
+        HelixClass helixClass;
+        helixClass.Initialize_Canonical(trackStat.phi,trackStat.D0,
+                trackStat.Z0,trackStat.omega,trackStat.tanLambda,
+                m_genfitField->getBz({0.,0.,0.})*dd4hep::kilogauss/dd4hep::tesla);
+
+        TLorentzVector posInit(helixClass.getReferencePoint()[0],
+                helixClass.getReferencePoint()[1],
+                helixClass.getReferencePoint()[2],eventStartTime);
+        m_seedPos[0]=posInit.X();
+        m_seedPos[1]=posInit.Y();
+        m_seedPos[2]=posInit.Z();
+        TVector3 momInit(helixClass.getMomentum()[0],
+                helixClass.getMomentum()[1],helixClass.getMomentum()[2]);
+        m_seedMomP=momInit.Mag();
+        m_seedMomPt=momInit.Perp();
+        m_seedMom[0]=momInit.X();
+        m_seedMom[1]=momInit.Y();
+        m_seedMom[2]=momInit.Z();
+        iSdtTrack++;
+    }
+
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
     const edm4hep::SimTrackerHitCollection* simDCHitCol=nullptr;
 
