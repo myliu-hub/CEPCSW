@@ -197,38 +197,30 @@ StatusCode RecGenfitAlgSDT::initialize()
 
 StatusCode RecGenfitAlgSDT::execute()
 {
+    info()<<"RecGenfitAlgSDT in execute()"<<endmsg;
+
+    edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
+        m_SDTRecParticleCol.createAndPut();
+
     StatusCode sc=StatusCode::SUCCESS;
     m_timer=clock();
-    info()<<"RecGenfitAlgSDT in execute()"<<endmsg;
 
     /////retrieve EventHeader
     //auto header = _headerCol.get()->at(0);
     //int evtNo = header.getEventNumber();
     //int runNo = header.getRunNumber();
-
-    //std::cout<<"run "<<header.getEventNumber()
+    //info()<<"run "<<header.getEventNumber()
     //  <<" "<<header.getRunNumber()<<std::endl;
 
     ///retrieve silicon Track and TrackHits
     const edm4hep::TrackCollection* sdtTrackCol=nullptr;
-    sdtTrackCol=m_SDTTrackCol.get();
+    if(m_SDTTrackCol.exist())sdtTrackCol=m_SDTTrackCol.get();
     if(nullptr==sdtTrackCol) {
         debug()<<"TrackCollection not found"<<endmsg;
         return StatusCode::SUCCESS;
     }
-    //const edm4hep::TrackerHitCollection* dcDigiCol=nullptr;
-    //dcDigiCol=m_DCDigiCol.get();
-    //if(nullptr==dcDigiCol) {
-    //    debug()<<"DigiDCHitCollection not found"<<endmsg;
-    //    return StatusCode::SUCCESS;
-    //}
-    ///retrieve DC Hit Association
+
     auto dcHitAssociationCol=m_DCHitAssociationCol.get();
-
-
-    edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
-        m_SDTRecParticleCol.createAndPut();
-
     double eventStartTime=0;
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track

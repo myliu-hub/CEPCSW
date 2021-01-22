@@ -194,6 +194,9 @@ StatusCode RecGenfitAlgDC::initialize()
 
 StatusCode RecGenfitAlgDC::execute()
 {
+    edm4hep::ReconstructedParticleCollection* dcRecParticleCol=
+        m_dcRecParticleCol.createAndPut();
+
     StatusCode sc;
     m_timer=clock();
     info()<<"RecGenfitAlgDC in execute()"<<endmsg;
@@ -222,8 +225,6 @@ StatusCode RecGenfitAlgDC::execute()
     ///retrieve DC Hit Association
     auto assoDCHitsCol=m_dcHitAssociationCol.get();
 
-    edm4hep::ReconstructedParticleCollection* dcRecParticleCol=
-        m_dcRecParticleCol.createAndPut();
 
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track

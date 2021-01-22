@@ -37,11 +37,6 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of silicon subset track collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of SDT track collection");
-    declareProperty("DCRecParticleCollection", m_DCRecParticleCol,
-            "Handle of drift chamber reconstructed particle collection");
-    declareProperty("DCRecParticleAssociationCollection",
-            m_DCRecParticleAssociationCol,
-            "Handle of drift chamber reconstructed particle collection");
 }
 
 StatusCode TruthTrackerAlg::initialize()
@@ -81,6 +76,10 @@ StatusCode TruthTrackerAlg::initialize()
 
 StatusCode TruthTrackerAlg::execute()
 {
+    info()<<"In execute()"<<endmsg;
+    ///Output Track collection
+    edm4hep::TrackCollection* dcTrackCol=m_DCTrackCol.createAndPut();
+    edm4hep::TrackCollection* sdtTrackCol=m_SDTTrackCol.createAndPut();
     ///Retrieve MC particle(s)
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
     mcParticleCol=m_mcParticleCol.get();
@@ -97,15 +96,11 @@ StatusCode TruthTrackerAlg::execute()
         debug()<<"TrackerHitCollection not found"<<endmsg;
         //return StatusCode::SUCCESS;//FIXME return when no hits in DC + silicon
     }
-    if((int) digiDCHitsCol->size()>m_maxDCDigiCut) return StatusCode::SUCCESS;
-
-    ///Output Track collection
-    edm4hep::TrackCollection* dcTrackCol=m_DCTrackCol.createAndPut();
-    edm4hep::TrackCollection* sdtTrackCol=m_SDTTrackCol.createAndPut();
-    edm4hep::ReconstructedParticleCollection* dcRecParticleCol(nullptr);
-    if(m_writeRecParticle){
-        dcRecParticleCol=m_DCRecParticleCol.createAndPut();
+    if((int) digiDCHitsCol->size()>m_maxDCDigiCut){
+        debug()<<"Cut by m_maxDCDigiCut "<<m_maxDCDigiCut<<endmsg;
+        return StatusCode::SUCCESS;
     }
+
     ////TODO
     //Output MCRecoTrackerAssociationCollection collection
     //const edm4hep::MCRecoTrackerAssociationCollection*
@@ -244,29 +239,6 @@ StatusCode TruthTrackerAlg::execute()
             <<",referencePoint,cov"<<std::endl<<trackState<<std::endl;
         debug()<<"dcTrack"<<dcTrack<<endmsg;
 
-        edm4hep::ReconstructedParticle dcRecParticle;
-        if(m_writeRecParticle){
-            dcRecParticle=dcRecParticleCol->create();
-            ///new ReconstructedParticle
-            //dcRecParticle.setType();//TODO
-            double mass=mcParticle.getMass();
-            double p=sqrt(mcParticleMomSmeared.x*mcParticleMomSmeared.x+
-                    mcParticleMomSmeared.y*mcParticleMomSmeared.y+
-                    mcParticleMomSmeared.z*mcParticleMomSmeared.z);
-            dcRecParticle.setEnergy(sqrt(mass*mass+p*p));
-            dcRecParticle.setMomentum(mcParticleMomSmeared);
-            dcRecParticle.setReferencePoint(mcParticleVertexSmeared);
-            dcRecParticle.setCharge(mcParticle.getCharge());
-            dcRecParticle.setMass(mass);
-            //dcRecParticle.setGoodnessOfPID();//TODO
-            //std::array<float>,10> covMat=?;//TODO
-            //dcRecParticle.setCovMatrix(covMat);//TODO
-            //dcRecParticle.setStartVertex();//TODO
-            edm4hep::ParticleID particleID(0,mcParticle.getPDG(),0,1);//FIXME
-            dcRecParticle.setParticleIDUsed(particleID);
-            dcRecParticle.addToTracks(dcTrack);
-        }//end of write RecParticle
-
         debug()<<"mcParticle "<<mcParticle
             <<" momPhi "<<mcParticleMomPhi
             <<" mcParticleVertex("<<mcParticleVertex<<")mm "
@@ -275,7 +247,6 @@ StatusCode TruthTrackerAlg::execute()
             <<" mcParticleMomSmeared("<<mcParticleMomSmeared<<")GeV "
             <<" Bxyz "<<B[0]/dd4hep::tesla<<" "<<B[1]/dd4hep::tesla
             <<" "<<B[2]/dd4hep::tesla<<" tesla"<<endmsg;
-        if(m_writeRecParticle) debug()<<"dcRecParticle"<<dcRecParticle<<endmsg;
     }//end loop over MCParticleCol
 
     debug()<<"Output DCTrack size="<<dcTrackCol->size()<<endmsg;

@@ -54,17 +54,10 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{
             "SDTTrackCollection", Gaudi::DataHandle::Writer, this};
-        DataHandle<edm4hep::ReconstructedParticleCollection> m_DCRecParticleCol{
-            "DCRecParticleCollection", Gaudi::DataHandle::Writer, this};
-        DataHandle<edm4hep::MCRecoParticleAssociationCollection>
-            m_DCRecParticleAssociationCol{
-                "DCRecMCRecoParticleAssociationCollection",
-                Gaudi::DataHandle::Writer, this};
 
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
-        Gaudi::Property<bool> m_writeRecParticle{this,"writeRecParticle",false};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
