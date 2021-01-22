@@ -112,8 +112,8 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<double> m_bStart{this,"bStart",100};
         Gaudi::Property<double> m_bFinal{this,"bFinal",0.01};
         Gaudi::Property<double> m_dcCornerCuts{this,"dcCornerCuts",-999};
-        Gaudi::Property<double> m_ndfCut{this,"ndfCut",1};
-        Gaudi::Property<double> m_chi2Cut{this,"chi2Cut",1000};
+        Gaudi::Property<double> m_ndfCut{this,"ndfCut",1e9};
+        Gaudi::Property<double> m_chi2Cut{this,"chi2Cut",1e9};
         //-1,chargedGeantino;0,1,2,3,4:e,mu,pi,K,proton
         Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",true};
