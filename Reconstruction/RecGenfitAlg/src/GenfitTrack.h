@@ -99,11 +99,11 @@ class GenfitTrack {
     ///Add space point from edm4hep::track
     int addSimTrackerHitsOnTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear=false);// float nSigmaSelection
+        float sigma,bool smear,bool fitSiliconOnly);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& dcRecParticle,int pidType,
-            int ndfCut=1e9, double chi2Cut=1.e9);
+            int ndfCut, double chi2Cut);
 
     ///A tool to convert track to the first layer of DC
     void pivotToFirstLayer(edm4hep::Vector3d& pos,edm4hep::Vector3f& mom,

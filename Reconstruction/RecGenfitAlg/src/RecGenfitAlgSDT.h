@@ -77,6 +77,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
             m_DCHitAssociationCol{"DCHitAssociationCollection",
                 Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackCollection> m_dcTrackCol{
+            "DCTrackCollection", Gaudi::DataHandle::Reader, this};
 
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
@@ -96,6 +98,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
         Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.11};//mm
+        Gaudi::Property<bool> m_smearHit{this,"smearHit",false};
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
@@ -115,11 +118,12 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<double> m_chi2Cut{this,"chi2Cut",1e9};
         //-1,chargedGeantino;0,1,2,3,4:e,mu,pi,K,proton
         Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
-        Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",true};
+        Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
         Gaudi::Property<bool> m_useTruthHit{this,"useTruthHit",true};
         Gaudi::Property<std::string> m_genfitHistRootName{this,
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};
+        Gaudi::Property<bool> m_fitSliconOnly{this,"fitSiliconOnly",false};
         int m_fitSuccess[5];
         int m_nRecTrack;
         //bool m_useRecLRAmbig;

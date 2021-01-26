@@ -51,6 +51,8 @@ RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
             "Handle of simTrackerHit and TrackerHit association collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of input silicon track collection");
+    declareProperty("DCTrackCollection", m_dcTrackCol,
+            "Handle of DC track collection");
     declareProperty("SDTRecParticleCollection", m_SDTRecParticleCol,
             "Handle of silicon+drift chamber rec. particle collection");
 }
@@ -222,6 +224,19 @@ StatusCode RecGenfitAlgSDT::execute()
 
     auto dcHitAssociationCol=m_DCHitAssociationCol.get();
     double eventStartTime=0;
+
+    const edm4hep::TrackCollection* dcTrackCol=nullptr;
+    if(m_dcTrackCol.exist()) dcTrackCol=m_dcTrackCol.get();
+    if(nullptr==dcTrackCol) {
+        debug()<<"TrackCollection not found"<<endmsg;
+        return StatusCode::SUCCESS;
+    }
+    const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
+    if(m_mcParticleCol.exist()){mcParticleCol=m_mcParticleCol.get();}
+    if(nullptr==mcParticleCol){
+        debug()<<"MCParticleCollection not found"<<endmsg;
+        return StatusCode::SUCCESS;
+    }
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
@@ -238,13 +253,25 @@ StatusCode RecGenfitAlgSDT::execute()
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
                     m_gridDriftChamber);
             genfitTrack->setDebug(m_debug.value());
-            if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,sdtTrack,
-                        eventStartTime)){
-                debug()<<"createGenfitTrackFromEDM4HepTrack failed!"<<endmsg;
-                return StatusCode::SUCCESS;
+            if(m_useTruthTrack){
+                //single track only FIXME
+                if(!genfitTrack->createGenfitTrackFromMCParticle(pidType,
+                            *(mcParticleCol->begin()), eventStartTime)){
+                    debug()<<"createGenfitTrackFromEDM4HepTrack from \
+                        MCParticle failed!"<<endmsg;
+                    return StatusCode::SUCCESS;
+                }
+            }else{
+                if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,
+                            sdtTrack, eventStartTime)){
+                    debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track\
+                        failed!"<<endmsg;
+                    return StatusCode::SUCCESS;
+                }
             }
-            if(0==genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,dcHitAssociationCol,
-                        m_sigmaHit.value())){
+            if(0==genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,
+                        dcHitAssociationCol,m_sigmaHit.value(),
+                        m_smearHit.value(),m_fitSliconOnly.value())){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
@@ -254,7 +281,7 @@ StatusCode RecGenfitAlgSDT::execute()
             ///call genfit fitting procedure
             ///-----------------------------------
             m_genfitFitter->setDebug(m_debug);
-            m_genfitFitter->processTrack(genfitTrack,m_resortHits);
+            m_genfitFitter->processTrack(genfitTrack,m_resortHits.value());
 
             ///-----------------------------------
             ///Store track

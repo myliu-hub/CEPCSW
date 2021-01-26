@@ -662,7 +662,7 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 ///Add space point measurement from edm4hep::Track to genfit track
 int GenfitTrack::addSimTrackerHitsOnTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear){
+        float sigma,bool smear, bool fitSiliconOnly){
     //A TrakerHit collection
     std::vector<edm4hep::ConstSimTrackerHit> sortedDCTrackHitCol;
 
@@ -684,8 +684,14 @@ int GenfitTrack::addSimTrackerHitsOnTrack(const edm4hep::Track& track,
 
         if(detID==lcio::ILDDetID::VXD || detID==lcio::ILDDetID::SIT ||
                 detID==lcio::ILDDetID::SET || detID==lcio::ILDDetID::FTD){
+
+            if(detID==lcio::ILDDetID::SET&&m_debug>=2){
+                std::cout<<"Use SET hits"<<std::endl;
+            }
             if(addSpacePointTrakerHit(hit,hitID)){
-                if(m_debug>=2)std::cout<<"add slicon space point"<<std::endl;
+                if(m_debug>=2){
+                    std::cout<<"silicon addSpacePointTrakerHit"<<std::endl;
+                }
                 hitID++;
             }else{
                 if(m_debug>=2)std::cout<<"silicon addSpacePointTrakerHit"
@@ -722,19 +728,21 @@ int GenfitTrack::addSimTrackerHitsOnTrack(const edm4hep::Track& track,
     ///Add DC hits to track
     //Sort sim DC hits by time
     //std::sort(sortedDCTrackHitCol.begin(),sortedDCTrackHitCol.end(),sortDCHit);
-    for(auto dCTrackerHit: sortedDCTrackHitCol){
-        edm4hep::Vector3d pos=dCTrackerHit.getPosition();
-        TVectorD p(3);
-        p[0]=pos.x;
-        p[1]=pos.y;
-        p[2]=pos.z;
-        unsigned long long detID = dCTrackerHit.getCellID();
-        if(addSpacePointMeasurement(p,sigma,detID,hitID,smear)){
-            if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
-            hitID++;
-        }else{
-            if(m_debug>=2)std::cout<<"addSpacePointMeasurement"
-                <<detID<<" faieled" <<std::endl;
+    if(!fitSiliconOnly){
+        for(auto dCTrackerHit: sortedDCTrackHitCol){
+            edm4hep::Vector3d pos=dCTrackerHit.getPosition();
+            TVectorD p(3);
+            p[0]=pos.x;
+            p[1]=pos.y;
+            p[2]=pos.z;
+            unsigned long long detID = dCTrackerHit.getCellID();
+            if(addSpacePointMeasurement(p,sigma,detID,hitID,smear)){
+                if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
+                hitID++;
+            }else{
+                if(m_debug>=2)std::cout<<"addSpacePointMeasurement"
+                    <<detID<<" faieled" <<std::endl;
+            }
         }
     }
 

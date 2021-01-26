@@ -132,7 +132,7 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrackState.location=siTrackStat.location;
             sdtTrackState.D0=siTrackStat.D0;
             sdtTrackState.phi=siTrackStat.phi;
-            sdtTrackState.omega=siTrackStat.omega;
+            sdtTrackState.omega=(-1.)*siTrackStat.omega;//FIXME charge
             sdtTrackState.Z0=siTrackStat.Z0;
             sdtTrackState.tanLambda=siTrackStat.tanLambda;
             sdtTrackState.referencePoint=siTrackStat.referencePoint;

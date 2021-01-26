@@ -249,7 +249,7 @@ StatusCode RecGenfitAlgDC::execute()
             }
             if(m_useTruthHit){
                 if(0==genfitTrack->addSimTrackerHitsOnTrack(dcTrack,assoDCHitsCol,
-                            m_sigmaHit.value(),m_smearHit)){
+                            m_sigmaHit.value(),m_smearHit,false)){
                     debug()<<"addSimTrackerHits failed!"<<endmsg;
                     return StatusCode::FAILURE;
                 }
@@ -265,7 +265,7 @@ StatusCode RecGenfitAlgDC::execute()
             ///-----------------------------------
             ///call genfit fitting procedure
             ///-----------------------------------
-            m_genfitFitter->processTrack(genfitTrack,m_resortHits);
+            m_genfitFitter->processTrack(genfitTrack,m_resortHits.value());
             m_genfitFitter->setDebug(m_debug);
 
             ///-----------------------------------
