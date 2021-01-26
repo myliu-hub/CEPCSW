@@ -231,21 +231,21 @@ StatusCode RecGenfitAlgSDT::execute()
         ///-1 for chargedgeantino
         for(unsigned int pidType=0;pidType<m_nPDG;pidType++){
             if((m_debugPid>=0) && (m_debugPid!=pidType)) continue;
+            debug()<<"processing pidType "<<pidType<<endmsg;
             ///-----------------------------------
             ///Create a GenFit track
             ///-----------------------------------
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
                     m_gridDriftChamber);
-            debug()<<"debug level="<<m_debug.value()<<endmsg;
             genfitTrack->setDebug(m_debug.value());
             if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,sdtTrack,
                         eventStartTime)){
                 debug()<<"createGenfitTrackFromEDM4HepTrack failed!"<<endmsg;
                 return StatusCode::SUCCESS;
             }
-            if(0==genfitTrack->addSimTrackerHits(sdtTrack,dcHitAssociationCol,
+            if(0==genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,dcHitAssociationCol,
                         m_sigmaHit.value())){
-                debug()<<"addSimTrackerHits failed!"<<endmsg;
+                debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
             if(m_debug) genfitTrack->printSeed();
@@ -420,6 +420,9 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float pz=mcPocaMom.z;
         debug()<<"   "<<px<<" "<<py<<" "<<pz<<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
+        m_pocaMomMc[iMcParticle][0]=px;
+        m_pocaMomMc[iMcParticle][1]=py;
+        m_pocaMomMc[iMcParticle][2]=pz;
         iMcParticle++;
     }
     m_mcIndex=iHit;

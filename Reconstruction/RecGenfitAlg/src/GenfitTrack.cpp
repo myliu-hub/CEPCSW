@@ -660,7 +660,7 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 
 
 ///Add space point measurement from edm4hep::Track to genfit track
-int GenfitTrack::addSimTrackerHits(const edm4hep::Track& track,
+int GenfitTrack::addSimTrackerHitsOnTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         float sigma,bool smear){
     //A TrakerHit collection
@@ -738,7 +738,9 @@ int GenfitTrack::addSimTrackerHits(const edm4hep::Track& track,
         }
     }
 
-    if(m_debug>=2)std::cout<<"GenfitTrack nHitAdded "<<hitID<<std::endl;
+    if(m_debug>=2){
+        std::cout<<"GenfitTrack addSimTrackerHitsOnTrack="<<hitID<<std::endl;
+    }
     return hitID;
 }
 

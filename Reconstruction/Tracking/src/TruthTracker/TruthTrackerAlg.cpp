@@ -12,7 +12,7 @@
 #include "CLHEP/Random/RandGauss.h"
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/MCParticleCollection.h"
-#include "edm4hep/SimTrackerHitCollection.h"
+#include "edm4hep/TrackerHitCollection.h"
 #include "edm4hep/TrackerHitCollection.h"
 #include "edm4hep/TrackCollection.h"
 #include "edm4hep/MCRecoTrackerAssociationCollection.h"
@@ -37,6 +37,8 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of silicon subset track collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of SDT track collection");
+    declareProperty("SETTrackerHits", m_SETTrackerHitCol,
+            "Handle of input SET hit collection");
 }
 
 StatusCode TruthTrackerAlg::initialize()
@@ -123,6 +125,7 @@ StatusCode TruthTrackerAlg::execute()
     if(nullptr!=siTrackCol){
         ///New SDT track
         for(auto siTrack:*siTrackCol){
+            debug()<<"siTrack: "<<siTrack<<endmsg;
             edm4hep::Track sdtTrack=sdtTrackCol->create();
             edm4hep::TrackState sdtTrackState;
             edm4hep::TrackState siTrackStat=siTrack.getTrackStates(0);//FIXME?
@@ -154,6 +157,15 @@ StatusCode TruthTrackerAlg::execute()
                 sdtTrack.addToTrackerHits(digiDC);
             }
             debug()<<"sdtTrack "<<sdtTrack<<endmsg;
+            //TODO For single track only
+            int nSETHit=0;
+            const edm4hep::TrackerHitCollection* setTrackerHitCol
+                =m_SETTrackerHitCol.get();
+            for(auto setTrackerHit:*setTrackerHitCol){
+                sdtTrack.addToTrackerHits(setTrackerHit);
+                nSETHit++;
+            }
+            debug()<<"nSETHit "<<nSETHit<<endmsg;
         }
     }
 
@@ -162,6 +174,7 @@ StatusCode TruthTrackerAlg::execute()
     for(auto mcParticle : *mcParticleCol){
         /// skip mcParticleVertex do not have enough associated hits TODO
 
+        debug()<<"MCParticleCol "<<mcParticle<<endmsg;
         ///Vertex
         const edm4hep::Vector3d mcParticleVertex=mcParticle.getVertex();//mm
         edm4hep::Vector3f mcParticleVertexSmeared;//mm
@@ -223,7 +236,7 @@ StatusCode TruthTrackerAlg::execute()
             <<trackState.omega<<" Z0 "<<trackState.Z0<<" tanLambda "
             <<trackState.tanLambda<<" referencePoint "
             <<trackState.referencePoint
-            <<trackState.covMatrix<<endmsg;
+            <<trackState.covMatrix<<" Bz "<<B[2]/dd4hep::tesla<<endmsg;
         //set hits
         double radiusOfInnermostHit=1e9;
         debug()<<"digiDCHitsCol size "<<digiDCHitsCol->size()<<endmsg;
@@ -235,7 +248,7 @@ StatusCode TruthTrackerAlg::execute()
             dcTrack.addToTrackerHits(digiDC);
         }
         dcTrack.setRadiusOfInnermostHit(radiusOfInnermostHit);//TODO
-        debug()<<"trackState:location,D0,phi,omega,Z0,tanLambda"
+        debug()<<"DC trackState:location,D0,phi,omega,Z0,tanLambda"
             <<",referencePoint,cov"<<std::endl<<trackState<<std::endl;
         debug()<<"dcTrack"<<dcTrack<<endmsg;
 

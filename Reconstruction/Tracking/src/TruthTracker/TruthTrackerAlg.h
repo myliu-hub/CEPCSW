@@ -20,6 +20,7 @@ namespace edm4hep {
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticleCollection;
     class MCRecoParticleAssociationCollection;
+    class TrackerHitCollection;
 }
 
 class TruthTrackerAlg: public GaudiAlgorithm
@@ -49,6 +50,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackCollection>
             m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SETTrackerHitCol{
+            "SETTrackerHits" , Gaudi::DataHandle::Reader, this};
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};

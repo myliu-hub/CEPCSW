@@ -248,7 +248,7 @@ StatusCode RecGenfitAlgDC::execute()
                 return StatusCode::SUCCESS;
             }
             if(m_useTruthHit){
-                if(0==genfitTrack->addSimTrackerHits(dcTrack,assoDCHitsCol,
+                if(0==genfitTrack->addSimTrackerHitsOnTrack(dcTrack,assoDCHitsCol,
                             m_sigmaHit.value(),m_smearHit)){
                     debug()<<"addSimTrackerHits failed!"<<endmsg;
                     return StatusCode::FAILURE;
