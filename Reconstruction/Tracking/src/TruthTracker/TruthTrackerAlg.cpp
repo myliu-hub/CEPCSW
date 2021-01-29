@@ -7,6 +7,7 @@
 #include "DD4hep/IDDescriptor.h"
 #include "DD4hep/Plugins.h"
 #include "DD4hep/DD4hepUnits.h"
+#include "UTIL/ILDConf.h"
 
 //external
 #include "CLHEP/Random/RandGauss.h"
@@ -37,6 +38,8 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of silicon subset track collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of SDT track collection");
+    declareProperty("SITTrackerHits", m_SITTrackerHitCol,
+            "Handle of input SIT hit collection");
     declareProperty("SETTrackerHits", m_SETTrackerHitCol,
             "Handle of input SET hit collection");
 }
@@ -118,10 +121,15 @@ StatusCode TruthTrackerAlg::execute()
     const edm4hep::TrackCollection* siTrackCol=nullptr;
     if(m_siSubsetTrackCol.exist()){
         siTrackCol=m_siSubsetTrackCol.get();
-        debug()<<"SDTTrackCollection size "<<siTrackCol->size()<<endmsg;
-    }else{
-        debug()<<"SDTTrackCollection is empty"<<endmsg;
+        if(nullptr!=siTrackCol){
+            debug()<<"SDTTrackCollection size "<<siTrackCol->size()
+                <<endmsg;
+        }else{
+            debug()<<"SDTTrackCollection is empty"<<endmsg;
+        }
     }
+    bool isAddSITSeperately=true;
+    bool isAddSETSeperately=true;
     if(nullptr!=siTrackCol){
         ///New SDT track
         for(auto siTrack:*siTrackCol){
@@ -132,7 +140,7 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrackState.location=siTrackStat.location;
             sdtTrackState.D0=siTrackStat.D0;
             sdtTrackState.phi=siTrackStat.phi;
-            sdtTrackState.omega=(-1.)*siTrackStat.omega;//FIXME charge
+            sdtTrackState.omega=siTrackStat.omega;
             sdtTrackState.Z0=siTrackStat.Z0;
             sdtTrackState.tanLambda=siTrackStat.tanLambda;
             sdtTrackState.referencePoint=siTrackStat.referencePoint;
@@ -146,27 +154,50 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrack.setDEdx(siTrack.getDEdx());
             sdtTrack.setDEdxError(siTrack.getDEdxError());
             sdtTrack.setRadiusOfInnermostHit(siTrack.getRadiusOfInnermostHit());
-            debug()<<"siTrack trackerHits_size="<<siTrack.trackerHits_size()<<endmsg;
-            for(unsigned int iSiTackerHit=0;iSiTackerHit<siTrack.trackerHits_size();
-                    iSiTackerHit++){
-                sdtTrack.addToTrackerHits(siTrack.getTrackerHits(iSiTackerHit));
+            for(unsigned int iSiHit=0;iSiHit<siTrack.trackerHits_size();
+                    iSiHit++){
+                edm4hep::ConstTrackerHit hit=siTrack.getTrackerHits(iSiHit);
+                UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+                encoder.setValue(hit.getCellID());
+                int detID=encoder[lcio::ILDCellID0::subdet];
+                if(detID==lcio::ILDDetID::SIT) isAddSITSeperately=false;
+                if(detID==lcio::ILDDetID::SET) isAddSETSeperately=false;
+                //debug()<<"siHit "<<iSiHit<<" "<<hit<<endmsg;
+                std::cout<<"hit "<<hit<<std::endl;
+                sdtTrack.addToTrackerHits(hit);
             }
+            //TODO For single track only
+            int nSITHit=0;
+            if(isAddSITSeperately){
+                const edm4hep::TrackerHitCollection* sitTrackerHitCol
+                    =m_SITTrackerHitCol.get();
+                for(auto sitTrackerHit:*sitTrackerHitCol){
+                    sdtTrack.addToTrackerHits(sitTrackerHit);
+                    nSITHit++;
+                }
+            }
+            int nSETHit=0;
+            if(isAddSETSeperately){
+                const edm4hep::TrackerHitCollection* setTrackerHitCol
+                    =m_SETTrackerHitCol.get();
+                for(auto setTrackerHit:*setTrackerHitCol){
+                    sdtTrack.addToTrackerHits(setTrackerHit);
+                    nSETHit++;
+                }
+            }
+            int nDCHit=0;
             //TODO tracks
             for(auto digiDC:*digiDCHitsCol){
                 //if(Sim->MCParti!=current) continue;//TODO
                 sdtTrack.addToTrackerHits(digiDC);
+                nDCHit++;
             }
-            debug()<<"sdtTrack "<<sdtTrack<<endmsg;
-            //TODO For single track only
-            int nSETHit=0;
-            const edm4hep::TrackerHitCollection* setTrackerHitCol
-                =m_SETTrackerHitCol.get();
-            for(auto setTrackerHit:*setTrackerHitCol){
-                sdtTrack.addToTrackerHits(setTrackerHit);
-                nSETHit++;
-            }
-            debug()<<"nSETHit "<<nSETHit<<endmsg;
-        }
+            debug()<<"siTrack trackerHits_size="<<siTrack.trackerHits_size()<<
+                " nSITHit_sp "<<nSITHit<<" nSETHit_sp "<<nSETHit<<
+                " nDCHit "<<nDCHit<<endmsg;
+            debug()<<"sdtTrack nHit "<<sdtTrack.trackerHits_size()<<sdtTrack
+                <<endmsg;
+        }//end of loop over siTrack
     }
 
     ///Convert MCParticle to DC Track and ReconstructedParticle
@@ -249,7 +280,7 @@ StatusCode TruthTrackerAlg::execute()
         }
         dcTrack.setRadiusOfInnermostHit(radiusOfInnermostHit);//TODO
         debug()<<"DC trackState:location,D0,phi,omega,Z0,tanLambda"
-            <<",referencePoint,cov"<<std::endl<<trackState<<std::endl;
+            <<",referencePoint,cov\n"<<trackState<<endmsg;
         debug()<<"dcTrack"<<dcTrack<<endmsg;
 
         debug()<<"mcParticle "<<mcParticle

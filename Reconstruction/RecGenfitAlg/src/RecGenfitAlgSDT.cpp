@@ -232,7 +232,7 @@ StatusCode RecGenfitAlgSDT::execute()
         return StatusCode::SUCCESS;
     }
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
-    if(m_mcParticleCol.exist()){mcParticleCol=m_mcParticleCol.get();}
+    mcParticleCol=m_mcParticleCol.get();//FIXME get error when call exist()
     if(nullptr==mcParticleCol){
         debug()<<"MCParticleCollection not found"<<endmsg;
         return StatusCode::SUCCESS;

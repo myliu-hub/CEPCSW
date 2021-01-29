@@ -50,6 +50,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackCollection>
             m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SITTrackerHitCol{
+            "SITTrackerHits" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_SETTrackerHitCol{
             "SETTrackerHits" , Gaudi::DataHandle::Reader, this};
         //writer

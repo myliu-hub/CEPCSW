@@ -55,10 +55,10 @@ namespace dd4hep {
 
 class GenfitTrack {
     friend int GenfitFitter::processTrack(
-            GenfitTrack* track, bool resort=false);
+            GenfitTrack* track, bool resort);
 
     friend int GenfitFitter::processTrackWithRep(
-            GenfitTrack* track, int repID=0, bool resort=false);
+            GenfitTrack* track, int repID, bool resort);
 
     public:
     GenfitTrack(const GenfitField* field,
@@ -82,7 +82,7 @@ class GenfitTrack {
     //  int PrepareHits();//TODO
 
     /// Add a space point measurement, return number of hits on track
-    bool addSpacePointTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
+    bool addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
 
     /// Add a space point measurement, return number of hits on track
     virtual bool addSpacePointMeasurement(const TVectorD&, double,
