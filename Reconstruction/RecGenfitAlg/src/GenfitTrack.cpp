@@ -69,36 +69,31 @@ GenfitTrack::~GenfitTrack()
 /// Initialize track with seed states
 /// NO unit conversion here
 bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
-        TLorentzVector posInit, TVector3 momInit, TMatrixDSym covMInit)
+        TLorentzVector posInit, TVector3 momInit, TMatrixDSym covMInit_6)
 {
     TVectorD seedState(6);
-    TMatrixDSym seedCov(6);
+    //TMatrixDSym seedCov(6);
 
-    //for(int i = 0; i < 6; ++i) {
-    //  for(int j = 0; j < 6; ++j) {
-    //    seedCov(i,j)=covMInit(i,j);
-    //  }
-    //}
-    //yzhang FIXME
+    ////yzhang FIXME
     //seed position
     for(int i = 0; i < 3; ++i) {
         seedState(i)=posInit[i];
         //yzhang TODO from covMInit to seedCov
-        double resolution = 0.1;//*dd4hep::mm/dd4hep::cm;
-        seedCov(i,i)=resolution*resolution;
-        if(i==2) seedCov(i,i)=0.5*0.5;
+        //double resolution = 0.1;//*dd4hep::mm/dd4hep::cm;
+        //seedCov(i,i)=resolution*resolution;
+        //if(i==2) seedCov(i,i)=0.5*0.5;
     }
     //seed momentum
     for(int i = 3; i < 6; ++i){
         //seedState(i)=momInit[i-3]*(dd4hep::GeV);
         seedState(i)=momInit[i-3];
         //yzhang TODO from covMInit to seedCov
-        seedCov(i,i)=0.01;//pow(resolution / sqrt(3),2);
+        //seedCov(i,i)=0.01;//pow(resolution / sqrt(3),2);
     }
 
     if(nullptr==m_track) m_track=new genfit::Track();
     m_track->setStateSeed(seedState);
-    m_track->setCovSeed(seedCov);
+    m_track->setCovSeed(covMInit_6);
 
     /// new a track representation and add to the track
     int chargeId=0;
@@ -112,7 +107,7 @@ bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
 
     addTrackRep(s_PDG[chargeId][pdgType]);
 
-    if(m_debug>0) seedCov.Print();
+    if(m_debug>0) covMInit_6.Print();
     return true;
 }
 
@@ -120,6 +115,7 @@ bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
 bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
         const edm4hep::MCParticle& mcParticle, double eventStartTime)
 {
+    if(m_debug>=2)std::cout<<"createGenfitTrackFromMCParticle "<<std::endl;
     ///get track parameters from McParticle
     edm4hep::Vector3d mcPocaPos = mcParticle.getVertex();//mm
     edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
@@ -144,19 +140,27 @@ bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
         <<" "<<firstLayerMom.y<<" "<<firstLayerMom.z<<std::endl;
 
     ///Get error matrix of seed track
-    TMatrixDSym covM(5);//FIXME, TODO
+    TMatrixDSym covMInit_6(6,6,0);//FIXME, TODO
+    ////yzhang FIXME
+    for(int i = 0; i < 3; ++i) {
+        double posResolusion= 0.1;
+        //seed position
+        covMInit_6(i,i)=posResolusion*posResolusion;
+        //seed momentum
+        double momResolusion= 0.5;
+        covMInit_6(i+3,i+3)=momResolusion*momResolusion;
+    }
 
     ///Create a genfit track with seed
-    if(m_debug>=2)std::cout<<"createGenfitTrack " ;
     if(!GenfitTrack::createGenfitTrack(pidType,mcParticle.getCharge(),
-                seedPos,seedMom,covM)){
+                seedPos,seedMom,covMInit_6)){
         if(m_debug>=2)std::cout<<"GenfitTrack"
-            <<" Error in createGenfitTrack" <<std::endl;
+            <<" Error in createGenfitTrackFromMCParticle" <<std::endl;
         return false;
-    }else{
-        if(m_debug>=2)std::cout<<"GenfitTrack "
-            <<"createGenfitTrackFromMCParticle track created" <<std::endl;
     }
+    if(m_debug>=2)std::cout<<"GenfitTrack \
+        createGenfitTrackFromMCParticle success." <<std::endl;
+
     return true;
 }//end of createGenfitTrackFromMCParticle
 
@@ -164,20 +168,24 @@ bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
 bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
         const edm4hep::Track& track, double eventStartTime)
 {
-    edm4hep::TrackState trackStat=track.getTrackStates(0);//FIXME?
+    edm4hep::TrackState trackState=track.getTrackStates(0);//FIXME?
     if(m_debug>=2){
         std::cout<<m_name<<" createGenfitTrackFromEDM4HepTrack "
             <<" Bz "<<m_genfitField->getBz({0.,0.,0.})
             *dd4hep::kilogauss/dd4hep::tesla
-            <<" edm4hep::TrackState " <<trackStat<<" track "<<track<<std::endl;
+            <<" edm4hep::TrackState " <<trackState<<" track "<<track<<std::endl;
     }
     //TODO
     //pivotToFirstLayer(mcPocaPos,mcPocaMom,firstLayerPos,firstLayerMom);
     //Get track parameters
     HelixClass helixClass;
-    helixClass.Initialize_Canonical(trackStat.phi,trackStat.D0,
-            trackStat.Z0,trackStat.omega,trackStat.tanLambda,
-            m_genfitField->getBz({0.,0.,0.})*dd4hep::kilogauss/dd4hep::tesla);
+    double D0=trackState.D0;
+    double phi=trackState.phi;
+    double omega=trackState.omega;
+    double Z0=trackState.Z0;
+    double tanLambda=trackState.tanLambda;
+    double Bz=m_genfitField->getBz({0.,0.,0.})*dd4hep::kilogauss/dd4hep::tesla;
+    helixClass.Initialize_Canonical(phi,D0,Z0,omega,tanLambda,Bz);
     TLorentzVector posInit(helixClass.getReferencePoint()[0],
             helixClass.getReferencePoint()[1],
             helixClass.getReferencePoint()[2],eventStartTime);
@@ -198,10 +206,58 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
             <<std::endl;
         momInit.Print();
     }
-    TMatrixDSym covMInit;
+    float charge = helixClass.getCharge();
+    TMatrixDSym covMInit_5(5);//FIXME??? UNIT
+    ///< lower triangular covariance matrix of the track parameters.
+    ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).
+    std::array<float, 15> covMatrix=trackState.covMatrix;
+    covMInit_5(0,0)=covMatrix[0];
+    covMInit_5(1,0)=covMatrix[1];
+    covMInit_5(1,1)=covMatrix[2];
+    covMInit_5(2,0)=covMatrix[3];
+    covMInit_5(2,1)=covMatrix[4];
+    covMInit_5(2,2)=covMatrix[5];
+    covMInit_5(3,0)=covMatrix[6];
+    covMInit_5(3,1)=covMatrix[7];
+    covMInit_5(3,2)=covMatrix[8];
+    covMInit_5(3,3)=covMatrix[9];
+    covMInit_5(4,0)=covMatrix[10];
+    covMInit_5(4,1)=covMatrix[11];
+    covMInit_5(4,2)=covMatrix[12];
+    covMInit_5(4,3)=covMatrix[13];
+    covMInit_5(4,4)=covMatrix[14];
+
+    TMatrixDSym covMInit_6(6);
+    ///Error propagation
+    //V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
+    TMatrix mS(covMInit_6.GetNrows(),covMInit_5.GetNrows());
+    mS.Zero();
+    double FCT = 2.99792458E-4;
+    mS[0][0]=-sin(phi);
+    mS[0][1]=-1*D0*cos(phi);
+    mS[1][0]=cos(phi);
+    mS[1][1]=-1*D0*sin(phi);
+    mS[2][3]=1;
+    mS[3][1]=FCT*Bz*(1/omega)*sin(phi);
+    mS[3][2]=charge*FCT*Bz*(1/(omega*omega))*cos(phi);
+    mS[4][1]=-1*FCT*Bz*(1/omega)*cos(phi);
+    mS[4][2]=charge*FCT*Bz*(1/(omega*omega))*sin(phi);
+    mS[5][2]=charge*tanLambda*Bz*(1/(omega*omega));
+    mS[5][4]=-FCT*Bz/omega*(1+tanLambda*tanLambda);
+
+    covMInit_6= covMInit_5.Similarity(mS);
+    if(m_debug>=2){
+        std::cout<<m_name<<" covMInit_5 " <<std::endl;
+        covMInit_5.Print();
+        std::cout<<m_name<<" mS " <<std::endl;
+        mS.Print();
+        std::cout<<m_name<<" covMInit_6 " <<std::endl;
+        covMInit_6.Print();
+    }
+
     //TODO ini cov with trackState
     if(!createGenfitTrack(pidType,helixClass.getCharge(),posInit,momInit,
-                covMInit)){
+                covMInit_6)){
         if(m_debug>=2){
             std::cout<<m_name<<" Failed in \
                 createGenfitTrackFromEDM4HepTrack "<<std::endl;
