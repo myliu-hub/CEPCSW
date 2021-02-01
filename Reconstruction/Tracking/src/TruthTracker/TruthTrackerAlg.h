@@ -21,6 +21,7 @@ namespace edm4hep {
     class ReconstructedParticleCollection;
     class MCRecoParticleAssociationCollection;
     class TrackerHitCollection;
+    class TrackState;
 }
 
 class TruthTrackerAlg: public GaudiAlgorithm
@@ -33,6 +34,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         virtual StatusCode finalize() override;
 
     private:
+        void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
+                mcParticleCol, edm4hep::TrackState& stat);
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::Detector* m_dd4hep;
         dd4hep::OverlayedField m_dd4hepField;
@@ -50,10 +53,28 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackCollection>
             m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SITTrackerHitCol{
-            "SITTrackerHits" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SETTrackerHitCol{
+        DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
+            "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
+            "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_FTDSpacePointCol{
+            "FTDSpacePoints" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_VXDTrackerHits{
+            "VXDTrackerHits" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SETTrackerHits{
             "SETTrackerHits" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SITTrackerHits{
+            "SITTrackerHits" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_FTDTrackerHits{
+            "FTDTrackerHits" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_VXDCollection{
+            "VXDCollection" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SETCollection{
+            "SETCollection" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SITCollection{
+            "SITCollection" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_FTDCollection{
+            "FTDCollection" , Gaudi::DataHandle::Reader, this};
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};
@@ -63,6 +84,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
+        Gaudi::Property<float> m_useSiTruthHit{this,"useSiTruthHit",false};
+        Gaudi::Property<float> m_useSiSpacePoint{this,"useSiSpacePoint",true};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian

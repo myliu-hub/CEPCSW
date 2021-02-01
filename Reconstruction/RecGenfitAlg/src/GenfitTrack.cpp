@@ -285,20 +285,72 @@ bool GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,
         cov[i]=hit.getCovMatrix(i);
         if(m_debug>=2)std::cout<<"cov "<<cov[i]<<std::endl;
     }
-    TMatrixDSym hitCov(3);//FIXME?
-    //in SimpleDigi/src/PlanarDigiAlg.cpp
-    //cov[0] = u_direction[0];
-    //cov[1] = u_direction[1];
-    //cov[2] = resU;
-    //cov[3] = v_direction[0];
-    //cov[4] = v_direction[1];
-    //cov[5] = resV;
-    hitCov(0,0)=cov[2]*dd4hep::mm*dd4hep::mm;
-    hitCov(1,1)=cov[2]*dd4hep::mm*dd4hep::mm;
-    hitCov(2,2)=cov[2]*dd4hep::mm*dd4hep::mm;
+
+    TMatrixDSym hitCov_3(3);
+    UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+    encoder.setValue(hit.getCellID());
+    int detID=encoder[lcio::ILDCellID0::subdet];
+
+    if(m_debug>=2){
+        std::cout<<detID<<" COMPOSITE_SPACEPOINT "<<UTIL::BitSet32(hit.getType())
+            [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]<<std::endl;
+        std::cout<<detID<<" ONE_DIMENSIONAL "<<UTIL::BitSet32(hit.getType())
+            [UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]<<std::endl;
+    }
+    if(UTIL::BitSet32(hit.getType())[UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]){
+        if(m_debug>=2){
+            std::cout<<m_name<<" detID "<<detID<<" create Planer hit err"<<std::endl;
+        }
+        //in SimpleDigi/src/PlanarDigiAlg.cpp
+        //cov[0] = u_direction[0];//theta
+        //cov[1] = u_direction[1];//phi
+        //cov[2] = resU;
+        //cov[3] = v_direction[0];
+        //cov[4] = v_direction[1];
+        //cov[5] = resV;
+        TMatrix mS(3,2);
+        mS[0][0]=-1*sin(cov[1]);//sin(phi_u)
+        mS[0][1]=0;
+        mS[1][0]=cos(cov[1]);//cos(phi_u)
+        mS[1][1]=0;
+        mS[2][0]=0;
+        mS[2][1]=1;
+        TMatrixDSym covUV_2(2);
+        covUV_2[0][0]=cov[2]*cov[2]*dd4hep::mm*dd4hep::mm;//resU^2
+        //covUV_2[1][1]=cov[5]*cov[5]*dd4hep::mm*dd4hep::mm;//resV^2 ,0 FIXME
+        covUV_2[1][1]=1e9*dd4hep::mm*dd4hep::mm;//resU^2//FIXME TODO
+        covUV_2[0][1]=covUV_2[1][0]=0;
+        hitCov_3=covUV_2.Similarity(mS);
+        if(m_debug>=2){
+            std::cout<<m_name<<" mS "<<std::endl;
+            mS.Print();
+            std::cout<<m_name<<" covUV_2 "<<std::endl;
+            covUV_2.Print();
+        }
+    }else if(UTIL::BitSet32(hit.getType())
+            [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]){
+        if(m_debug>=2){
+            std::cout<<m_name<<" detID "<<detID<<" create point hit err"<<std::endl;
+        }
+        //space point error matrix, lower triangle
+        hitCov_3[0][0]=cov[0];
+        hitCov_3[1][0]=cov[1];
+        hitCov_3[1][1]=cov[2];
+        hitCov_3[2][0]=cov[3];
+        hitCov_3[2][1]=cov[4];
+        hitCov_3[2][2]=cov[5];
+    }else{
+        hitCov_3[0][0]=0.003;
+        hitCov_3[1][1]=0.003;
+        hitCov_3[2][2]=0.003;
+    }
+    if(m_debug>=2){
+        std::cout<<m_name<<" hitCov_3 "<<std::endl;
+        hitCov_3.Print();
+    }
 
     genfit::SpacepointMeasurement* sMeas =
-        new genfit::SpacepointMeasurement(p,hitCov,(int) hit.getCellID(),hitID,
+        new genfit::SpacepointMeasurement(p,hitCov_3,(int) hit.getCellID(),hitID,
                 nullptr);
     genfit::TrackPoint* trackPoint = new genfit::TrackPoint(sMeas,m_track);
     m_track->insertPoint(trackPoint);
@@ -719,14 +771,16 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 int GenfitTrack::addSimTrackerHitsOnTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         float sigma,bool smear, bool fitSiliconOnly){
+
     //A TrakerHit collection
     std::vector<edm4hep::ConstSimTrackerHit> sortedDCTrackHitCol;
 
-    if(m_debug>=2)std::cout<<m_name<<" VXD "
+    if(m_debug>=2)std::cout<<m_name<<" addSimTrackerHitsOnTrack VXD "
         <<lcio::ILDDetID::VXD<<" SIT "
             <<lcio::ILDDetID::SIT<<" SET "
             <<lcio::ILDDetID::SET<<" FTD "
             <<lcio::ILDDetID::FTD<<" "<<std::endl;
+
     ///Get TrackerHit on Track
     int hitID=0;
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
