@@ -103,7 +103,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
         //Fitter type default is DAFRef.
         //Candidates are DAF,DAFRef,KalmanFitter and KalmanFitterRefTrack.
-        Gaudi::Property<std::string> m_fitterType{this,"fitterTyep","DAFRef"};
+        Gaudi::Property<std::string> m_fitterType{this,"fitterTyep","DAF"};
         Gaudi::Property<bool> m_correctBremsstrahlung{this,
             "correctBremsstrahlung",false};
         Gaudi::Property<bool> m_noMaterialEffects{this,
@@ -165,8 +165,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
-        NTuple::Item<int> m_nHitKalInput;
-        NTuple::Array<int> m_hitDetID;
+        //NTuple::Item<int> m_nHitKalInput;
+        //NTuple::Array<int> m_hitDetID;
         NTuple::Array<double> m_mdcHitDriftT;
         NTuple::Array<double> m_mdcHitDriftDl;
         NTuple::Array<double> m_mdcHitDriftDr;

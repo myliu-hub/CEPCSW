@@ -202,54 +202,62 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
         momInit.Print();
     }
     float charge = helixClass.getCharge();
-    TMatrixDSym covMInit_5(5);//FIXME??? UNIT
-    ///< lower triangular covariance matrix of the track parameters.
-    ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).
-    std::array<float, 15> covMatrix=trackState.covMatrix;
-    covMInit_5(0,0)=covMatrix[0];
-    covMInit_5(1,0)=covMatrix[1];
-    covMInit_5(1,1)=covMatrix[2];
-    covMInit_5(2,0)=covMatrix[3];
-    covMInit_5(2,1)=covMatrix[4];
-    covMInit_5(2,2)=covMatrix[5];
-    covMInit_5(3,0)=covMatrix[6];
-    covMInit_5(3,1)=covMatrix[7];
-    covMInit_5(3,2)=covMatrix[8];
-    covMInit_5(3,3)=covMatrix[9];
-    covMInit_5(4,0)=covMatrix[10];
-    covMInit_5(4,1)=covMatrix[11];
-    covMInit_5(4,2)=covMatrix[12];
-    covMInit_5(4,3)=covMatrix[13];
-    covMInit_5(4,4)=covMatrix[14];
+    //TMatrixDSym covMInit_5(5);//FIXME??? UNIT
+    /////< lower triangular covariance matrix of the track parameters.
+    /////  the order of parameters is  d0, phi, omega, z0, tan(lambda).
+    //std::array<float, 15> covMatrix=trackState.covMatrix;
+    //covMInit_5(0,0)=covMatrix[0];
+    //covMInit_5(1,0)=covMatrix[1];
+    //covMInit_5(1,1)=covMatrix[2];
+    //covMInit_5(2,0)=covMatrix[3];
+    //covMInit_5(2,1)=covMatrix[4];
+    //covMInit_5(2,2)=covMatrix[5];
+    //covMInit_5(3,0)=covMatrix[6];
+    //covMInit_5(3,1)=covMatrix[7];
+    //covMInit_5(3,2)=covMatrix[8];
+    //covMInit_5(3,3)=covMatrix[9];
+    //covMInit_5(4,0)=covMatrix[10];
+    //covMInit_5(4,1)=covMatrix[11];
+    //covMInit_5(4,2)=covMatrix[12];
+    //covMInit_5(4,3)=covMatrix[13];
+    //covMInit_5(4,4)=covMatrix[14];
 
     TMatrixDSym covMInit_6(6);
-    ///Error propagation
-    //V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
-    TMatrix mS(covMInit_6.GetNrows(),covMInit_5.GetNrows());
-    mS.Zero();
-    double FCT = 2.99792458E-4;
-    mS[0][0]=-sin(phi);
-    mS[0][1]=-1*D0*cos(phi);
-    mS[1][0]=cos(phi);
-    mS[1][1]=-1*D0*sin(phi);
-    mS[2][3]=1;
-    mS[3][1]=FCT*Bz*(1/omega)*sin(phi);
-    mS[3][2]=charge*FCT*Bz*(1/(omega*omega))*cos(phi);
-    mS[4][1]=-1*FCT*Bz*(1/omega)*cos(phi);
-    mS[4][2]=charge*FCT*Bz*(1/(omega*omega))*sin(phi);
-    mS[5][2]=charge*tanLambda*Bz*(1/(omega*omega));
-    mS[5][4]=-FCT*Bz/omega*(1+tanLambda*tanLambda);
+    /////Error propagation
+    ////V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
+    //TMatrix mS(covMInit_6.GetNrows(),covMInit_5.GetNrows());
+    //mS.Zero();
+    //double FCT = 2.99792458E-4;
+    //mS[0][0]=-sin(phi);
+    //mS[0][1]=-1*D0*cos(phi);
+    //mS[1][0]=cos(phi);
+    //mS[1][1]=-1*D0*sin(phi);
+    //mS[2][3]=1;
+    //mS[3][1]=FCT*Bz*(1/omega)*sin(phi);
+    //mS[3][2]=charge*FCT*Bz*(1/(omega*omega))*cos(phi);
+    //mS[4][1]=-1*FCT*Bz*(1/omega)*cos(phi);
+    //mS[4][2]=charge*FCT*Bz*(1/(omega*omega))*sin(phi);
+    //mS[5][2]=charge*tanLambda*Bz*(1/(omega*omega));
+    //mS[5][4]=-FCT*Bz/omega*(1+tanLambda*tanLambda);
 
-    covMInit_6= covMInit_5.Similarity(mS);
-    if(m_debug>=2){
-        std::cout<<m_name<<" covMInit_5 " <<std::endl;
-        covMInit_5.Print();
-        std::cout<<m_name<<" mS " <<std::endl;
-        mS.Print();
-        std::cout<<m_name<<" covMInit_6 " <<std::endl;
-        covMInit_6.Print();
+    //covMInit_6= covMInit_5.Similarity(mS);
+    //if(m_debug>=2){
+    //    std::cout<<m_name<<" covMInit_5 " <<std::endl;
+    //    covMInit_5.Print();
+    //    std::cout<<m_name<<" mS " <<std::endl;
+    //    mS.Print();
+    //    std::cout<<m_name<<" covMInit_6 " <<std::endl;
+    //    covMInit_6.Print();
+    //}
+
+    for(int i = 0; i < 3; ++i) {
+        double posResolusion=10.;
+        //seed position
+        covMInit_6(i,i)=posResolusion*posResolusion;
+        //seed momentum
+        double momResolusion=50.;
+        covMInit_6(i+3,i+3)=momResolusion*momResolusion;
     }
-
     //TODO ini cov with trackState
     if(!createGenfitTrack(pidType,helixClass.getCharge(),posInit,momInit,
                 covMInit_6)){

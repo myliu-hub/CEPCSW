@@ -159,8 +159,8 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
             sc=m_tuple->addItem("nDigi",m_nDigi);
             sc=m_tuple->addItem("nHitMc",m_nHitMc);
-            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
-            sc=m_tuple->addItem("hitDetID",m_nHitKalInput,m_hitDetID);
+            //sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
+            //sc=m_tuple->addItem("hitDetID",m_nHitKalInput,m_hitDetID);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
             sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
             sc=m_tuple->addItem("mdcHitDriftT",m_nSimDCHit,m_mdcHitDriftT);
@@ -278,7 +278,8 @@ StatusCode RecGenfitAlgSDT::execute()
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
-            if(m_tuple) m_nHitKalInput=nHitAdded;
+            //if(m_tuple) m_nHitKalInput=nHitAdded;
+            //debug()<<" m_nHitKalInput "<<m_nHitKalInput<<endmsg;
             if(m_debug) genfitTrack->printSeed();
 
             ///-----------------------------------
@@ -427,7 +428,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
             UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
             encoder.setValue(hit.getCellID());
             int detID=encoder[lcio::ILDCellID0::subdet];
-            if(!m_fitSiliconOnly&&7!=detID) m_hitDetID[iHitOnTrack++]=detID;//FIXME
+            //if(!(m_fitSiliconOnly&&7==detID)) m_hitDetID[iHitOnTrack++]=detID;//FIXME
+            //std::cout<<__FILE__<<"   "<<__LINE__<<" iHitOnTrack "<<iHitOnTrack<<std::endl;
         }
     }
 
