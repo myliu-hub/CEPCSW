@@ -113,17 +113,17 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nTrackerHitSIT;
         NTuple::Item<int> m_nTrackerHitSET;
         NTuple::Item<int> m_nTrackerHitFTD;
-        NTuple::Array<int> m_nTrackerHitErrVXD;
-        NTuple::Array<int> m_nTrackerHitErrSIT;
-        NTuple::Array<int> m_nTrackerHitErrSET;
-        NTuple::Array<int> m_nTrackerHitErrFTD;
+        NTuple::Item<int> m_nTrackerHitErrVXD;
+        NTuple::Item<int> m_nTrackerHitErrSIT;
+        NTuple::Item<int> m_nTrackerHitErrSET;
+        NTuple::Item<int> m_nTrackerHitErrFTD;
         NTuple::Item<int> m_nSpacePointSIT;
         NTuple::Item<int> m_nSpacePointSET;
         NTuple::Item<int> m_nSpacePointFTD;
-        NTuple::Array<int> m_nSpacePointErrVXD;
-        NTuple::Array<int> m_nSpacePointErrSIT;
-        NTuple::Array<int> m_nSpacePointErrSET;
-        NTuple::Array<int> m_nSpacePointErrFTD;
+        NTuple::Item<int> m_nSpacePointErrVXD;
+        NTuple::Item<int> m_nSpacePointErrSIT;
+        NTuple::Item<int> m_nSpacePointErrSET;
+        NTuple::Item<int> m_nSpacePointErrFTD;
 };
 
 #endif

@@ -166,6 +166,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
+        NTuple::Array<int> m_hitDetID;
         NTuple::Array<double> m_mdcHitDriftT;
         NTuple::Array<double> m_mdcHitDriftDl;
         NTuple::Array<double> m_mdcHitDriftDr;

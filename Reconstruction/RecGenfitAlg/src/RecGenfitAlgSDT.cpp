@@ -10,6 +10,7 @@
 #include "DetInterface/IGeomSvc.h"
 #include "DataHelper/HelixClass.h"
 #include "DetSegmentation/GridDriftChamber.h"
+#include "UTIL/ILDConf.h"
 
 //externals
 #include "edm4hep/EventHeaderCollection.h"
@@ -158,7 +159,8 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
             sc=m_tuple->addItem("nDigi",m_nDigi);
             sc=m_tuple->addItem("nHitMc",m_nHitMc);
-            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput);
+            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
+            sc=m_tuple->addItem("hitDetID",m_nHitKalInput,m_hitDetID);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
             sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
             sc=m_tuple->addItem("mdcHitDriftT",m_nSimDCHit,m_mdcHitDriftT);
@@ -269,12 +271,14 @@ StatusCode RecGenfitAlgSDT::execute()
                     return StatusCode::SUCCESS;
                 }
             }
-            if(0==genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,
+            int nHitAdded=genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,
                         dcHitAssociationCol,m_sigmaHit.value(),
-                        m_smearHit.value(),m_fitSiliconOnly.value())){
+                        m_smearHit.value(),m_fitSiliconOnly.value());
+            if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
+            if(m_tuple) m_nHitKalInput=nHitAdded;
             if(m_debug) genfitTrack->printSeed();
 
             ///-----------------------------------
@@ -417,6 +421,14 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         m_seedMom[1]=momInit.Y();
         m_seedMom[2]=momInit.Z();
         iSdtTrack++;
+        int iHitOnTrack=0;
+        for(unsigned int iHit=0;iHit<sdtTrack.trackerHits_size();iHit++){
+            edm4hep::ConstTrackerHit hit=sdtTrack.getTrackerHits(iHit);
+            UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+            encoder.setValue(hit.getCellID());
+            int detID=encoder[lcio::ILDCellID0::subdet];
+            if(!m_fitSiliconOnly&&7!=detID) m_hitDetID[iHitOnTrack++]=detID;//FIXME
+        }
     }
 
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
@@ -453,4 +465,5 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         iMcParticle++;
     }
     m_mcIndex=iHit;
+
 }
