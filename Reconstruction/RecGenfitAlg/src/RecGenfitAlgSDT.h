@@ -122,7 +122,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<std::string> m_genfitHistRootName{this,
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};
-        Gaudi::Property<bool> m_fitSliconOnly{this,"fitSiliconOnly",false};
+        Gaudi::Property<bool> m_fitSiliconOnly{this,"fitSiliconOnly",false};
         int m_fitSuccess[5];
         int m_nRecTrack;
         //bool m_useRecLRAmbig;

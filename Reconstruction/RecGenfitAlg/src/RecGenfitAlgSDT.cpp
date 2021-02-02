@@ -271,7 +271,7 @@ StatusCode RecGenfitAlgSDT::execute()
             }
             if(0==genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,
                         dcHitAssociationCol,m_sigmaHit.value(),
-                        m_smearHit.value(),m_fitSliconOnly.value())){
+                        m_smearHit.value(),m_fitSiliconOnly.value())){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }

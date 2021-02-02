@@ -166,8 +166,6 @@ StatusCode TruthTrackerAlg::execute()
         }
     }
 
-    edm4hep::TrackState trackState;
-    getTrackStateFromMcParticle(mcParticleCol,trackState);
     ////TODO
     //Output MCRecoTrackerAssociationCollection collection
     //const edm4hep::MCRecoTrackerAssociationCollection*
@@ -194,6 +192,10 @@ StatusCode TruthTrackerAlg::execute()
     int nFTDHit=0;
     int nDCHit=0;
 
+    ///Create track with mcParticle
+    edm4hep::TrackState trackStateMc;
+    getTrackStateFromMcParticle(mcParticleCol,trackStateMc);
+    if(m_useTruthTrack.value()) sdtTrack.addToTrackStates(trackStateMc);
     ///Retrieve silicon Track
     const edm4hep::TrackCollection* siTrackCol=nullptr;
     if(m_siSubsetTrackCol.exist()){
@@ -287,6 +289,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddVXDSeperately){
             const edm4hep::TrackerHitCollection* vxdTrakerHits
                 =m_VXDTrackerHits.get();
+            debug()<<"add VXD trackerHit "<<vxdTrakerHits->size()<<endmsg;
             for(auto vxdTrakerHit:*vxdTrakerHits){
                 sdtTrack.addToTrackerHits(vxdTrakerHit);
                 nVXDHit++;
@@ -296,7 +299,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddSITSeperately){
             const edm4hep::TrackerHitCollection* sitSpacePointCol
                 =m_SITSpacePointCol.get();
-            std::cout<<__FILE__<<"   "<<__LINE__<<" add SIT "<<sitSpacePointCol->size()<<std::endl;
+            debug()<<"add SIT spacePoint "<<sitSpacePointCol->size()<<endmsg;
             for(auto sitSpacePoint:*sitSpacePointCol){
                 sdtTrack.addToTrackerHits(sitSpacePoint);
                 nSITHit++;
@@ -305,7 +308,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddSETSeperately){
             const edm4hep::TrackerHitCollection* setSpacePointCol
                 =m_SETSpacePointCol.get();
-            std::cout<<__FILE__<<"   "<<__LINE__<<" add SET "<<setSpacePointCol->size()<<std::endl;
+            debug()<<"add SET spacePoint "<<setSpacePointCol->size()<<endmsg;
             for(auto setSpacePoint:*setSpacePointCol){
                 sdtTrack.addToTrackerHits(setSpacePoint);
                 nSETHit++;
@@ -313,7 +316,8 @@ StatusCode TruthTrackerAlg::execute()
         }
         if(isAddFTDSeperately){
             const edm4hep::TrackerHitCollection* ftdSpacePointCol
-                =m_SETSpacePointCol.get();
+                =m_FTDSpacePointCol.get();
+            debug()<<"add FTD spacePoint "<<ftdSpacePointCol->size()<<endmsg;
             for(auto ftdSpacePoint:*ftdSpacePointCol){
                 sdtTrack.addToTrackerHits(ftdSpacePoint);
                 nFTDHit++;
@@ -324,6 +328,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddVXDSeperately){
             const edm4hep::TrackerHitCollection* vxdTrakerHits
                 =m_VXDTrackerHits.get();
+            debug()<<"add VXD trackerHit "<<vxdTrakerHits->size()<<endmsg;
             for(auto vxdTrakerHit:*vxdTrakerHits){
                 sdtTrack.addToTrackerHits(vxdTrakerHit);
                 nVXDHit++;
@@ -332,8 +337,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddSITSeperately){
             const edm4hep::TrackerHitCollection* sitTrakerHits
                 =m_SITTrackerHits.get();
-            std::cout<<__FILE__<<"   "<<__LINE__<<" add SIT "<<std::endl;
-            std::cout<<__FILE__<<"   "<<__LINE__<<" m_nTrackerHitSIT "<<sitTrakerHits->size()<<std::endl;
+            debug()<<"add SIT trackerHit "<<sitTrakerHits->size()<<endmsg;
             for(auto sitTrakerHit:*sitTrakerHits){
                 sdtTrack.addToTrackerHits(sitTrakerHit);
                 nSITHit++;
@@ -342,6 +346,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddSETSeperately){
             const edm4hep::TrackerHitCollection* setTrakerHits
                 =m_SETTrackerHits.get();
+            debug()<<"add SET trackerHit "<<setTrakerHits->size()<<endmsg;
             for(auto setTrakerHit:*setTrakerHits){
                 sdtTrack.addToTrackerHits(setTrakerHit);
                 nSETHit++;
@@ -350,6 +355,7 @@ StatusCode TruthTrackerAlg::execute()
         if(isAddFTDSeperately){
             const edm4hep::TrackerHitCollection* ftdTrakerHits
                 =m_FTDTrackerHits.get();
+            debug()<<"add FTD trackerHit "<<ftdTrakerHits->size()<<endmsg;
             for(auto ftdTrakerHit:*ftdTrakerHits){
                 sdtTrack.addToTrackerHits(ftdTrakerHit);
                 nFTDHit++;
@@ -368,11 +374,10 @@ StatusCode TruthTrackerAlg::execute()
         nDCHit++;
     }
 
-    sdtTrack.addToTrackStates(trackState);
     sdtTrack.setNdf(sdtTrack.trackerHits_size()-5);
 
     ///Create DC Track
-    edm4hep::TrackState dcTrackState=trackState;
+    edm4hep::TrackState dcTrackState=trackStateMc;
     dcTrack.addToTrackStates(dcTrackState);
     dcTrack.setNdf(dcTrack.trackerHits_size()-5);
     //track.setType();//TODO
@@ -521,18 +526,16 @@ void TruthTrackerAlg::debugEvent()
     const edm4hep::TrackerHitCollection* vxdTrakerHits=m_VXDTrackerHits.get();
     m_nTrackerHitVXD=vxdTrakerHits->size();
     const edm4hep::TrackerHitCollection* sitTrakerHits=m_SITTrackerHits.get();
-    std::cout<<__FILE__<<"   "<<__LINE__<<" m_nTrackerHitSIT "<<sitTrakerHits->size()<<std::endl;
     m_nTrackerHitSIT=sitTrakerHits->size();
     const edm4hep::TrackerHitCollection* setTrakerHits=m_SETTrackerHits.get();
     m_nTrackerHitSET=setTrakerHits->size();
     const edm4hep::TrackerHitCollection* ftdTrakerHits=m_FTDTrackerHits.get();
     m_nTrackerHitFTD=ftdTrakerHits->size();
-    const edm4hep::TrackerHitCollection* sitSpacePointCol =m_SITSpacePointCol.get();
-    std::cout<<__FILE__<<"   "<<__LINE__<<" m_nSpacePointSIT "<<sitSpacePointCol->size()<<std::endl;
+    const edm4hep::TrackerHitCollection* sitSpacePointCol=m_SITSpacePointCol.get();
     m_nSpacePointSIT=sitSpacePointCol->size();
-    const edm4hep::TrackerHitCollection* setSpacePointCol =m_SETSpacePointCol.get();
+    const edm4hep::TrackerHitCollection* setSpacePointCol=m_SETSpacePointCol.get();
     m_nSpacePointSET=setSpacePointCol->size();
-    const edm4hep::TrackerHitCollection* ftdSpacePointCol =m_FTDSpacePointCol.get();
+    const edm4hep::TrackerHitCollection* ftdSpacePointCol=m_FTDSpacePointCol.get();
     m_nSpacePointFTD=ftdSpacePointCol->size();
     //m_nTrackerHitErrVXD=;
     //m_nTrackerHitErrSIT=;
