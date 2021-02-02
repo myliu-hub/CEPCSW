@@ -75,20 +75,11 @@ bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
     //TMatrixDSym seedCov(6);
 
     ////yzhang FIXME
-    //seed position
     for(int i = 0; i < 3; ++i) {
+        //seed position
         seedState(i)=posInit[i];
-        //yzhang TODO from covMInit to seedCov
-        //double resolution = 0.1;//*dd4hep::mm/dd4hep::cm;
-        //seedCov(i,i)=resolution*resolution;
-        //if(i==2) seedCov(i,i)=0.5*0.5;
-    }
-    //seed momentum
-    for(int i = 3; i < 6; ++i){
-        //seedState(i)=momInit[i-3]*(dd4hep::GeV);
-        seedState(i)=momInit[i-3];
-        //yzhang TODO from covMInit to seedCov
-        //seedCov(i,i)=0.01;//pow(resolution / sqrt(3),2);
+        //seed momentum
+        seedState(i+3)=momInit[i];
     }
 
     if(nullptr==m_track) m_track=new genfit::Track();
@@ -101,13 +92,13 @@ bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
 
     if(m_debug>=2)std::cout<<m_name<<" CreateGenfitTrack seed pos("
         <<seedState[0]<<" "<<seedState[1]<<" "<<seedState[2]<<")cm ("
-        <<seedState[3]<<" "<<seedState[4]<<" "<<seedState[5]<<")GeV charge "
-        <<charge<<" pdg "<<s_PDG[chargeId][pdgType]<<std::endl;
+            <<seedState[3]<<" "<<seedState[4]<<" "<<seedState[5]<<")GeV charge "
+            <<charge<<" pdg "<<s_PDG[chargeId][pdgType]<<std::endl;
     if(m_debug>=2)std::cout<<"seedCov "<<std::endl;
+    if(m_debug>0) covMInit_6.Print();
 
     addTrackRep(s_PDG[chargeId][pdgType]);
 
-    if(m_debug>0) covMInit_6.Print();
     return true;
 }
 
@@ -140,15 +131,19 @@ bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
         <<" "<<firstLayerMom.y<<" "<<firstLayerMom.z<<std::endl;
 
     ///Get error matrix of seed track
-    TMatrixDSym covMInit_6(6,6,0);//FIXME, TODO
+    TMatrixDSym covMInit_6(6);//FIXME, TODO
     ////yzhang FIXME
     for(int i = 0; i < 3; ++i) {
-        double posResolusion= 0.1;
+        double posResolusion=1.;
         //seed position
         covMInit_6(i,i)=posResolusion*posResolusion;
         //seed momentum
-        double momResolusion= 0.5;
+        double momResolusion=5.;
         covMInit_6(i+3,i+3)=momResolusion*momResolusion;
+    }
+    if(m_debug>=2){
+        std::cout<<"covMInit_6"<<std::endl;
+        covMInit_6.Print();
     }
 
     ///Create a genfit track with seed
@@ -301,32 +296,35 @@ bool GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,
         if(m_debug>=2){
             std::cout<<m_name<<" detID "<<detID<<" create Planer hit err"<<std::endl;
         }
-        //in SimpleDigi/src/PlanarDigiAlg.cpp
-        //cov[0] = u_direction[0];//theta
-        //cov[1] = u_direction[1];//phi
-        //cov[2] = resU;
-        //cov[3] = v_direction[0];
-        //cov[4] = v_direction[1];
-        //cov[5] = resV;
-        TMatrix mS(3,2);
-        mS[0][0]=-1*sin(cov[1]);//sin(phi_u)
-        mS[0][1]=0;
-        mS[1][0]=cos(cov[1]);//cos(phi_u)
-        mS[1][1]=0;
-        mS[2][0]=0;
-        mS[2][1]=1;
-        TMatrixDSym covUV_2(2);
-        covUV_2[0][0]=cov[2]*cov[2]*dd4hep::mm*dd4hep::mm;//resU^2
-        //covUV_2[1][1]=cov[5]*cov[5]*dd4hep::mm*dd4hep::mm;//resV^2 ,0 FIXME
-        covUV_2[1][1]=1e9*dd4hep::mm*dd4hep::mm;//resU^2//FIXME TODO
-        covUV_2[0][1]=covUV_2[1][0]=0;
-        hitCov_3=covUV_2.Similarity(mS);
-        if(m_debug>=2){
-            std::cout<<m_name<<" mS "<<std::endl;
-            mS.Print();
-            std::cout<<m_name<<" covUV_2 "<<std::endl;
-            covUV_2.Print();
-        }
+        // //in SimpleDigi/src/PlanarDigiAlg.cpp
+        // //cov[0] = u_direction[0];//theta
+        // //cov[1] = u_direction[1];//phi
+        // //cov[2] = resU;
+        // //cov[3] = v_direction[0];
+        // //cov[4] = v_direction[1];
+        // //cov[5] = resV;
+        // TMatrix mS(3,2);
+        // mS[0][0]=-1*sin(cov[1]);//sin(phi_u)
+        // mS[0][1]=0;
+        // mS[1][0]=cos(cov[1]);//cos(phi_u)
+        // mS[1][1]=0;
+        // mS[2][0]=0;
+        // mS[2][1]=1;
+        // TMatrixDSym covUV_2(2);
+        // covUV_2[0][0]=cov[2]*cov[2]*dd4hep::mm*dd4hep::mm;//resU^2
+        // //covUV_2[1][1]=cov[5]*cov[5]*dd4hep::mm*dd4hep::mm;//resV^2 ,0 FIXME
+        // covUV_2[1][1]=1e9*dd4hep::mm*dd4hep::mm;//resU^2//FIXME TODO
+        // covUV_2[0][1]=covUV_2[1][0]=0;
+        // hitCov_3=covUV_2.Similarity(mS);
+        // if(m_debug>=2){
+        //     std::cout<<m_name<<" mS "<<std::endl;
+        //     mS.Print();
+        //     std::cout<<m_name<<" covUV_2 "<<std::endl;
+        //     covUV_2.Print();
+        // }
+        hitCov_3[0][0]=0.003*0.003;
+        hitCov_3[1][1]=0.003*0.003;
+        hitCov_3[2][2]=0.003*0.003;
     }else if(UTIL::BitSet32(hit.getType())
             [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]){
         if(m_debug>=2){
@@ -340,9 +338,9 @@ bool GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,
         hitCov_3[2][1]=cov[4];
         hitCov_3[2][2]=cov[5];
     }else{
-        hitCov_3[0][0]=0.003;
-        hitCov_3[1][1]=0.003;
-        hitCov_3[2][2]=0.003;
+        hitCov_3[0][0]=0.003*0.003;
+        hitCov_3[1][1]=0.003*0.003;
+        hitCov_3[2][2]=0.003*0.003;
     }
     if(m_debug>=2){
         std::cout<<m_name<<" hitCov_3 "<<std::endl;

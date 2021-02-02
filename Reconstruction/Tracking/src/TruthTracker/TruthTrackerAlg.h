@@ -4,6 +4,7 @@
 #include "GaudiAlg/GaudiAlgorithm.h"
 #include "k4FWCore/DataHandle.h"
 #include "DD4hep/Fields.h"
+#include "GaudiKernel/NTuple.h"
 
 class IGeomSvc;
 namespace dd4hep {
@@ -16,11 +17,11 @@ namespace dd4hep {
 namespace edm4hep {
     class MCParticleCollection;
     class TrackerHitCollection;
+    class SimTrackerHitCollection;
     class TrackCollection;
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticleCollection;
     class MCRecoParticleAssociationCollection;
-    class TrackerHitCollection;
     class TrackState;
 }
 
@@ -41,6 +42,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         dd4hep::OverlayedField m_dd4hepField;
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
+        void debugEvent();
 
         //reader
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
@@ -67,13 +69,13 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "SITTrackerHits" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_FTDTrackerHits{
             "FTDTrackerHits" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_VXDCollection{
+        DataHandle<edm4hep::SimTrackerHitCollection> m_VXDCollection{
             "VXDCollection" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SETCollection{
+        DataHandle<edm4hep::SimTrackerHitCollection> m_SETCollection{
             "SETCollection" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SITCollection{
+        DataHandle<edm4hep::SimTrackerHitCollection> m_SITCollection{
             "SITCollection" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_FTDCollection{
+        DataHandle<edm4hep::SimTrackerHitCollection> m_FTDCollection{
             "FTDCollection" , Gaudi::DataHandle::Reader, this};
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
@@ -84,8 +86,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
-        Gaudi::Property<float> m_useSiTruthHit{this,"useSiTruthHit",false};
-        Gaudi::Property<float> m_useSiSpacePoint{this,"useSiSpacePoint",true};
+        Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
+        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
@@ -94,6 +96,33 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<float> m_resVertexY{this,"resVertexY",0.003};//3um
         Gaudi::Property<float> m_resVertexZ{this,"resVertexZ",0.003};//3um
         Gaudi::Property<int> m_maxDCDigiCut{this,"maxDigiCut",1e6};
+
+        NTuple::Tuple*  m_tuple;
+        NTuple::Item<int> m_run;
+        NTuple::Item<int> m_evt;
+        NTuple::Array<double> m_siMom;
+        NTuple::Array<double> m_siPos;
+        NTuple::Array<double> m_mcMom;
+        NTuple::Array<double> m_mcPos;
+        NTuple::Item<int> m_nSimTrackerHitVXD;
+        NTuple::Item<int> m_nSimTrackerHitSIT;
+        NTuple::Item<int> m_nSimTrackerHitSET;
+        NTuple::Item<int> m_nSimTrackerHitFTD;
+        NTuple::Item<int> m_nTrackerHitVXD;
+        NTuple::Item<int> m_nTrackerHitSIT;
+        NTuple::Item<int> m_nTrackerHitSET;
+        NTuple::Item<int> m_nTrackerHitFTD;
+        NTuple::Array<int> m_nTrackerHitErrVXD;
+        NTuple::Array<int> m_nTrackerHitErrSIT;
+        NTuple::Array<int> m_nTrackerHitErrSET;
+        NTuple::Array<int> m_nTrackerHitErrFTD;
+        NTuple::Item<int> m_nSpacePointSIT;
+        NTuple::Item<int> m_nSpacePointSET;
+        NTuple::Item<int> m_nSpacePointFTD;
+        NTuple::Array<int> m_nSpacePointErrVXD;
+        NTuple::Array<int> m_nSpacePointErrSIT;
+        NTuple::Array<int> m_nSpacePointErrSET;
+        NTuple::Array<int> m_nSpacePointErrFTD;
 };
 
 #endif
