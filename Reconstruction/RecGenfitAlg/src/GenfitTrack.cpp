@@ -407,6 +407,7 @@ bool
 GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
 {
     if(m_debug>0)std::cout<<"addPlanarHitFromTrakerHit"<<std::endl;
+    double cov[6];
     for(int i=0;i<6;i++) {
         cov[i]=hit.getCovMatrix(i);
         if(m_debug>=2)std::cout<<"cov "<<cov[i]<<std::endl;
