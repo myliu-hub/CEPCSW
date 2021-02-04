@@ -271,14 +271,16 @@ StatusCode RecGenfitAlgSDT::execute()
                     return StatusCode::SUCCESS;
                 }
             }
-            int nHitAdded=genfitTrack->addSimTrackerHitsOnTrack(sdtTrack,
+            int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
                         dcHitAssociationCol,m_sigmaHit.value(),
                         m_smearHit.value(),m_fitSiliconOnly.value());
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
-            //if(m_tuple) m_nHitKalInput=nHitAdded;
+            //if(m_tuple){
+            //    m_nHitKalInput=nHitAdded;
+            //}
             //debug()<<" m_nHitKalInput "<<m_nHitKalInput<<endmsg;
             if(m_debug) genfitTrack->printSeed();
 
@@ -422,15 +424,6 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         m_seedMom[1]=momInit.Y();
         m_seedMom[2]=momInit.Z();
         iSdtTrack++;
-        int iHitOnTrack=0;
-        for(unsigned int iHit=0;iHit<sdtTrack.trackerHits_size();iHit++){
-            edm4hep::ConstTrackerHit hit=sdtTrack.getTrackerHits(iHit);
-            UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
-            encoder.setValue(hit.getCellID());
-            int detID=encoder[lcio::ILDCellID0::subdet];
-            //if(!(m_fitSiliconOnly&&7==detID)) m_hitDetID[iHitOnTrack++]=detID;//FIXME
-            //std::cout<<__FILE__<<"   "<<__LINE__<<" iHitOnTrack "<<iHitOnTrack<<std::endl;
-        }
     }
 
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
@@ -459,7 +452,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float px=mcPocaMom.x;
         float py=mcPocaMom.y;
         float pz=mcPocaMom.z;
-        debug()<<"   "<<px<<" "<<py<<" "<<pz<<endmsg;
+        debug()<<"mc pxyz   "<<px<<" "<<py<<" "<<pz<<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
         m_pocaMomMc[iMcParticle][0]=px;
         m_pocaMomMc[iMcParticle][1]=py;

@@ -84,6 +84,9 @@ class GenfitTrack {
     /// Add a space point measurement, return number of hits on track
     bool addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
 
+    /// Add a planar measurement, return number of hits on track
+    bool addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
+
     /// Add a space point measurement, return number of hits on track
     virtual bool addSpacePointMeasurement(const TVectorD&, double,
             int detID=-1, int hitID=-1, bool smear=false);
@@ -97,7 +100,7 @@ class GenfitTrack {
     virtual bool addWireMeasurementOnTrack(edm4hep::Track& track, double sigma);
 
     ///Add space point from edm4hep::track
-    int addSimTrackerHitsOnTrack(const edm4hep::Track& track,
+    int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         float sigma,bool smear,bool fitSiliconOnly);
 

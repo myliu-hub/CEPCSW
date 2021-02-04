@@ -178,10 +178,10 @@ StatusCode TruthTrackerAlg::execute()
     //mcRecoTrackerAssociationCol=m_mcRecoParticleAssociation.get();
 
     double radiusOfInnermostHit=1e9;
-    bool isAddVXDSeperately=true;
-    bool isAddSITSeperately=true;
-    bool isAddSETSeperately=true;
-    bool isAddFTDSeperately=true;
+    bool isVXDAdded=false;
+    bool isSITAdded=false;
+    bool isSETAdded=false;
+    bool isFTDAdded=false;
     ///New SDT and DC track
     edm4hep::Track sdtTrack=sdtTrackCol->create();
     edm4hep::Track dcTrack=dcTrackCol->create();
@@ -207,28 +207,31 @@ StatusCode TruthTrackerAlg::execute()
             debug()<<"SDTTrackCollection is empty"<<endmsg;
         }
     }
-    if((!m_useSiTruthHit) && nullptr!=siTrackCol){
+    if((!m_useTruthTrack.value()||(!m_useSiTruthHit)) && nullptr!=siTrackCol){
         for(auto siTrack:*siTrackCol){
-            debug()<<"siTrack: "<<siTrack<<endmsg;
-            edm4hep::TrackState sdtTrackState;
-            edm4hep::TrackState siTrackStat=siTrack.getTrackStates(0);//FIXME?
-            sdtTrackState.location=siTrackStat.location;
-            sdtTrackState.D0=siTrackStat.D0;
-            sdtTrackState.phi=siTrackStat.phi;
-            sdtTrackState.omega=siTrackStat.omega;
-            sdtTrackState.Z0=siTrackStat.Z0;
-            sdtTrackState.tanLambda=siTrackStat.tanLambda;
-            sdtTrackState.referencePoint=siTrackStat.referencePoint;
-            for(int k=0;k<15;k++){
-                sdtTrackState.covMatrix[k]=siTrackStat.covMatrix[k];
+            if(!m_useTruthTrack){
+                debug()<<"siTrack: "<<siTrack<<endmsg;
+                edm4hep::TrackState sdtTrackState;
+                edm4hep::TrackState siTrackStat=siTrack.getTrackStates(0);//FIXME?
+                sdtTrackState.location=siTrackStat.location;
+                sdtTrackState.D0=siTrackStat.D0;
+                sdtTrackState.phi=siTrackStat.phi;
+                sdtTrackState.omega=siTrackStat.omega;
+                sdtTrackState.Z0=siTrackStat.Z0;
+                sdtTrackState.tanLambda=siTrackStat.tanLambda;
+                sdtTrackState.referencePoint=siTrackStat.referencePoint;
+                for(int k=0;k<15;k++){
+                    sdtTrackState.covMatrix[k]=siTrackStat.covMatrix[k];
+                }
+                sdtTrack.addToTrackStates(sdtTrackState);
+                sdtTrack.setType(siTrack.getType());
+                sdtTrack.setChi2(siTrack.getChi2());
+                sdtTrack.setNdf(siTrack.getNdf());
+                sdtTrack.setDEdx(siTrack.getDEdx());
+                sdtTrack.setDEdxError(siTrack.getDEdxError());
+                sdtTrack.setRadiusOfInnermostHit(
+                        siTrack.getRadiusOfInnermostHit());
             }
-            sdtTrack.addToTrackStates(sdtTrackState);
-            sdtTrack.setType(siTrack.getType());
-            sdtTrack.setChi2(siTrack.getChi2());
-            sdtTrack.setNdf(siTrack.getNdf());
-            sdtTrack.setDEdx(siTrack.getDEdx());
-            sdtTrack.setDEdxError(siTrack.getDEdxError());
-            sdtTrack.setRadiusOfInnermostHit(siTrack.getRadiusOfInnermostHit());
             if(!m_useSiTruthHit){
                 for(unsigned int iSiHit=0;iSiHit<siTrack.trackerHits_size();
                         iSiHit++){
@@ -237,23 +240,26 @@ StatusCode TruthTrackerAlg::execute()
                     encoder.setValue(hit.getCellID());
                     int detID=encoder[lcio::ILDCellID0::subdet];
                     if(detID==lcio::ILDDetID::VXD){
-                        isAddVXDSeperately=false;
+                        isVXDAdded=true;
+                        debug()<<"add VXD from track "<<endmsg;
                         ++nVXDHit;
                     }
-                    //if(detID==lcio::ILDDetID::SIT){
-                    //    isAddSITSeperately=false;
-                    //    std::cout<<__FILE__<<"   "<<__LINE__<<" add SIT "<<std::endl;
-                    //    ++nSITHit;
-                    //}
-                    //if(detID==lcio::ILDDetID::SET){
-                    //    isAddSETSeperately=false;
-                    //    ++nSETHit;
-                    //}
-                    //if(detID==lcio::ILDDetID::FTD){
-                    //    isAddFTDSeperately=false;
-                    //    ++nFTDHit;
-                    //}
-                    //debug()<<endmsg<<"siHit "<<iSiHit<<" "<<hit<<endmsg;//got error
+                    if(detID==lcio::ILDDetID::SIT){
+                        isSITAdded=true;
+                        debug()<<"add SIT from track "<<endmsg;
+                        ++nSITHit;
+                    }
+                    if(detID==lcio::ILDDetID::SET){
+                        isSETAdded=true;
+                        debug()<<"add SET from track "<<endmsg;
+                        ++nSETHit;
+                    }
+                    if(detID==lcio::ILDDetID::FTD){
+                        isFTDAdded=true;
+                        debug()<<"add FTD from track "<<endmsg;
+                        ++nFTDHit;
+                    }
+                    debug()<<endmsg<<"siHit "<<iSiHit<<" "<<hit<<endmsg;//got error
                     sdtTrack.addToTrackerHits(hit);
 
                 }//end of loop over hits on siTrack
@@ -261,32 +267,10 @@ StatusCode TruthTrackerAlg::execute()
         }//end of loop over siTrack
     }
 
-    if(m_useSiTruthHit.value()){
-        debug()<<" not implemented useSiTruthHit"<<endmsg;
-        /////Use silicon SimTrackerHit
-        //const edm4hep::SimTrackerHitCollection* vxdCollection=m_VXDCollection.get();
-        //for(auto vxdSpacePoint:*vxdCollection){
-        //    sdtTrack.addToTrackerHits(vxdSpacePoint);
-        //    nVXDHit++;
-        //}
-        //const edm4hep::SimTrackerHitCollection* sitCollection=m_SITCollection.get();
-        //for(auto sitSpacePoint:*sitCollection){
-        //    sdtTrack.addToTrackerHits(sitSpacePoint);
-        //    nSITHit++;
-        //}
-        //const edm4hep::SimTrackerHitCollection* setCollection=m_SETCollection.get();
-        //for(auto setSpacePoint:*setCollection){
-        //    sdtTrack.addToTrackerHits(setSpacePoint);
-        //    nSETHit++;
-        //}
-        //const edm4hep::SimTrackerHitCollection* ftdCollection=m_FTDCollection.get();
-        //for(auto ftdSpacePoint:*ftdCollection){
-        //    sdtTrack.addToTrackerHits(ftdSpacePoint);
-        //    nFTDHit++;
-        //}
-    }else if(m_useSiSpacePoint.value()){
-        ///Add silicon trackerHit
-        if(isAddVXDSeperately){
+    if(m_useSiSpacePoint.value()){
+        ///Add vxd silicon trackerHit
+        debug()<<"use Si SpacePoint Hit"<<endmsg;
+        if(!isVXDAdded){
             const edm4hep::TrackerHitCollection* vxdTrakerHits
                 =m_VXDTrackerHits.get();
             debug()<<"add VXD trackerHit "<<vxdTrakerHits->size()<<endmsg;
@@ -296,7 +280,7 @@ StatusCode TruthTrackerAlg::execute()
             }
         }
         ///Use silicon spacePoint
-        if(isAddSITSeperately){
+        if(!isSITAdded){
             const edm4hep::TrackerHitCollection* sitSpacePointCol
                 =m_SITSpacePointCol.get();
             debug()<<"add SIT spacePoint "<<sitSpacePointCol->size()<<endmsg;
@@ -305,7 +289,7 @@ StatusCode TruthTrackerAlg::execute()
                 nSITHit++;
             }
         }
-        if(isAddSETSeperately){
+        if(!isSETAdded&&m_useSET){
             const edm4hep::TrackerHitCollection* setSpacePointCol
                 =m_SETSpacePointCol.get();
             debug()<<"add SET spacePoint "<<setSpacePointCol->size()<<endmsg;
@@ -314,54 +298,57 @@ StatusCode TruthTrackerAlg::execute()
                 nSETHit++;
             }
         }
-        if(isAddFTDSeperately){
-            const edm4hep::TrackerHitCollection* ftdSpacePointCol
-                =m_FTDSpacePointCol.get();
-            debug()<<"add FTD spacePoint "<<ftdSpacePointCol->size()<<endmsg;
-            for(auto ftdSpacePoint:*ftdSpacePointCol){
-                sdtTrack.addToTrackerHits(ftdSpacePoint);
-                nFTDHit++;
-            }
+        if(!isFTDAdded){
+            //TODO
+            //const edm4hep::TrackerHitCollection* ftdSpacePointCol
+            //    =m_FTDSpacePointCol.get();
+            //debug()<<"add FTD spacePoint "<<ftdSpacePointCol->size()<<endmsg;
+            //for(auto ftdSpacePoint:*ftdSpacePointCol){
+            //    sdtTrack.addToTrackerHits(ftdSpacePoint);
+            //    nFTDHit++;
+            //}
         }
-    }else{
-        ///Add silicon trackerHit
-        if(isAddVXDSeperately){
-            const edm4hep::TrackerHitCollection* vxdTrakerHits
-                =m_VXDTrackerHits.get();
-            debug()<<"add VXD trackerHit "<<vxdTrakerHits->size()<<endmsg;
-            for(auto vxdTrakerHit:*vxdTrakerHits){
-                sdtTrack.addToTrackerHits(vxdTrakerHit);
-                nVXDHit++;
-            }
+    }//end of use space point
+
+    ///Add silicon trackerHit
+    debug()<<"use Si TrackerHit"<<endmsg;
+    if(!isVXDAdded){
+        const edm4hep::TrackerHitCollection* vxdTrakerHits
+            =m_VXDTrackerHits.get();
+        debug()<<"add VXD trackerHit "<<vxdTrakerHits->size()<<endmsg;
+        for(auto vxdTrakerHit:*vxdTrakerHits){
+            sdtTrack.addToTrackerHits(vxdTrakerHit);
+            nVXDHit++;
         }
-        if(isAddSITSeperately){
-            const edm4hep::TrackerHitCollection* sitTrakerHits
-                =m_SITTrackerHits.get();
-            debug()<<"add SIT trackerHit "<<sitTrakerHits->size()<<endmsg;
-            for(auto sitTrakerHit:*sitTrakerHits){
-                sdtTrack.addToTrackerHits(sitTrakerHit);
-                nSITHit++;
-            }
+    }
+    if(!isSITAdded){
+        const edm4hep::TrackerHitCollection* sitTrakerHits
+            =m_SITTrackerHits.get();
+        debug()<<"add SIT trackerHit "<<sitTrakerHits->size()<<endmsg;
+        for(auto sitTrakerHit:*sitTrakerHits){
+            sdtTrack.addToTrackerHits(sitTrakerHit);
+            nSITHit++;
         }
-        if(isAddSETSeperately){
-            const edm4hep::TrackerHitCollection* setTrakerHits
-                =m_SETTrackerHits.get();
-            debug()<<"add SET trackerHit "<<setTrakerHits->size()<<endmsg;
-            for(auto setTrakerHit:*setTrakerHits){
-                sdtTrack.addToTrackerHits(setTrakerHit);
-                nSETHit++;
-            }
+    }
+    if(!isSETAdded){
+        const edm4hep::TrackerHitCollection* setTrakerHits
+            =m_SETTrackerHits.get();
+        debug()<<"add SET trackerHit "<<setTrakerHits->size()<<endmsg;
+        for(auto setTrakerHit:*setTrakerHits){
+            sdtTrack.addToTrackerHits(setTrakerHit);
+            nSETHit++;
         }
-        if(isAddFTDSeperately){
-            const edm4hep::TrackerHitCollection* ftdTrakerHits
-                =m_FTDTrackerHits.get();
-            debug()<<"add FTD trackerHit "<<ftdTrakerHits->size()<<endmsg;
-            for(auto ftdTrakerHit:*ftdTrakerHits){
-                sdtTrack.addToTrackerHits(ftdTrakerHit);
-                nFTDHit++;
-            }
-        }
-    }//end of add Silicon hits
+    }
+    if(!isFTDAdded){
+        //TODO
+        //const edm4hep::TrackerHitCollection* ftdTrakerHits
+        //    =m_FTDTrackerHits.get();
+        //debug()<<"add FTD trackerHit "<<ftdTrakerHits->size()<<endmsg;
+        //for(auto ftdTrakerHit:*ftdTrakerHits){
+        //    sdtTrack.addToTrackerHits(ftdTrakerHit);
+        //    nFTDHit++;
+        //}
+    }
 
     ///Add DC hits to track
     for(auto digiDC:*digiDCHitsCol){
@@ -532,11 +519,18 @@ void TruthTrackerAlg::debugEvent()
     const edm4hep::TrackerHitCollection* ftdTrakerHits=m_FTDTrackerHits.get();
     m_nTrackerHitFTD=ftdTrakerHits->size();
     const edm4hep::TrackerHitCollection* sitSpacePointCol=m_SITSpacePointCol.get();
-    m_nSpacePointSIT=sitSpacePointCol->size();
-    const edm4hep::TrackerHitCollection* setSpacePointCol=m_SETSpacePointCol.get();
-    m_nSpacePointSET=setSpacePointCol->size();
-    const edm4hep::TrackerHitCollection* ftdSpacePointCol=m_FTDSpacePointCol.get();
-    m_nSpacePointFTD=ftdSpacePointCol->size();
+    if(nullptr!=sitSpacePointCol) m_nSpacePointSIT=sitSpacePointCol->size();
+    if(m_useSET){
+        if(m_SETSpacePointCol.exist()){
+            const edm4hep::TrackerHitCollection* setSpacePointCol=
+                m_SETSpacePointCol.get();
+            if(nullptr!=setSpacePointCol) m_nSpacePointSET=setSpacePointCol->size();
+        }
+    }
+    //if(m_FTDSpacePointCol.exist()){
+    //    const edm4hep::TrackerHitCollection* ftdSpacePointCol=m_FTDSpacePointCol.get();
+    //    if(nullptr!=ftdSpacePointCol) m_nSpacePointSET=ftdSpacePointCol->size();
+    //}
     //m_nTrackerHitErrVXD=;
     //m_nTrackerHitErrSIT=;
     //m_nTrackerHitErrSET=;

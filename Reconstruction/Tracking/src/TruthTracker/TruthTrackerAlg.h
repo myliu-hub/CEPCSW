@@ -86,6 +86,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
+        Gaudi::Property<bool> m_useSET{this,"useSET",true};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
         Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
