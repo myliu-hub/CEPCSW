@@ -89,7 +89,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useSET{this,"useSET",true};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
-        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
+        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",true};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
