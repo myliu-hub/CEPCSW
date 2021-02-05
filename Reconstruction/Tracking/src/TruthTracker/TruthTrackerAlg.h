@@ -97,7 +97,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<float> m_resVertexX{this,"resVertexX",0.003};//3um
         Gaudi::Property<float> m_resVertexY{this,"resVertexY",0.003};//3um
         Gaudi::Property<float> m_resVertexZ{this,"resVertexZ",0.003};//3um
-        Gaudi::Property<int> m_maxDCDigiCut{this,"maxDigiCut",1e6};
+        Gaudi::Property<int> m_maxDCDigiCut{this,"maxDCDigiCut",1e6};
 
         NTuple::Tuple*  m_tuple;
         NTuple::Item<int> m_run;

@@ -154,6 +154,7 @@ class GenfitTrack {
     const TVector3 getSeedStateMom() const;
     void getSeedStateMom(TLorentzVector& pos, TVector3& mom) const;
     unsigned int getNumPoints() const;
+    unsigned int getNumPointsDet(int detID) const;
 
     /// get the fitted track status
     const genfit::FitStatus* getFitStatus(int repID=0) const;
@@ -190,6 +191,7 @@ class GenfitTrack {
 
     private:
 
+    int getDetTypeID(int cellID) const;
     const char* m_name;
 
     ///Note! private functions are using genfit unit, cm and MeV

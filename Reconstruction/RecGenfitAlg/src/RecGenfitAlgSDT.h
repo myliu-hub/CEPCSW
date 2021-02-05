@@ -125,6 +125,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<bool> m_fitSiliconOnly{this,"fitSiliconOnly",false};
         int m_fitSuccess[5];
         int m_nRecTrack;
+        bool m_firstTuple;
         //bool m_useRecLRAmbig;
 
         genfit::EventDisplay* m_genfitDisplay;
@@ -161,12 +162,13 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<int> m_isFitConverged;
         NTuple::Array<int> m_isFitConvergedFully;
         NTuple::Array<int> m_isFitted;
-        NTuple::Item<int> m_nDigi;
+        NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
+        NTuple::Item<int> m_nSdtTrack;
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
-        //NTuple::Item<int> m_nHitKalInput;
-        //NTuple::Array<int> m_hitDetID;
+        NTuple::Item<int> m_nHitKalInput;
+        NTuple::Array<int> m_nHitDetType;
         NTuple::Array<double> m_mdcHitDriftT;
         NTuple::Array<double> m_mdcHitDriftDl;
         NTuple::Array<double> m_mdcHitDriftDr;

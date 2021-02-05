@@ -29,6 +29,8 @@
 #include "FitStatus.h"
 #include "SpacepointMeasurement.h"
 #include "WireMeasurementNew.h"
+#include "AbsMeasurement.h"
+#include "TrackPoint.h"
 
 //ROOT
 #include "TRandom.h"
@@ -290,19 +292,17 @@ GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     }
 
     TMatrixDSym hitCov_3(3);
-    UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
-    encoder.setValue(hit.getCellID());
-    int detID=encoder[lcio::ILDCellID0::subdet];
+    int detTypeID=getDetTypeID(hit.getCellID());
 
     //if(m_debug>=2){
-    //    std::cout<<detID<<" COMPOSITE_SPACEPOINT "<<UTIL::BitSet32(hit.getType())
+    //    std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<UTIL::BitSet32(hit.getType())
     //        [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]<<std::endl;
-    //    std::cout<<detID<<" ONE_DIMENSIONAL "<<UTIL::BitSet32(hit.getType())
+    //    std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<UTIL::BitSet32(hit.getType())
     //        [UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]<<std::endl;
     //}
     //if(UTIL::BitSet32(hit.getType())[UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]){
     //    if(m_debug>=2){
-    //        std::cout<<m_name<<" detID "<<detID<<" create Planer hit err"<<std::endl;
+    //        std::cout<<m_name<<" detTypeID "<<detTypeID<<" create Planer hit err"<<std::endl;
     //    }
     //    // //in SimpleDigi/src/PlanarDigiAlg.cpp
     //    // //cov[0] = u_direction[0];//theta
@@ -336,7 +336,8 @@ GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     //}else if(UTIL::BitSet32(hit.getType())
     //        [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]){
     if(m_debug>=2){
-        std::cout<<m_name<<" detID "<<detID<<" create point hit err"<<std::endl;
+        std::cout<<m_name<<" detTypeID "<<detTypeID<<" create point hit err"
+            <<std::endl;
     }
     //space point error matrix, lower triangle
     hitCov_3[0][0]=cov[0];
@@ -417,6 +418,25 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     TVector3 vU(cov[0],cov[1],0);
     TVector3 vV(cov[3],cov[4],0);
 
+    ////my cov
+    //double detectorResolution(0.001); // resolution of planar detectors
+    //TMatrixDSym hitCov(2);
+    //hitCov.UnitMatrix();
+    //hitCov *= detectorResolution*detectorResolution;
+
+    ////hit pos
+    //const edm4hep::Vector3d& pos=hit.getPosition();
+
+    //if(m_debug>=2)std::cout<<"TrackerHit pos "<<pos<<std::endl;
+
+    //TVectorD hitCoords(3);
+    //hitCoords[0] = pos[0];
+    //hitCoords[1] = pos[1];
+    //hitCoords[2] = pos[2];
+    //genfit::PlanarMeasurement* measurement =
+    //    new genfit::PlanarMeasurement(hitCoords, hitCov, detId, hitID, nullptr);
+    //measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0,0), TVector3(1,0,0), TVector3(0,1,0))), ++planeId);
+    //m_track.insertPoint(new genfit::TrackPoint(measurement, &m_track));
     return true;
 }
 
@@ -549,6 +569,18 @@ void GenfitTrack::getSeedStateMom(TLorentzVector& pos, TVector3& mom) const
 unsigned int GenfitTrack::getNumPoints() const
 {
     return m_track->getNumPoints();
+}
+
+unsigned int GenfitTrack::getNumPointsDet(int detTypeID) const
+{
+    unsigned int nHit=0;
+    const std::vector<genfit::TrackPoint*> tps=m_track->getPoints();
+    for(auto tp:tps){
+        const genfit::AbsMeasurement* m=nullptr;
+        if(tp->hasRawMeasurements()) m=tp->getRawMeasurement();
+        if(nullptr!=m && detTypeID==getDetTypeID(m->getDetId())) nHit++;
+    }
+    return nHit;
 }
 
 /// Test the fit result FIXME
@@ -808,43 +840,44 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
     int hitID=0;
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
-        UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
-        encoder.setValue(hit.getCellID());
-        int detID=encoder[lcio::ILDCellID0::subdet];
+        int detTypeID=getDetTypeID(hit.getCellID());
         if(m_debug>=2)std::cout<<m_name<<" "<<iHit<<" hit "<<hit
-            <<" detID "<<detID<<std::endl;
+            <<" detTypeID "<<detTypeID<<std::endl;
 
         bool isSpacePoint=UTIL::BitSet32(hit.getType())[ \
                           UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT];
         bool isPlannerHit=UTIL::BitSet32(hit.getType())[ \
                           UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL];
         if(m_debug>2){
-            std::cout<<detID<<" COMPOSITE_SPACEPOINT "<<isSpacePoint<<std::endl;
-            std::cout<<detID<<" ONE_DIMENSIONAL "<<isPlannerHit<<std::endl;
+            std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<isSpacePoint<<std::endl;
+            std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<isPlannerHit<<std::endl;
         }
-        if(isSpacePoint&&(detID==lcio::ILDDetID::VXD||detID==lcio::ILDDetID::SIT
-                    ||detID==lcio::ILDDetID::SET||detID==lcio::ILDDetID::FTD)){
+        if(detTypeID==lcio::ILDDetID::VXD
+                ||(isSpacePoint && (detTypeID==lcio::ILDDetID::SIT
+                        ||detTypeID==lcio::ILDDetID::SET
+                        ||detTypeID==lcio::ILDDetID::FTD))){
             if(addSpacePointFromTrakerHit(hit,hitID)){
                 hitID++;
             }else{
                 if(m_debug>=2)std::cout<<"silicon addSpacePointFromTrakerHit"
-                    <<detID<<" "<<hit.getCellID()<<" failed"<<std::endl;
+                    <<detTypeID<<" "<<hit.getCellID()<<" failed"<<std::endl;
             }
-        }else if(isPlannerHit&&(detID==lcio::ILDDetID::SIT
-                    ||detID==lcio::ILDDetID::SET||detID==lcio::ILDDetID::FTD)){
+        }else if(isPlannerHit&&(detTypeID==lcio::ILDDetID::SIT
+                    ||detTypeID==lcio::ILDDetID::SET
+                    ||detTypeID==lcio::ILDDetID::FTD)){
             if(addPlanarHitFromTrakerHit(hit,hitID)){
                 hitID++;
             }else{
                 if(m_debug>=2)std::cout<<"silicon addPlanarHitFromTrakerHit"
-                    <<detID<<" "<<hit.getCellID()<<" failed"<<std::endl;
+                    <<detTypeID<<" "<<hit.getCellID()<<" failed"<<std::endl;
             }
-        }else if(7==detID){
+        }else if(7==detTypeID){
             //if(addSpacePointMeasurement(p,sigma,hit.getCellID(),hitID)){
             //    if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
             //    hitID++;
             //}else{
             //    if(m_debug>=2)std::cout<<"addSpacePointMeasurement"
-            //        <<detID<<" faieled" <<std::endl;
+            //        <<detTypeID<<" faieled" <<std::endl;
             //}
             float minTime=FLT_MAX;
             edm4hep::ConstSimTrackerHit minTimeSimHit;
@@ -877,13 +910,13 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
             p[0]=pos.x;
             p[1]=pos.y;
             p[2]=pos.z;
-            unsigned long long detID = dCTrackerHit.getCellID();
-            if(addSpacePointMeasurement(p,sigma,detID,hitID,smear)){
+            unsigned long long cellID = dCTrackerHit.getCellID();
+            if(addSpacePointMeasurement(p,sigma,cellID,hitID,smear)){
                 if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
                 hitID++;
             }else{
                 if(m_debug>=2)std::cout<<"addSpacePointMeasurement"
-                    <<detID<<" faieled" <<std::endl;
+                    <<cellID<<" faieled" <<std::endl;
             }
         }
     }
@@ -1141,4 +1174,11 @@ void GenfitTrack::pivotToFirstLayer(edm4hep::Vector3d& pos,
     //FIXME, TODO
     firstPos=pos;
     firstMom=mom;
+}
+
+int GenfitTrack::getDetTypeID(int cellID) const
+{
+    UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+    encoder.setValue(cellID);
+    return encoder[lcio::ILDCellID0::subdet];
 }

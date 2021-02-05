@@ -128,6 +128,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("run",m_run);
             sc=m_tuple->addItem("evt",m_evt);
             sc=m_tuple->addItem("tkId",m_tkId);
+            sc=m_tuple->addItem("nStdTrack",m_nSdtTrack);
             sc=m_tuple->addItem("mcIndex",m_mcIndex,0,100);//max. 100 particles
             sc=m_tuple->addItem("seedMomP",m_seedMomP);//for single track debug
             sc=m_tuple->addItem("seedMomPt",m_seedMomPt);
@@ -157,10 +158,11 @@ StatusCode RecGenfitAlgSDT::initialize()
                     m_isFitConvergedFully);
             sc=m_tuple->addItem("nHitFailedKal",5,m_nHitFailedKal);
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
-            sc=m_tuple->addItem("nDigi",m_nDigi);
+            sc=m_tuple->addItem("nDCDigi",m_nDCDigi);
             sc=m_tuple->addItem("nHitMc",m_nHitMc);
-            //sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
-            //sc=m_tuple->addItem("hitDetID",m_nHitKalInput,m_hitDetID);
+            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
+            //10 is greater than # of tracking detectors
+            sc=m_tuple->addItem("hitDetID",10,m_nHitDetType);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
             sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
             sc=m_tuple->addItem("mdcHitDriftT",m_nSimDCHit,m_mdcHitDriftT);
@@ -219,8 +221,8 @@ StatusCode RecGenfitAlgSDT::execute()
     ///retrieve silicon Track and TrackHits
     const edm4hep::TrackCollection* sdtTrackCol=nullptr;
     if(m_SDTTrackCol.exist())sdtTrackCol=m_SDTTrackCol.get();
-    if(nullptr==sdtTrackCol) {
-        debug()<<"TrackCollection not found"<<endmsg;
+    if(nullptr==sdtTrackCol || sdtTrackCol->size()<=0) {
+        debug()<<"TrackCollection not found or sdtTrackCol size=0"<<endmsg;
         return StatusCode::SUCCESS;
     }
 
@@ -242,6 +244,7 @@ StatusCode RecGenfitAlgSDT::execute()
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
+    m_firstTuple=true;
     debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
     for(auto sdtTrack: *sdtTrackCol){
         ///Loop over 5 particle hypothesis(0-4): e,mu,pi,K,p
@@ -277,10 +280,6 @@ StatusCode RecGenfitAlgSDT::execute()
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
             }
-            //if(m_tuple){
-            //    m_nHitKalInput=nHitAdded;
-            //}
-            //debug()<<" m_nHitKalInput "<<m_nHitKalInput<<endmsg;
             if(m_debug) genfitTrack->printSeed();
 
             ///-----------------------------------
@@ -351,6 +350,17 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     const genfit::FitStatus* fitState = genfitTrack->getFitStatus();
     int charge= fitState->getCharge();
 
+    if(m_firstTuple){
+        m_nHitKalInput=genfitTrack->getNumPoints();
+        debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
+        //FIXME read from config file
+        int detIDs[5]={1,2,3,5,7};//VXD=1,SIT=2,SET=5;FTD=3,
+        for(int i=0;i<5;i++){
+            m_nHitDetType[detIDs[i]]=genfitTrack->getNumPointsDet(detIDs[i]);
+            debug()<<"hot detTypeID "<<detIDs[i]<<" "<<m_nHitDetType[detIDs[i]]<<endmsg;
+        }
+        m_firstTuple=false;
+    }
     m_chargeKal[pidType]= charge;
     m_nHitWithFitInfo[pidType]=genfitTrack->getNumPointsWithFittedInfo();
     m_chi2Kal[pidType]=fitState->getChi2();
@@ -401,6 +411,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         double eventStartTime)
 {
     int iSdtTrack=0;
+    m_nSdtTrack=sdtTrackCol->size();
     for(auto sdtTrack: *sdtTrackCol){
         if(iSdtTrack>0) break;//TODO debug for single track only
         edm4hep::TrackState trackStat=sdtTrack.getTrackStates(0);//FIXME?
@@ -460,4 +471,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         iHit++;
     }
     m_nSimDCHit=simDCHitCol->size();
+    const edm4hep::TrackerHitCollection* dCDigiCol=nullptr;
+    dCDigiCol=m_DCDigiCol.get();
+    if(nullptr!=dCDigiCol){ m_nDCDigi=dCDigiCol->size(); }
 }
