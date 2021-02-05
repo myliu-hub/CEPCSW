@@ -185,9 +185,9 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("mcPocaWireX",m_nSimDCHit,m_mdcHitExpMcPocaWireX);
             sc=m_tuple->addItem("mcPocaWireY",m_nSimDCHit,m_mdcHitExpMcPocaWireY);
             sc=m_tuple->addItem("mcPocaWireZ",m_nSimDCHit,m_mdcHitExpMcPocaWireZ);
-            debug()<< "Book tuple RecGenfitAlgSDT/genfit" << endmsg;
+            debug()<< "Book tuple RecGenfitAlgSDT/recGenfitAlgSDT" << endmsg;
         }else{
-            error()<< "Cannot book tuple RecGenfitAlgSDT/genfit" << endmsg;
+            warning()<< "Tuple RecGenfitAlgSDT/recGenfitAlgSDT not booked" << endmsg;
         }
     }//end of book tuple
 
