@@ -182,9 +182,6 @@ StatusCode TruthTrackerAlg::execute()
     bool isSITAdded=false;
     bool isSETAdded=false;
     bool isFTDAdded=false;
-    ///New SDT and DC track
-    edm4hep::Track sdtTrack=sdtTrackCol->create();
-    edm4hep::Track dcTrack=dcTrackCol->create();
 
     int nVXDHit=0;
     int nSITHit=0;
@@ -192,10 +189,6 @@ StatusCode TruthTrackerAlg::execute()
     int nFTDHit=0;
     int nDCHit=0;
 
-    ///Create track with mcParticle
-    edm4hep::TrackState trackStateMc;
-    getTrackStateFromMcParticle(mcParticleCol,trackStateMc);
-    if(m_useTruthTrack.value()) sdtTrack.addToTrackStates(trackStateMc);
     ///Retrieve silicon Track
     const edm4hep::TrackCollection* siTrackCol=nullptr;
     if(m_siSubsetTrackCol.exist()){
@@ -203,10 +196,19 @@ StatusCode TruthTrackerAlg::execute()
         if(nullptr!=siTrackCol){
             debug()<<"SDTTrackCollection size "<<siTrackCol->size()
                 <<endmsg;
+            if(0==siTrackCol->size()) return StatusCode::SUCCESS;
         }else{
             debug()<<"SDTTrackCollection is empty"<<endmsg;
+            return StatusCode::SUCCESS;
         }
     }
+    ///New SDT and DC track
+    edm4hep::Track sdtTrack=sdtTrackCol->create();
+    edm4hep::Track dcTrack=dcTrackCol->create();
+    ///Create track with mcParticle
+    edm4hep::TrackState trackStateMc;
+    getTrackStateFromMcParticle(mcParticleCol,trackStateMc);
+    if(m_useTruthTrack.value()) sdtTrack.addToTrackStates(trackStateMc);
     if((!m_useTruthTrack.value()||(!m_useSiTruthHit)) && nullptr!=siTrackCol){
         for(auto siTrack:*siTrackCol){
             if(!m_useTruthTrack){

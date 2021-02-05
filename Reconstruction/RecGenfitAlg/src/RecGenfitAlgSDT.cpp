@@ -259,8 +259,7 @@ StatusCode RecGenfitAlgSDT::execute()
                 //single track only FIXME
                 if(!genfitTrack->createGenfitTrackFromMCParticle(pidType,
                             *(mcParticleCol->begin()), eventStartTime)){
-                    debug()<<"createGenfitTrackFromEDM4HepTrack from \
-                        MCParticle failed!"<<endmsg;
+                    debug()<<"createGenfitTrackFromMCParticle failed!"<<endmsg;
                     return StatusCode::SUCCESS;
                 }
             }else{
@@ -272,8 +271,8 @@ StatusCode RecGenfitAlgSDT::execute()
                 }
             }
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
-                        dcHitAssociationCol,m_sigmaHit.value(),
-                        m_smearHit.value(),m_fitSiliconOnly.value());
+                    dcHitAssociationCol,m_sigmaHit.value(),
+                    m_smearHit.value(),m_fitSiliconOnly.value());
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
@@ -432,22 +431,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     m_pidIndex=5;
 
     mcParticleCol=m_mcParticleCol.get();
-    simDCHitCol=m_simDCHitCol.get();
-    m_nSimDCHit=simDCHitCol->size();
     int iMcParticle=0;
-    int iHit=0;
     for(auto mcParticle : *mcParticleCol){
-        for(auto simDCHit: *simDCHitCol){
-            edm4hep::Vector3d pos=simDCHit.position();
-            TVectorD p(3);
-            p[0]=pos.x;//no unit conversion here
-            p[1]=pos.y;
-            p[2]=pos.z;
-            m_mdcHitMcX[iHit]=pos.x;
-            m_mdcHitMcY[iHit]=pos.y;
-            m_mdcHitMcZ[iHit]=pos.z;
-            iHit++;
-        }
         edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
         float px=mcPocaMom.x;
         float py=mcPocaMom.y;
@@ -459,6 +444,20 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         m_pocaMomMc[iMcParticle][2]=pz;
         iMcParticle++;
     }
-    m_mcIndex=iHit;
+    m_mcIndex=iMcParticle;
 
+    int iHit=0;
+    simDCHitCol=m_simDCHitCol.get();
+    for(auto simDCHit: *simDCHitCol){
+        edm4hep::Vector3d pos=simDCHit.position();
+        TVectorD p(3);
+        p[0]=pos.x;//no unit conversion here
+        p[1]=pos.y;
+        p[2]=pos.z;
+        m_mdcHitMcX[iHit]=pos.x;
+        m_mdcHitMcY[iHit]=pos.y;
+        m_mdcHitMcZ[iHit]=pos.z;
+        iHit++;
+    }
+    m_nSimDCHit=simDCHitCol->size();
 }
