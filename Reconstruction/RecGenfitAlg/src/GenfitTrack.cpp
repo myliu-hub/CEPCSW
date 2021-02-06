@@ -414,10 +414,6 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
         if(m_debug>=2)std::cout<<"cov "<<cov[i]<<std::endl;
     }
 
-    //TODO FIXME get from geometry
-    TVector3 vU(cov[0],cov[1],0);
-    TVector3 vV(cov[3],cov[4],0);
-
     ////my cov
     //double detectorResolution(0.001); // resolution of planar detectors
     //TMatrixDSym hitCov(2);
@@ -427,16 +423,34 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     ////hit pos
     //const edm4hep::Vector3d& pos=hit.getPosition();
 
-    //if(m_debug>=2)std::cout<<"TrackerHit pos "<<pos<<std::endl;
-
     //TVectorD hitCoords(3);
     //hitCoords[0] = pos[0];
     //hitCoords[1] = pos[1];
     //hitCoords[2] = pos[2];
+
+    //if(m_debug>=2)std::cout<<"TrackerHit pos "<<pos<<std::endl;
+    ////TODO FIXME get from geometry
+    //TVector3 vU(cov[0],cov[1],0);
+    //TVector3 vV(cov[3],cov[4],0);
+
+    //// add some planar hits example
+    //const double umin=-371.3;
+    //const double umax=371.3;
+    //const double vmax=10;
+    //const double vmin=0;
+    //genfit::RectangularFinitePlane* strip =
+    //    new genfit::RectangularFinitePlane(umin,umax,vmin,vmax);
+    //TVector3 U=(r,theta,phi);//?
+    //TVector3 V=(r,theta,phi);//?
+    //genfit::DetPlane* detPlan = new genfit::DetPlane(TVectorD(0,0,0),U,V,strip);
+
+    //TVectorD hitCoords(2);
+    //hitCoords[0] = (umax-umin)/2.;
+    //hitCoords[1] = (vmax-vmin)/2.;
     //genfit::PlanarMeasurement* measurement =
-    //    new genfit::PlanarMeasurement(hitCoords, hitCov, detId, hitID, nullptr);
-    //measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0,0), TVector3(1,0,0), TVector3(0,1,0))), ++planeId);
-    //m_track.insertPoint(new genfit::TrackPoint(measurement, &m_track));
+    //    new genfit::PlanarMeasurement(hitCoords, hitCov, detId, ++hitId, nullptr);
+    //measurement->setPlane(genfit::SharedPlanePtr(detPlan), ++planeId);
+    //fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
     return true;
 }
 

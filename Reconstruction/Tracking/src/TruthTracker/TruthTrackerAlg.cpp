@@ -280,6 +280,7 @@ StatusCode TruthTrackerAlg::execute()
                 sdtTrack.addToTrackerHits(vxdTrakerHit);
                 nVXDHit++;
             }
+            isVXDAdded=true;
         }
         ///Use silicon spacePoint
         if(!isSITAdded){
@@ -290,6 +291,7 @@ StatusCode TruthTrackerAlg::execute()
                 sdtTrack.addToTrackerHits(sitSpacePoint);
                 nSITHit++;
             }
+            isSITAdded=true;
         }
         if(!isSETAdded&&m_useSET){
             const edm4hep::TrackerHitCollection* setSpacePointCol
@@ -299,6 +301,7 @@ StatusCode TruthTrackerAlg::execute()
                 sdtTrack.addToTrackerHits(setSpacePoint);
                 nSETHit++;
             }
+            isSETAdded=true;
         }
         if(!isFTDAdded){
             //TODO
@@ -322,6 +325,7 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrack.addToTrackerHits(vxdTrakerHit);
             nVXDHit++;
         }
+        isVXDAdded=true;
     }
     if(!isSITAdded){
         const edm4hep::TrackerHitCollection* sitTrakerHits
@@ -331,6 +335,7 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrack.addToTrackerHits(sitTrakerHit);
             nSITHit++;
         }
+        isSITAdded=true;
     }
     if(!isSETAdded){
         const edm4hep::TrackerHitCollection* setTrakerHits
@@ -340,6 +345,7 @@ StatusCode TruthTrackerAlg::execute()
             sdtTrack.addToTrackerHits(setTrakerHit);
             nSETHit++;
         }
+        isSETAdded=true;
     }
     if(!isFTDAdded){
         //TODO
@@ -350,6 +356,7 @@ StatusCode TruthTrackerAlg::execute()
         //    sdtTrack.addToTrackerHits(ftdTrakerHit);
         //    nFTDHit++;
         //}
+        isFTDAdded=true;
     }
 
     ///Add DC hits to track
@@ -523,11 +530,11 @@ void TruthTrackerAlg::debugEvent()
     const edm4hep::TrackerHitCollection* sitSpacePointCol=m_SITSpacePointCol.get();
     if(nullptr!=sitSpacePointCol) m_nSpacePointSIT=sitSpacePointCol->size();
     if(m_useSET){
-        if(m_SETSpacePointCol.exist()){
-            const edm4hep::TrackerHitCollection* setSpacePointCol=
-                m_SETSpacePointCol.get();
-            if(nullptr!=setSpacePointCol) m_nSpacePointSET=setSpacePointCol->size();
-        }
+        //if(m_SETSpacePointCol.exist()){
+        const edm4hep::TrackerHitCollection* setSpacePointCol=
+            m_SETSpacePointCol.get();
+        if(nullptr!=setSpacePointCol) m_nSpacePointSET=setSpacePointCol->size();
+        //}
     }
     //if(m_FTDSpacePointCol.exist()){
     //    const edm4hep::TrackerHitCollection* ftdSpacePointCol=m_FTDSpacePointCol.get();
