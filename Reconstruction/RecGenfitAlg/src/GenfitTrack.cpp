@@ -163,7 +163,7 @@ bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
 
 ///Create a Genfit track with MCParticle, unit conversion here
 bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
-        const edm4hep::Track& track, double eventStartTime)
+        const edm4hep::Track& track, double eventStartTime, bool isUseCovTrack)
 {
     edm4hep::TrackState trackState=track.getTrackStates(0);//FIXME?
     if(m_debug>=2){
@@ -203,62 +203,64 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
             <<std::endl;
         momInit.Print();
     }
-    //float charge = helixClass.getCharge();
-    //TMatrixDSym covMInit_5(5);//FIXME??? UNIT
-    /////< lower triangular covariance matrix of the track parameters.
-    /////  the order of parameters is  d0, phi, omega, z0, tan(lambda).
-    //std::array<float, 15> covMatrix=trackState.covMatrix;
-    //covMInit_5(0,0)=covMatrix[0];
-    //covMInit_5(1,0)=covMatrix[1];
-    //covMInit_5(1,1)=covMatrix[2];
-    //covMInit_5(2,0)=covMatrix[3];
-    //covMInit_5(2,1)=covMatrix[4];
-    //covMInit_5(2,2)=covMatrix[5];
-    //covMInit_5(3,0)=covMatrix[6];
-    //covMInit_5(3,1)=covMatrix[7];
-    //covMInit_5(3,2)=covMatrix[8];
-    //covMInit_5(3,3)=covMatrix[9];
-    //covMInit_5(4,0)=covMatrix[10];
-    //covMInit_5(4,1)=covMatrix[11];
-    //covMInit_5(4,2)=covMatrix[12];
-    //covMInit_5(4,3)=covMatrix[13];
-    //covMInit_5(4,4)=covMatrix[14];
-
     TMatrixDSym covMInit_6(6);
-    /////Error propagation
-    ////V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
-    //TMatrix mS(covMInit_6.GetNrows(),covMInit_5.GetNrows());
-    //mS.Zero();
-    //double FCT = 2.99792458E-4;
-    //mS[0][0]=-sin(phi);
-    //mS[0][1]=-1*D0*cos(phi);
-    //mS[1][0]=cos(phi);
-    //mS[1][1]=-1*D0*sin(phi);
-    //mS[2][3]=1;
-    //mS[3][1]=FCT*Bz*(1/omega)*sin(phi);
-    //mS[3][2]=charge*FCT*Bz*(1/(omega*omega))*cos(phi);
-    //mS[4][1]=-1*FCT*Bz*(1/omega)*cos(phi);
-    //mS[4][2]=charge*FCT*Bz*(1/(omega*omega))*sin(phi);
-    //mS[5][2]=charge*tanLambda*Bz*(1/(omega*omega));
-    //mS[5][4]=-FCT*Bz/omega*(1+tanLambda*tanLambda);
+    if(isUseCovTrack){
+        float charge = helixClass.getCharge();
+        TMatrixDSym covMInit_5(5);//FIXME??? UNIT
+        ///< lower triangular covariance matrix of the track parameters.
+        ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).
+        std::array<float, 15> covMatrix=trackState.covMatrix;
+        covMInit_5(0,0)=covMatrix[0];
+        covMInit_5(1,0)=covMatrix[1];
+        covMInit_5(1,1)=covMatrix[2];
+        covMInit_5(2,0)=covMatrix[3];
+        covMInit_5(2,1)=covMatrix[4];
+        covMInit_5(2,2)=covMatrix[5];
+        covMInit_5(3,0)=covMatrix[6];
+        covMInit_5(3,1)=covMatrix[7];
+        covMInit_5(3,2)=covMatrix[8];
+        covMInit_5(3,3)=covMatrix[9];
+        covMInit_5(4,0)=covMatrix[10];
+        covMInit_5(4,1)=covMatrix[11];
+        covMInit_5(4,2)=covMatrix[12];
+        covMInit_5(4,3)=covMatrix[13];
+        covMInit_5(4,4)=covMatrix[14];
 
-    //covMInit_6= covMInit_5.Similarity(mS);
-    //if(m_debug>=2){
-    //    std::cout<<m_name<<" covMInit_5 " <<std::endl;
-    //    covMInit_5.Print();
-    //    std::cout<<m_name<<" mS " <<std::endl;
-    //    mS.Print();
-    //    std::cout<<m_name<<" covMInit_6 " <<std::endl;
-    //    covMInit_6.Print();
-    //}
+        ///Error propagation
+        //V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
+        TMatrix mS(covMInit_6.GetNrows(),covMInit_5.GetNrows());
+        mS.Zero();
+        double FCT = 2.99792458E-4;
+        mS[0][0]=-sin(phi);
+        mS[0][1]=-1*D0*cos(phi);
+        mS[1][0]=cos(phi);
+        mS[1][1]=-1*D0*sin(phi);
+        mS[2][3]=1;
+        mS[3][1]=FCT*Bz*(1/omega)*sin(phi);
+        mS[3][2]=charge*FCT*Bz*(1/(omega*omega))*cos(phi);
+        mS[4][1]=-1*FCT*Bz*(1/omega)*cos(phi);
+        mS[4][2]=charge*FCT*Bz*(1/(omega*omega))*sin(phi);
+        mS[5][2]=charge*tanLambda*Bz*(1/(omega*omega));
+        mS[5][4]=-FCT*Bz/omega*(1+tanLambda*tanLambda);
 
-    for(int i = 0; i < 3; ++i) {
-        double posResolusion=10.;
-        //seed position
-        covMInit_6(i,i)=posResolusion*posResolusion;
-        //seed momentum
-        double momResolusion=50.;
-        covMInit_6(i+3,i+3)=momResolusion*momResolusion;
+        covMInit_6= covMInit_5.Similarity(mS);
+        if(m_debug>=2){
+            std::cout<<m_name<<" covMInit_5 " <<std::endl;
+            covMInit_5.Print();
+            std::cout<<m_name<<" mS " <<std::endl;
+            mS.Print();
+            std::cout<<m_name<<" covMInit_6 " <<std::endl;
+            covMInit_6.Print();
+        }
+    }else{
+        for(int i = 0; i < 3; ++i) {
+            double posResolusion=10.;
+            //seed position
+            covMInit_6(i,i)=posResolusion*posResolusion;
+            //seed momentum
+            double momResolusion=50.;
+            covMInit_6(i+3,i+3)=momResolusion*momResolusion;
+        }
     }
     //TODO ini cov with trackState
     if(!createGenfitTrack(pidType,helixClass.getCharge(),posInit,momInit,
@@ -273,7 +275,7 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 }
 
 /// Add a 3d SpacepointMeasurement on TrackerHit
-bool
+    bool
 GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
 {
     edm4hep::Vector3d pos=hit.getPosition();
@@ -294,63 +296,23 @@ GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     TMatrixDSym hitCov_3(3);
     int detTypeID=getDetTypeID(hit.getCellID());
 
-    //if(m_debug>=2){
-    //    std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<UTIL::BitSet32(hit.getType())
-    //        [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]<<std::endl;
-    //    std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<UTIL::BitSet32(hit.getType())
-    //        [UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]<<std::endl;
-    //}
-    //if(UTIL::BitSet32(hit.getType())[UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL]){
-    //    if(m_debug>=2){
-    //        std::cout<<m_name<<" detTypeID "<<detTypeID<<" create Planer hit err"<<std::endl;
-    //    }
-    //    // //in SimpleDigi/src/PlanarDigiAlg.cpp
-    //    // //cov[0] = u_direction[0];//theta
-    //    // //cov[1] = u_direction[1];//phi
-    //    // //cov[2] = resU;
-    //    // //cov[3] = v_direction[0];
-    //    // //cov[4] = v_direction[1];
-    //    // //cov[5] = resV;
-    //    // TMatrix mS(3,2);
-    //    // mS[0][0]=-1*sin(cov[1]);//sin(phi_u)
-    //    // mS[0][1]=0;
-    //    // mS[1][0]=cos(cov[1]);//cos(phi_u)
-    //    // mS[1][1]=0;
-    //    // mS[2][0]=0;
-    //    // mS[2][1]=1;
-    //    // TMatrixDSym covUV_2(2);
-    //    // covUV_2[0][0]=cov[2]*cov[2]*dd4hep::mm*dd4hep::mm;//resU^2
-    //    // //covUV_2[1][1]=cov[5]*cov[5]*dd4hep::mm*dd4hep::mm;//resV^2 ,0 FIXME
-    //    // covUV_2[1][1]=1e9*dd4hep::mm*dd4hep::mm;//resU^2//FIXME TODO
-    //    // covUV_2[0][1]=covUV_2[1][0]=0;
-    //    // hitCov_3=covUV_2.Similarity(mS);
-    //    // if(m_debug>=2){
-    //    //     std::cout<<m_name<<" mS "<<std::endl;
-    //    //     mS.Print();
-    //    //     std::cout<<m_name<<" covUV_2 "<<std::endl;
-    //    //     covUV_2.Print();
-    //    // }
-    //    hitCov_3[0][0]=0.003*0.003;
-    //    hitCov_3[1][1]=0.003*0.003;
-    //    hitCov_3[2][2]=0.003*0.003;
-    //}else if(UTIL::BitSet32(hit.getType())
-    //        [UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]){
     if(m_debug>=2){
         std::cout<<m_name<<" detTypeID "<<detTypeID<<" create point hit err"
             <<std::endl;
     }
-    //space point error matrix, lower triangle
-    hitCov_3[0][0]=cov[0];
-    hitCov_3[1][0]=cov[1];
-    hitCov_3[1][1]=cov[2];
-    hitCov_3[2][0]=cov[3];
-    hitCov_3[2][1]=cov[4];
-    hitCov_3[2][2]=cov[5];
-    //}else{
-    //    hitCov_3[0][0]=0.003*0.003;
-    //    hitCov_3[1][1]=0.003*0.003;
-    //    hitCov_3[2][2]=0.003*0.003;
-    //}
+    //space point error matrix, lower triangle?
+    hitCov_3[0][0]=0.003;
+    hitCov_3[1][1]=0.003;
+    hitCov_3[2][2]=0.003;
+    //hitCov_3[0][0]=cov[0];
+    //hitCov_3[1][0]=cov[1];
+    //hitCov_3[0][1]=cov[1];
+    //hitCov_3[1][1]=cov[2];
+    //hitCov_3[2][0]=cov[3];
+    //hitCov_3[0][2]=cov[3];
+    //hitCov_3[2][1]=cov[4];
+    //hitCov_3[1][2]=cov[4];
+    //hitCov_3[2][2]=cov[5];
     if(m_debug>=2){
         std::cout<<m_name<<" hitCov_3 "<<std::endl;
         hitCov_3.Print();
@@ -404,10 +366,10 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
 }
 
 /// Add a 1d strip or 2d pixel smeared by sigma
-bool
+    bool
 GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
 {
-    if(m_debug>0)std::cout<<"addPlanarHitFromTrakerHit"<<std::endl;
+    if(m_debug>0)std::cout<<"addPlanarHitFromTrakerHit not implemented"<<std::endl;
     double cov[6];
     for(int i=0;i<6;i++) {
         cov[i]=hit.getCovMatrix(i);

@@ -76,7 +76,7 @@ class GenfitTrack {
     bool createGenfitTrackFromMCParticle(int pidTyep,const edm4hep::MCParticle&
             mcParticle, double eventStartTime=0.);
     bool createGenfitTrackFromEDM4HepTrack(int pidType,const edm4hep::Track& track,
-            double eventStartTime);
+            double eventStartTime,bool isUseCovTrack=false);
 
     //  /// Prepare a hit list, return number of hits on track
     //  int PrepareHits();//TODO
