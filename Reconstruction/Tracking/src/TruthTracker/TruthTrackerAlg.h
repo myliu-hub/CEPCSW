@@ -86,6 +86,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
+        Gaudi::Property<bool> m_useDC{this,"useDC",true};
+        Gaudi::Property<bool> m_useSi{this,"useSi",true};
         Gaudi::Property<bool> m_useSET{this,"useSET",true};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
@@ -97,7 +99,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<float> m_resVertexX{this,"resVertexX",0.003};//3um
         Gaudi::Property<float> m_resVertexY{this,"resVertexY",0.003};//3um
         Gaudi::Property<float> m_resVertexZ{this,"resVertexZ",0.003};//3um
-        Gaudi::Property<int> m_maxDCDigiCut{this,"maxDCDigiCut",1e6};
+        Gaudi::Property<int> m_maxDCDigiCut{this,"maxDigiCut",1e6};
 
         NTuple::Tuple*  m_tuple;
         NTuple::Item<int> m_run;
@@ -125,6 +127,16 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nSpacePointErrSIT;
         NTuple::Item<int> m_nSpacePointErrSET;
         NTuple::Item<int> m_nSpacePointErrFTD;
+        NTuple::Item<int> m_nHitOnSiTkVXD;
+        NTuple::Item<int> m_nHitOnSiTkSIT;
+        NTuple::Item<int> m_nHitOnSiTkSET;
+        NTuple::Item<int> m_nHitOnSiTkFTD;
+        NTuple::Item<int> m_nHitOnSdtTkVXD;
+        NTuple::Item<int> m_nHitOnSdtTkSIT;
+        NTuple::Item<int> m_nHitOnSdtTkSET;
+        NTuple::Item<int> m_nHitOnSdtTkFTD;
+        NTuple::Item<int> m_nHitOnSdtTkDC;
+        NTuple::Item<int> m_nHitOnSdtTk;
 };
 
 #endif
