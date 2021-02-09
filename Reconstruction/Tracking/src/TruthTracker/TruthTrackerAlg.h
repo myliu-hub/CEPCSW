@@ -38,9 +38,9 @@ class TruthTrackerAlg: public GaudiAlgorithm
     private:
         void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
                 mcParticleCol, edm4hep::TrackState& stat);
-        int addHitsToTrack(DataHandle<edm4hep::TrackerHitCollection>&
+        int addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
                 colHandle, edm4hep::Track& track, const char* msg,int nHitAdded);
-        int addHotsToTrack(edm4hep::Track& sourceTrack,edm4hep::Track&
+        int addHotsToTk(edm4hep::Track& sourceTrack,edm4hep::Track&
                 targetTrack, int hitType,const char* msg,int nHitAdded);
         int nHotsOnTrack(edm4hep::Track& track, int hitType);
         int trackerHitColSize(DataHandle<edm4hep::TrackerHitCollection>& hitCol);
