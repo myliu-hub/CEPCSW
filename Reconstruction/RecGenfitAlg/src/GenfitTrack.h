@@ -67,8 +67,8 @@ class GenfitTrack {
     virtual ~GenfitTrack();
 
     /// Add a Genfit track
-    virtual bool createGenfitTrack(int pdgType,int charge,TLorentzVector pos, TVector3 mom,
-            TMatrixDSym covM);
+    virtual bool createGenfitTrack(int pdgType,int charge,TLorentzVector pos,
+            TVector3 mom, TMatrixDSym covM);
     //virtual bool createGenfitTrack(TLorentzVector posInit,TVector3 momInit,
             //TMatrixDSym covMInit);
 
@@ -82,7 +82,8 @@ class GenfitTrack {
     //  int PrepareHits();//TODO
 
     /// Add a space point measurement, return number of hits on track
-    bool addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
+    bool addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID,
+            bool isUseFixedHitError);
 
     /// Add a planar measurement, return number of hits on track
     bool addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
@@ -102,7 +103,7 @@ class GenfitTrack {
     ///Add space point from edm4hep::track
     int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear,bool fitSiliconOnly);
+        float sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& dcRecParticle,int pidType,

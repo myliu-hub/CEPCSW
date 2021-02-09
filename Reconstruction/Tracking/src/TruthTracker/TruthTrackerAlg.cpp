@@ -62,6 +62,8 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of input SET hit collection");
     declareProperty("FTDCollection", m_FTDCollection,
             "Handle of input FTD hit collection");
+    declareProperty("TruthTrackerHitCollection", m_truthTrackerHitCol,
+            "Handle of output truth TrackerHit collection");
 }
 
 
@@ -240,20 +242,32 @@ StatusCode TruthTrackerAlg::execute()
             }//end of loop over hits on siTk
         }//end of loop over siTk
 
-        nVXDHit=addHitsToTk(m_VXDTrackerHits,sdtTk,"VXD digi",nVXDHit);
-        if(m_useSiSpacePoint.value()){
-            ///Add vxd silicon trackerHit
-            debug()<<"use Si SpacePoint Hit"<<endmsg;
-            nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
-            nSETHit=addHitsToTk(m_SETSpacePointCol,sdtTk,"SET sp",nSETHit);
-            nFTDHit=addHitsToTk(m_FTDSpacePointCol,sdtTk,"FTD sp",nFTDHit);
-        }//end of use space point
-
-        ///Add silicon trackerHit
-        debug()<<"use Si TrackerHit"<<endmsg;
-        nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
-        nSETHit=addHitsToTk(m_SETTrackerHits,sdtTk,"SET digi",nSETHit);
-        nFTDHit=addHitsToTk(m_FTDTrackerHits,sdtTk,"FTD digi",nFTDHit);
+        if(m_useSiTruthHit){
+            ///Add silicon SimTrackerHit
+            debug()<<"Add silicon SimTrackerHit"<<endmsg;
+            auto truthTrackerHitCol=m_truthTrackerHitCol.createAndPut();
+            nVXDHit=addSimHitsToTk(m_VXDCollection,truthTrackerHitCol,sdtTk,"VXD",nVXDHit);
+            nSITHit=addSimHitsToTk(m_SITCollection,truthTrackerHitCol,sdtTk,"SIT",nSITHit);
+            nSETHit=addSimHitsToTk(m_SETCollection,truthTrackerHitCol,sdtTk,"SET",nSETHit);
+            nFTDHit=addSimHitsToTk(m_FTDCollection,truthTrackerHitCol,sdtTk,"FTD",nFTDHit);
+        }else{
+            ///Add reconstructed hit or digi
+            debug()<<"Add VXD TrackerHit"<<endmsg;
+            nVXDHit=addHitsToTk(m_VXDTrackerHits,sdtTk,"VXD digi",nVXDHit);
+            if(m_useSiSpacePoint.value()){
+                ///Add silicon SpacePoint
+                debug()<<"Add silicon SpacePoint"<<endmsg;
+                nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+                nSETHit=addHitsToTk(m_SETSpacePointCol,sdtTk,"SET sp",nSETHit);
+                nFTDHit=addHitsToTk(m_FTDSpacePointCol,sdtTk,"FTD sp",nFTDHit);
+            }else{
+                ///Add silicon TrackerHit
+                debug()<<"Add silicon TrackerHit"<<endmsg;
+                nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
+                nSETHit=addHitsToTk(m_SETTrackerHits,sdtTk,"SET digi",nSETHit);
+                nFTDHit=addHitsToTk(m_FTDTrackerHits,sdtTk,"FTD digi",nFTDHit);
+            }//end of use space point
+        }
     }//end of use silicon
 
     if(m_useDC){
@@ -432,6 +446,57 @@ int TruthTrackerAlg::addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
     debug()<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<endmsg;
     for(auto hit:*col){
         track.addToTrackerHits(hit);
+        ++nHit;
+    }
+    return nHit;
+}
+
+int TruthTrackerAlg::addSimHitsToTk(
+        DataHandle<edm4hep::SimTrackerHitCollection>& colHandle,
+        edm4hep::TrackerHitCollection*& truthTrackerHitCol,
+        edm4hep::Track& track, const char* msg,int nHitAdded)
+{
+    if(nHitAdded>0) return nHitAdded;
+    int nHit=0;
+    const edm4hep::SimTrackerHitCollection* col=colHandle.get();
+    debug()<<"add "<<msg<<" "<<col->size()<<" simTrackerHit"<<endmsg;
+    for(auto simTrackerHit:*col){
+        auto trackerHit=truthTrackerHitCol->create();
+        auto& pos = simTrackerHit.getPosition();
+        UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string) ;
+        int detID=encoder[lcio::ILDCellID0::subdet] ;
+        double resolution[3];
+        if(lcio::ILDDetID::VXD==detID){
+            for(int i=0;i<3;i++)resolution[i]=m_resVXD[i];
+        }else if(lcio::ILDDetID::SIT==detID){
+            for(int i=0;i<3;i++)resolution[i]=m_resSIT[i];
+        }else if(lcio::ILDDetID::SET==detID){
+            for(int i=0;i<3;i++)resolution[i]=m_resSET[i];
+        }else if(lcio::ILDDetID::FTD==detID){
+            for(int i=0;i<3;i++)resolution[i]=m_resFTDPixel[i];//FIXME
+        }else{
+            for(int i=0;i<3;i++)resolution[i]=0.003;
+        }
+        edm4hep::Vector3d posSmeared;//mm
+        posSmeared.x=CLHEP::RandGauss::shoot(pos.x,resolution[0]);
+        posSmeared.y=CLHEP::RandGauss::shoot(pos.y,resolution[1]);
+        posSmeared.z=CLHEP::RandGauss::shoot(pos.z,resolution[2]);
+        trackerHit.setPosition(posSmeared) ;
+        encoder.setValue(simTrackerHit.getCellID()) ;
+        trackerHit.setCellID(encoder.lowWord());//?FIXME
+        std::array<float, 6> cov;
+        cov[0]=resolution[0];
+        cov[1]=0.;
+        cov[2]=resolution[1];
+        cov[3]=0.;
+        cov[4]=0.;
+        cov[5]=resolution[2];
+        trackerHit.setCovMatrix(cov);
+        ///Add hit to track
+        track.addToTrackerHits(trackerHit);
+        trackerHit.setEDep(simTrackerHit.getEDep());
+        trackerHit.addToRawHits(simTrackerHit.getObjectID());
+        trackerHit.setType(-8);//FIXME?
         ++nHit;
     }
     return nHit;

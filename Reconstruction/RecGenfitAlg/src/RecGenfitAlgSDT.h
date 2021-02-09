@@ -123,6 +123,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};
         Gaudi::Property<bool> m_fitSiliconOnly{this,"fitSiliconOnly",false};
+        Gaudi::Property<bool> m_isUseFixedSiHitError{this,"isUseFixedSiHitError",true};
         int m_fitSuccess[5];
         int m_nRecTrack;
         bool m_firstTuple;

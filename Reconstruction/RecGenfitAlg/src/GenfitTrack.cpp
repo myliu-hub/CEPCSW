@@ -275,8 +275,8 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 }
 
 /// Add a 3d SpacepointMeasurement on TrackerHit
-    bool
-GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
+bool GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,
+        int hitID, bool isUseFixedSiHitError)
 {
     edm4hep::Vector3d pos=hit.getPosition();
     TVectorD p(3);
@@ -301,18 +301,21 @@ GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
             <<std::endl;
     }
     //space point error matrix, lower triangle?
-    hitCov_3[0][0]=0.003;
-    hitCov_3[1][1]=0.003;
-    hitCov_3[2][2]=0.003;
-    //hitCov_3[0][0]=cov[0];
-    //hitCov_3[1][0]=cov[1];
-    //hitCov_3[0][1]=cov[1];
-    //hitCov_3[1][1]=cov[2];
-    //hitCov_3[2][0]=cov[3];
-    //hitCov_3[0][2]=cov[3];
-    //hitCov_3[2][1]=cov[4];
-    //hitCov_3[1][2]=cov[4];
-    //hitCov_3[2][2]=cov[5];
+    if(isUseFixedSiHitError){
+        hitCov_3[0][0]=0.003;
+        hitCov_3[1][1]=0.003;
+        hitCov_3[2][2]=0.003;
+    }else{
+        hitCov_3[0][0]=cov[0];
+        hitCov_3[1][0]=cov[1];
+        hitCov_3[0][1]=cov[1];
+        hitCov_3[1][1]=cov[2];
+        hitCov_3[2][0]=cov[3];
+        hitCov_3[0][2]=cov[3];
+        hitCov_3[2][1]=cov[4];
+        hitCov_3[1][2]=cov[4];
+        hitCov_3[2][2]=cov[5];
+    }
     if(m_debug>=2){
         std::cout<<m_name<<" hitCov_3 "<<std::endl;
         hitCov_3.Print();
@@ -325,6 +328,7 @@ GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
     m_track->insertPoint(trackPoint);
 
     if(m_debug>=2)std::cout<<"end of addSpacePointFromTrakerHit"<<std::endl;
+
     return true;
 }
 
@@ -801,7 +805,7 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 ///Add space point measurement from edm4hep::Track to genfit track
 int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear, bool fitSiliconOnly){
+        float sigma,bool smear, bool fitSiliconOnly, bool isUseFixedSiHitError){
 
     //A TrakerHit collection
     std::vector<edm4hep::ConstSimTrackerHit> sortedDCTrackHitCol;
@@ -816,38 +820,47 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
     int hitID=0;
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
+        ///Get hit type
         int detTypeID=getDetTypeID(hit.getCellID());
         if(m_debug>=2)std::cout<<m_name<<" "<<iHit<<" hit "<<hit
-            <<" detTypeID "<<detTypeID<<std::endl;
+            <<" detTypeID "<<detTypeID<<" type "<<hit.getType()<<std::endl;
 
-        bool isSpacePoint=UTIL::BitSet32(hit.getType())[ \
-                          UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT];
-        bool isPlannerHit=UTIL::BitSet32(hit.getType())[ \
-                          UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL];
+        bool hitIsSpapcePoint=UTIL::BitSet32(hit.getType())[ \
+                                  UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT];
+        bool hitIsPlanar=UTIL::BitSet32(hit.getType())[ \
+                         UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL];
         if(m_debug>2){
-            std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<isSpacePoint<<std::endl;
-            std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<isPlannerHit<<std::endl;
+            std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<hitIsSpapcePoint<<std::endl;
+            std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<hitIsPlanar<<std::endl;
         }
-        if(detTypeID==lcio::ILDDetID::VXD
-                ||(isSpacePoint && (detTypeID==lcio::ILDDetID::SIT
-                        ||detTypeID==lcio::ILDDetID::SET
-                        ||detTypeID==lcio::ILDDetID::FTD))){
-            if(addSpacePointFromTrakerHit(hit,hitID)){
+
+        bool isSpacePoint(false);
+        bool isPlanarHit(false);
+        bool isDriftChamberHit(false);
+        if(detTypeID==lcio::ILDDetID::VXD){
+            isSpacePoint=true;
+        }else if(detTypeID==lcio::ILDDetID::SIT
+                || detTypeID==lcio::ILDDetID::SET
+                || detTypeID==lcio::ILDDetID::FTD){
+            isSpacePoint=hitIsSpapcePoint;
+            isPlanarHit=hitIsPlanar;
+        }else if(7==detTypeID){
+            isDriftChamberHit=true;
+        }
+        ///hit from SimTrackerHit
+        bool isSimTrackerHit=hit.getType()<0 ? true:false;//FIXME
+        if(isSimTrackerHit) isSpacePoint=true;//FIXME
+
+        ///Add hit
+        if(isSpacePoint){
+            if(addSpacePointFromTrakerHit(hit,hitID,isUseFixedSiHitError)){
                 hitID++;
-            }else{
-                if(m_debug>=2)std::cout<<"silicon addSpacePointFromTrakerHit"
-                    <<detTypeID<<" "<<hit.getCellID()<<" failed"<<std::endl;
             }
-        }else if(isPlannerHit&&(detTypeID==lcio::ILDDetID::SIT
-                    ||detTypeID==lcio::ILDDetID::SET
-                    ||detTypeID==lcio::ILDDetID::FTD)){
+        }else if(isPlanarHit){
             if(addPlanarHitFromTrakerHit(hit,hitID)){
                 hitID++;
-            }else{
-                if(m_debug>=2)std::cout<<"silicon addPlanarHitFromTrakerHit"
-                    <<detTypeID<<" "<<hit.getCellID()<<" failed"<<std::endl;
             }
-        }else if(7==detTypeID){
+        }else if(isDriftChamberHit){
             //if(addSpacePointMeasurement(p,sigma,hit.getCellID(),hitID)){
             //    if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
             //    hitID++;
@@ -871,6 +884,7 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
             if(m_debug>=2)std::cout<<"addHitsOnEdm4HepTrack Skip add this hit!"
                 <<std::endl;
         }
+
     }//end loop over hit on track
 
     if(m_debug>=2)std::cout<<" addSimTrakerHits trackerHits_size="

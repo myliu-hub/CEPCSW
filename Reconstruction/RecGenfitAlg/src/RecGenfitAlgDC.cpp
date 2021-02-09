@@ -248,8 +248,11 @@ StatusCode RecGenfitAlgDC::execute()
                 return StatusCode::SUCCESS;
             }
             if(m_useTruthHit){
+                bool fitSiliconOnly=false;
+                bool isUseFixedSiHitError=true;
                 if(0==genfitTrack->addHitsOnEdm4HepTrack(dcTrack,assoDCHitsCol,
-                            m_sigmaHit.value(),m_smearHit,false)){
+                            m_sigmaHit.value(),m_smearHit,fitSiliconOnly,
+                            isUseFixedSiHitError)){
                     debug()<<"addSimTrackerHits failed!"<<endmsg;
                     return StatusCode::FAILURE;
                 }

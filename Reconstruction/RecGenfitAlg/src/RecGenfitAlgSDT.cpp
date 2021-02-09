@@ -275,7 +275,8 @@ StatusCode RecGenfitAlgSDT::execute()
             }
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
                     dcHitAssociationCol,m_sigmaHit.value(),
-                    m_smearHit.value(),m_fitSiliconOnly.value());
+                    m_smearHit.value(),m_fitSiliconOnly.value(),
+                    m_isUseFixedSiHitError.value());
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;

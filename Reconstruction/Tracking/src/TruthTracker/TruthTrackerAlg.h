@@ -38,6 +38,9 @@ class TruthTrackerAlg: public GaudiAlgorithm
     private:
         void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
                 mcParticleCol, edm4hep::TrackState& stat);
+        int addSimHitsToTk(DataHandle<edm4hep::SimTrackerHitCollection>&
+                colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
+                edm4hep::Track& track, const char* msg,int nHitAdded);
         int addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
                 colHandle, edm4hep::Track& track, const char* msg,int nHitAdded);
         int addHotsToTk(edm4hep::Track& sourceTrack,edm4hep::Track&
@@ -92,6 +95,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{
             "SDTTrackCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_truthTrackerHitCol{
+            "TruthTrackerHitCollection", Gaudi::DataHandle::Writer, this};
 
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
@@ -109,6 +114,11 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<float> m_resVertexY{this,"resVertexY",0.003};//3um
         Gaudi::Property<float> m_resVertexZ{this,"resVertexZ",0.003};//3um
         Gaudi::Property<int> m_maxDCDigiCut{this,"maxDigiCut",1e6};
+        Gaudi::Property<std::vector<float> > m_resVXD{this,"resVXD",{0.003,0.003,0.003}};//mm
+        Gaudi::Property<std::vector<float> > m_resSIT{this,"resSIT",{0.003,0.003,0.003}};//mm
+        Gaudi::Property<std::vector<float> > m_resSET{this,"resSET",{0.003,0.003,0.003}};//mm
+        Gaudi::Property<std::vector<float> > m_resFTDPixel{this,"resFTDPixel",{0.003,0.003,0.003}};//mm
+        Gaudi::Property<std::vector<float> > m_resFTDStrip{this,"resFTDStrip",{0.003,0.003,0.003}};//mm
 
         NTuple::Tuple*  m_tuple;
         NTuple::Item<int> m_run;
