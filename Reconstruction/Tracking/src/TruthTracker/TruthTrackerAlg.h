@@ -16,13 +16,14 @@ namespace dd4hep {
 }
 namespace edm4hep {
     class MCParticleCollection;
-    class TrackerHitCollection;
     class SimTrackerHitCollection;
+    class TrackerHitCollection;
     class TrackCollection;
-    class MCRecoTrackerAssociationCollection;
-    class ReconstructedParticleCollection;
-    class MCRecoParticleAssociationCollection;
+    class Track;
     class TrackState;
+    class ReconstructedParticleCollection;
+    class MCRecoTrackerAssociationCollection;
+    class MCRecoParticleAssociationCollection;
 }
 
 class TruthTrackerAlg: public GaudiAlgorithm
@@ -37,6 +38,13 @@ class TruthTrackerAlg: public GaudiAlgorithm
     private:
         void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
                 mcParticleCol, edm4hep::TrackState& stat);
+        int addHitsToTrack(DataHandle<edm4hep::TrackerHitCollection>&
+                colHandle, edm4hep::Track& track, const char* msg,int nHitAdded);
+        int addHotsToTrack(edm4hep::Track& sourceTrack,edm4hep::Track&
+                targetTrack, int hitType,const char* msg,int nHitAdded);
+        int nHotsOnTrack(edm4hep::Track& track, int hitType);
+        int trackerHitColSize(DataHandle<edm4hep::TrackerHitCollection>& hitCol);
+        int simTrackerHitColSize(DataHandle<edm4hep::SimTrackerHitCollection>& hitCol);
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::Detector* m_dd4hep;
         dd4hep::OverlayedField m_dd4hepField;
@@ -47,6 +55,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //reader
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
             "MCParticle", Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::SimTrackerHitCollection> m_DCSimTrackerHitCol{
+            "DriftChamberHitsCollection", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_DCDigiCol{
             "DigiDCHitCollection", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
@@ -88,7 +98,6 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "DriftChamberHitsCollection"};
         Gaudi::Property<bool> m_useDC{this,"useDC",true};
         Gaudi::Property<bool> m_useSi{this,"useSi",true};
-        Gaudi::Property<bool> m_useSET{this,"useSET",true};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
         Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",true};
@@ -112,10 +121,12 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nSimTrackerHitSIT;
         NTuple::Item<int> m_nSimTrackerHitSET;
         NTuple::Item<int> m_nSimTrackerHitFTD;
+        NTuple::Item<int> m_nSimTrackerHitDC;
         NTuple::Item<int> m_nTrackerHitVXD;
         NTuple::Item<int> m_nTrackerHitSIT;
         NTuple::Item<int> m_nTrackerHitSET;
         NTuple::Item<int> m_nTrackerHitFTD;
+        NTuple::Item<int> m_nTrackerHitDC;
         NTuple::Item<int> m_nTrackerHitErrVXD;
         NTuple::Item<int> m_nTrackerHitErrSIT;
         NTuple::Item<int> m_nTrackerHitErrSET;
