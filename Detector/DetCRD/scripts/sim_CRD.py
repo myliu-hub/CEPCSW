@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from Gaudi.Configuration import *
 
-from Configurables import K4DataSvc
-dsvc = K4DataSvc("EventDataSvc")
+from Configurables import k4DataSvc
+dsvc = k4DataSvc("EventDataSvc")
 
 from Configurables import RndmGenSvc, HepRndm__Engine_CLHEP__RanluxEngine_
 # rndmengine = HepRndm__Engine_CLHEP__RanluxEngine_() # The default engine in Gaudi
