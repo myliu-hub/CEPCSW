@@ -82,6 +82,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
             Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackCollection> m_SDTRecTrackCol{"SDTRecTrackCollection",
+            Gaudi::DataHandle::Writer, this};
 
         //Output hits and particles
         DataHandle<edm4hep::ReconstructedParticleCollection> m_SDTRecParticleCol{

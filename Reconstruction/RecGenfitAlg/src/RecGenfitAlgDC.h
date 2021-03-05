@@ -85,6 +85,8 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
             "DCFitRecHitsCollection", Gaudi::DataHandle::Writer, this};
         DataHandle<edm4hep::ReconstructedParticleCollection> m_dcRecParticleCol{
             "DCRecParticleCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackCollection> m_DCRecTrackCol{"DCRecTrackCollection",
+            Gaudi::DataHandle::Writer, this};
 
         const unsigned int m_nPDG;//5:e,mu,pi,K,proton
         SmartIF<IGeomSvc> m_geomSvc;

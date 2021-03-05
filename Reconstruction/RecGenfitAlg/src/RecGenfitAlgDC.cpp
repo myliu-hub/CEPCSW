@@ -196,6 +196,8 @@ StatusCode RecGenfitAlgDC::execute()
 {
     edm4hep::ReconstructedParticleCollection* dcRecParticleCol=
         m_dcRecParticleCol.createAndPut();
+    edm4hep::TrackCollection* dcRecParticleTrackCol=
+        m_DCRecTrackCol.createAndPut();
 
     StatusCode sc;
     m_timer=clock();
@@ -275,7 +277,8 @@ StatusCode RecGenfitAlgDC::execute()
             ///Store track
             ///-----------------------------------
             auto dcRecParticle=dcRecParticleCol->create();
-            genfitTrack->storeTrack(dcRecParticle,pidType,m_ndfCut,
+            auto dcRecTrack=dcRecParticleTrackCol->create();
+            genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
                     m_chi2Cut);
             if(m_debug) genfitTrack->printSeed();
 
