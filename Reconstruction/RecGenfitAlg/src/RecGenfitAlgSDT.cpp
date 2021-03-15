@@ -52,6 +52,8 @@ RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
             "Handle of simTrackerHit and TrackerHit association collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of input silicon track collection");
+    declareProperty("SDTRecTrackCollection",m_SDTRecTrackCol,
+            "Handle of input silicon rec. track collection");
     declareProperty("DCTrackCollection", m_dcTrackCol,
             "Handle of DC track collection");
     declareProperty("SDTRecParticleCollection", m_SDTRecParticleCol,
@@ -129,6 +131,9 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("evt",m_evt);
             sc=m_tuple->addItem("tkId",m_tkId);
             sc=m_tuple->addItem("nStdTrack",m_nSdtTrack);
+
+            sc=m_tuple->addItem("nSdtRecTrack",m_nSdtRecTrack);
+
             sc=m_tuple->addItem("mcIndex",m_mcIndex,0,100);//max. 100 particles
             sc=m_tuple->addItem("seedMomP",m_seedMomP);//for single track debug
             sc=m_tuple->addItem("seedMomPt",m_seedMomPt);
@@ -145,6 +150,20 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("firstPosKalP",5,3,m_firstPosKal);
             sc=m_tuple->addItem("firstMomKalP",5,m_firstMomKalP);
             sc=m_tuple->addItem("firstMomKalPt",5,m_firstMomKalPt);
+
+            sc=m_tuple->addItem("ErrorcovMatrix",15,m_ErrorcovMatrix);
+            sc=m_tuple->addItem("D0",m_D0);
+            sc=m_tuple->addItem("phi",m_phi);
+            sc=m_tuple->addItem("omega",m_omega);
+            sc=m_tuple->addItem("Z0",m_Z0);
+            sc=m_tuple->addItem("tanLambda",m_tanLambda);
+
+            sc=m_tuple->addItem("mcP_D0",mcP_D0);
+            sc=m_tuple->addItem("mcP_phi",mcP_phi);
+            sc=m_tuple->addItem("mcP_omega",mcP_omega);
+            sc=m_tuple->addItem("mcP_Z0",mcP_Z0);
+            sc=m_tuple->addItem("mcP_tanLambda",mcP_tanLambda);
+
             sc=m_tuple->addItem("pocaPosKal",5,3,m_pocaPosKal);
             sc=m_tuple->addItem("pocaMomKal",5,3,m_pocaMomKal);
             sc=m_tuple->addItem("pocaMomKalP",5,m_pocaMomKalP);
@@ -208,7 +227,7 @@ StatusCode RecGenfitAlgSDT::execute()
     edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
         m_SDTRecParticleCol.createAndPut();
 
-    edm4hep::TrackCollection* sdtRecParticleTrackCol=
+    edm4hep::TrackCollection* sdtRecTrackCol=
         m_SDTRecTrackCol.createAndPut();
 
     StatusCode sc=StatusCode::SUCCESS;
@@ -296,7 +315,7 @@ StatusCode RecGenfitAlgSDT::execute()
             ///Store track
             ///-----------------------------------
             auto dcRecParticle=sdtRecParticleCol->create();
-            auto dcRecTrack=sdtRecParticleTrackCol->create();
+            auto dcRecTrack=sdtRecTrackCol->create();
             genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
                     m_chi2Cut);
             if(m_debug) genfitTrack->printSeed();
@@ -314,6 +333,7 @@ StatusCode RecGenfitAlgSDT::execute()
     m_nRecTrack++;
 
     if(m_tuple) debugEvent(sdtTrackCol,eventStartTime);
+    if(m_tuple) debugEvent2(sdtRecTrackCol);
 
 
 
@@ -448,8 +468,21 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 
     mcParticleCol=m_mcParticleCol.get();
     int iMcParticle=0;
+    HelixClass helix_mcP;
     for(auto mcParticle : *mcParticleCol){
         edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
+        edm4hep::Vector3d mcPocaPos = mcParticle.getVertex();
+        float mcPos[3] = {float(mcPocaPos.x),float(mcPocaPos.y),float(mcPocaPos.z)};
+        float mcMom[3] = {float(mcPocaMom.x),float(mcPocaMom.y),float(mcPocaMom.z)};
+        float mcCharge = mcParticle.getCharge();
+        helix_mcP.Initialize_VP(mcPos,mcMom,mcCharge,m_genfitField->getBz(mcPos));
+
+        mcP_D0 = helix_mcP.getD0();
+        mcP_phi = helix_mcP.getPhi0();
+        mcP_omega = helix_mcP.getOmega();
+        mcP_Z0 = helix_mcP.getZ0();
+        mcP_tanLambda = helix_mcP.getTanLambda();
+
         float px=mcPocaMom.x;
         float py=mcPocaMom.y;
         float pz=mcPocaMom.z;
@@ -479,4 +512,31 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     const edm4hep::TrackerHitCollection* dCDigiCol=nullptr;
     dCDigiCol=m_DCDigiCol.get();
     if(nullptr!=dCDigiCol){ m_nDCDigi=dCDigiCol->size(); }
+}
+
+void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol) 
+{
+
+    m_nSdtRecTrack=sdtRecTrackCol->size();
+    for(auto sdtTrack: *sdtRecTrackCol){
+        for(int i=0; i<sdtTrack.trackStates_size(); i++) {
+
+            edm4hep::TrackState trackStat=sdtTrack.getTrackStates(i);
+
+            std::array<float,15> errorCov;
+
+            errorCov = trackStat.covMatrix;
+
+            for(int j=0; j<15; j++) {
+                m_ErrorcovMatrix[j] = errorCov[j];
+            }
+
+             m_D0 = trackStat.D0;
+             m_phi = trackStat.phi;
+             m_omega = trackStat.omega;
+             m_Z0 = trackStat.Z0;
+             m_tanLambda = trackStat.tanLambda;
+         }
+
+     }
 }

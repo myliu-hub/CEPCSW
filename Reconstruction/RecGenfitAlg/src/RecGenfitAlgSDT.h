@@ -64,6 +64,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
                 double eventStartTime);
 
+        void debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol);
+
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_DCDigiCol{
@@ -155,6 +157,20 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Matrix<double> m_firstPosKal;//5 hyposis and pos. at first
         NTuple::Array<double> m_firstMomKalP;//5 hyposis and mom. at first
         NTuple::Array<double> m_firstMomKalPt;//5 hyposis and mom. at first
+
+        NTuple::Array<double> m_ErrorcovMatrix;
+        NTuple::Item<double> m_D0;
+        NTuple::Item<double> m_phi;
+        NTuple::Item<double> m_omega;
+        NTuple::Item<double> m_Z0;
+        NTuple::Item<double> m_tanLambda;
+
+        NTuple::Item<double> mcP_D0;
+        NTuple::Item<double> mcP_phi;
+        NTuple::Item<double> mcP_omega;
+        NTuple::Item<double> mcP_Z0;
+        NTuple::Item<double> mcP_tanLambda;
+
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
         NTuple::Matrix<double> m_pocaMomKal;//5 hyposis and 3 mom.
         NTuple::Array<double> m_pocaMomKalP;//5 hyposis and p
@@ -168,6 +184,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;
+
+        NTuple::Item<int> m_nSdtRecTrack;
+
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;

@@ -1119,6 +1119,14 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     trackState->tanLambda=helix.getTanLambda();
     trackState->referencePoint=helix.getReferencePoint();
 
+std::cout << " D0= " << helix.getD0()
+          << " phi= " << helix.getPhi0()
+          << " omega= " << helix.getOmega()
+          << " Z0= " << helix.getZ0()
+          << " tanLambda= " << helix.getTanLambda()
+          << std::endl;
+
+
     std::array<float,15> covMatrix;
     int k=0;
     TMatrix Jacobian_matrix(5,6);
@@ -1140,8 +1148,10 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
 
     for(int i=0;i<5;i++){
         for(int j=0;j<5;j++){
-            if(i>=j) covMatrix[k]=Error_5(i,j);//FIXME
-            k++;
+            if(i>=j) {
+              covMatrix[k]=Error_5(i,j);//FIXME
+              k++;
+            }
         }
     }
     trackState->covMatrix = covMatrix;
