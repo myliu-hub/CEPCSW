@@ -62,6 +62,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
 
         void debugTrack(int pidType,const GenfitTrack* genfitTrack);
         void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
+                const edm4hep::TrackCollection* sdtRecTrackCol,
                 double eventStartTime);
 
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
@@ -81,6 +82,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
 
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
+            Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackCollection> m_SDTRecTrackCol{"SDTRecTrackCollection",
             Gaudi::DataHandle::Writer, this};
 
         //Output hits and particles
@@ -130,7 +133,6 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         //bool m_useRecLRAmbig;
 
         genfit::EventDisplay* m_genfitDisplay;
-        clock_t m_timer;
 
         /// tuples
         NTuple::Tuple*  m_tuple;
@@ -153,6 +155,20 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Matrix<double> m_firstPosKal;//5 hyposis and pos. at first
         NTuple::Array<double> m_firstMomKalP;//5 hyposis and mom. at first
         NTuple::Array<double> m_firstMomKalPt;//5 hyposis and mom. at first
+
+        NTuple::Array<double> m_ErrorcovMatrix;
+        NTuple::Item<double> m_D0;
+        NTuple::Item<double> m_phi;
+        NTuple::Item<double> m_omega;
+        NTuple::Item<double> m_Z0;
+        NTuple::Item<double> m_tanLambda;
+
+        NTuple::Item<double> mcP_D0;
+        NTuple::Item<double> mcP_phi;
+        NTuple::Item<double> mcP_omega;
+        NTuple::Item<double> mcP_Z0;
+        NTuple::Item<double> mcP_tanLambda;
+
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
         NTuple::Matrix<double> m_pocaMomKal;//5 hyposis and 3 mom.
         NTuple::Array<double> m_pocaMomKalP;//5 hyposis and p
@@ -166,6 +182,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;
+
+        NTuple::Item<int> m_nSdtRecTrack;
+
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
@@ -181,7 +200,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_mdcHitErr;
         NTuple::Array<int> m_nHitFailedKal;
         NTuple::Array<int> m_nHitFitted;
-        NTuple::Array<double> m_time;
+        NTuple::Item<double> m_exeTime;
         //truth
         NTuple::Array<int> m_mdcHitMcLr;
         NTuple::Array<int> m_mdcHitMcTkId;

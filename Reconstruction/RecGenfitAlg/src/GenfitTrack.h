@@ -43,6 +43,7 @@ namespace edm4hep{
     class ReconstructedParticle;
     class MCRecoTrackerAssociationCollection;
     class Track;
+    class TrackCollection;
     class ConstTrackerHit;
     class Vector3d;
     class Vector3f;
@@ -106,7 +107,8 @@ class GenfitTrack {
         float sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
 
     ///Store track to ReconstructedParticle
-    bool storeTrack(edm4hep::ReconstructedParticle& dcRecParticle,int pidType,
+    bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
+            edm4hep::Track& track, int pidType,
             int ndfCut, double chi2Cut);
 
     ///A tool to convert track to the first layer of DC

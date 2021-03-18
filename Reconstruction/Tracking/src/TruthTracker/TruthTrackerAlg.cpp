@@ -461,6 +461,10 @@ int TruthTrackerAlg::addSimHitsToTk(
     const edm4hep::SimTrackerHitCollection* col=colHandle.get();
     debug()<<"add "<<msg<<" "<<col->size()<<" simTrackerHit"<<endmsg;
     for(auto simTrackerHit:*col){
+        if(m_skipSecondaryHit&&simTrackerHit.isProducedBySecondary()) {
+            debug()<<"skip secondary simTrackerHit "<<msg<<endmsg;
+            continue;
+        }
         auto trackerHit=truthTrackerHitCol->create();
         auto& pos = simTrackerHit.getPosition();
         UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string) ;

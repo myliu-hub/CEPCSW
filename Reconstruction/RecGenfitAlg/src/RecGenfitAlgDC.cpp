@@ -196,6 +196,8 @@ StatusCode RecGenfitAlgDC::execute()
 {
     edm4hep::ReconstructedParticleCollection* dcRecParticleCol=
         m_dcRecParticleCol.createAndPut();
+    edm4hep::TrackCollection* dcRecParticleTrackCol=
+        m_DCRecTrackCol.createAndPut();
 
     StatusCode sc;
     m_timer=clock();
@@ -275,7 +277,8 @@ StatusCode RecGenfitAlgDC::execute()
             ///Store track
             ///-----------------------------------
             auto dcRecParticle=dcRecParticleCol->create();
-            genfitTrack->storeTrack(dcRecParticle,pidType,m_ndfCut,
+            auto dcRecTrack=dcRecParticleTrackCol->create();
+            genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
                     m_chi2Cut);
             if(m_debug) genfitTrack->printSeed();
 
@@ -348,7 +351,7 @@ void RecGenfitAlgDC::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     float pos[3]={float(fittedPos.X()/dd4hep::mm),float(fittedPos.Y()/dd4hep::mm),
         float(fittedPos.Z()/dd4hep::mm)};
     float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),float(fittedMom.Z())};
-    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBz(fittedPos.Vect()));
+    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
 
     if(m_debug>0){

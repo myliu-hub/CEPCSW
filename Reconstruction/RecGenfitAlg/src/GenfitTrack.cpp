@@ -168,8 +168,7 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
     edm4hep::TrackState trackState=track.getTrackStates(0);//FIXME?
     if(m_debug>=2){
         std::cout<<m_name<<" createGenfitTrackFromEDM4HepTrack "
-            <<" Bz "<<m_genfitField->getBz({0.,0.,0.})
-            *dd4hep::kilogauss/dd4hep::tesla
+            <<" Bz "<<m_genfitField->getBzTesla({0.,0.,0.})
             <<" edm4hep::TrackState " <<trackState<<" track "<<track<<std::endl;
     }
     //TODO
@@ -181,7 +180,7 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
     double omega=trackState.omega;
     double Z0=trackState.Z0;
     double tanLambda=trackState.tanLambda;
-    double Bz=m_genfitField->getBz({0.,0.,0.})*dd4hep::kilogauss/dd4hep::tesla;
+    double Bz=m_genfitField->getBzTesla({0.,0.,0.});
     helixClass.Initialize_Canonical(phi,D0,Z0,omega,tanLambda,Bz);
     TLorentzVector posInit(helixClass.getReferencePoint()[0],
             helixClass.getReferencePoint()[1],
@@ -1029,6 +1028,7 @@ GenfitTrack::extrapolateToCylinder(TVector3& pos, TVector3& mom,
 }
 
 bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
+        edm4hep::Track& track,
         int pidType, int ndfCut, double chi2Cut)
 {
 
@@ -1054,7 +1054,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     int isFitted = fitState->isFitted();
     int isConverged = fitState->isFitConverged();
     int isConvergedFully = fitState->isFitConvergedFully();
-    TMatrixDSym fittedCov;
+    TMatrixDSym fittedCov(6);
     TLorentzVector fittedPos;
     TVector3 fittedMom;
     int fittedState=getFittedState(fittedPos,fittedMom,fittedCov);
@@ -1064,8 +1064,9 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     if((0!=fittedState)||(!isFitted)||(!isConvergedFully)||(ndf>ndfCut)){
         if(m_debug>0)std::cout<<m_name<<" fitting failed"<<std::endl;
     }else{
-        if(m_debug>0)std::cout<<m_name<<" fit result: Pos("<<
-            fittedPos.X()<<" "<<
+        if(m_debug>0){
+            std::cout<<m_name<<" fit result: Pos("<<
+                fittedPos.X()<<" "<<
                 fittedPos.Y()<<" "<<
                 fittedPos.Z()<<") mom("<<
                 fittedMom.X()<<" "<<
@@ -1076,6 +1077,9 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
                 " chi2 "<<chi2<<
                 " ndf "<<ndf
                 <<std::endl;
+            std::cout<<"fittedCov "<<std::endl;
+            fittedCov.Print();
+        }
     }
 
     ///track status at POCA to origin
@@ -1105,7 +1109,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     }
 
     HelixClass helix;
-    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBz(origin));
+    helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(origin));
 
 
     //new TrackState
@@ -1118,20 +1122,50 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     trackState->tanLambda=helix.getTanLambda();
     trackState->referencePoint=helix.getReferencePoint();
 
-    //    std::array<float,15> covMatrix;
-    //    int k=0;
-    //    for(int i=0;i<5;i++){
-    //        for(int j=0;j<5;j++){
-    //            if(i<=j) covMatrix[k]=;//FIXME
-    //        }
-    //    }
-    //    trackState.covMatrix=
+    if(m_debug>2){
+        std::cout <<m_name<< " D0= " << helix.getD0()
+            << " phi= " << helix.getPhi0()
+            << " omega= " << helix.getOmega()
+            << " Z0= " << helix.getZ0()
+            << " tanLambda= " << helix.getTanLambda()
+            << std::endl;
+    }
 
-    //new Track
-    edm4hep::Track* track = new edm4hep::Track();
+
+    std::array<float,15> covMatrix;
+    int k=0;
+    TMatrix Jacobian_matrix(5,6);
+    Jacobian_matrix.Zero();
+    TMatrixDSym Error_5(5);
+
+    Jacobian_matrix[0][0] = 2*pos[0]/(sqrt(pos[0]*pos[0]+pos[1]*pos[1]));
+    Jacobian_matrix[0][1] = 2*pos[1]/(sqrt(pos[0]*pos[0]+pos[1]*pos[1]));
+    Jacobian_matrix[1][3] = mom[1]/(mom[0]*mom[0]+mom[1]*mom[1]);
+    Jacobian_matrix[1][4] = mom[0]/(mom[0]*mom[0]+mom[1]*mom[1]);
+    Jacobian_matrix[2][3] = 2*charge*mom[0]/(sqrt(mom[0]*mom[0]+mom[1]*mom[1]));
+    Jacobian_matrix[2][4] = 2*charge*mom[1]/(sqrt(mom[0]*mom[0]+mom[1]*mom[1]));
+    Jacobian_matrix[3][2] = 1.;
+    Jacobian_matrix[4][3] = 2*mom[2]*mom[0]/(sqrt(mom[0]*mom[0]+mom[1]*mom[1]));
+    Jacobian_matrix[4][4] = 2*mom[2]*mom[1]/(sqrt(mom[0]*mom[0]+mom[1]*mom[1]));
+    Jacobian_matrix[4][5] = 1./(sqrt(mom[0]*mom[0]+mom[1]*mom[1]));
+
+    Error_5 = fittedCov.Similarity(Jacobian_matrix);
+
+    for(int i=0;i<5;i++){
+        for(int j=0;j<5;j++){
+            if(i>=j) {
+                if(m_debug>2) std::cout<<" Error_5 "<<i<<" "<<j<<" "<<Error_5(i,j)<<std::endl;
+                covMatrix[k]=Error_5(i,j);//FIXME
+                k++;
+            }
+        }
+    }
+    trackState->covMatrix = covMatrix;
+    track.addToTrackStates(*trackState);
+
     //track->setType();
-    track->setChi2(fitState->getChi2());
-    track->setNdf(fitState->getNdf());
+    //track->setChi2(fitState->getChi2());
+    //track->setNdf(fitState->getNdf());
     //track->setDEdx();
     //track->setRadiusOfInnermostHit();//FIXME
     //track->addToTrackerHits();
@@ -1146,12 +1180,12 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     //recParticle->setReferencePoint(referencePoint);
     recParticle.setCharge(helix.getCharge());
     //    recParticle->setMass();
-    //    recParticle->setCovMatrix();
+    //    recParticle->setCovMatrix(covMatrix);
     //    rcRecParticle->setStartVertex();
-    //recParticle->addToTracks(track);
+    recParticle.addToTracks(track);
     if(m_debug>2){
         std::cout<<m_name<<" storeTrack trackState "<<*trackState<<std::endl;
-        std::cout<<m_name<<" storeTrack track "<<*track<<std::endl;
+        std::cout<<m_name<<" storeTrack track "<<track<<std::endl;
     }
 
     return true;
