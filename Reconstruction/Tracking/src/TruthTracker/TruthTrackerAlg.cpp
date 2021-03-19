@@ -151,8 +151,10 @@ StatusCode TruthTrackerAlg::execute()
     edm4hep::TrackCollection* dcTrackCol=m_DCTrackCol.createAndPut();
 
     ///Output SDT Track collection
-    edm4hep::TrackCollection* sdtTkCol=nullptr;
-    if(m_useSi)sdtTkCol=m_SDTTrackCol.createAndPut();
+    edm4hep::TrackCollection* sdtTkCol=m_SDTTrackCol.createAndPut();
+
+    ///Output Hit collection
+    auto truthTrackerHitCol=m_truthTrackerHitCol.createAndPut();
 
     ///Retrieve MC particle(s)
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
@@ -245,7 +247,6 @@ StatusCode TruthTrackerAlg::execute()
         if(m_useSiTruthHit){
             ///Add silicon SimTrackerHit
             debug()<<"Add silicon SimTrackerHit"<<endmsg;
-            auto truthTrackerHitCol=m_truthTrackerHitCol.createAndPut();
             nVXDHit=addSimHitsToTk(m_VXDCollection,truthTrackerHitCol,sdtTk,"VXD",nVXDHit);
             nSITHit=addSimHitsToTk(m_SITCollection,truthTrackerHitCol,sdtTk,"SIT",nSITHit);
             nSETHit=addSimHitsToTk(m_SETCollection,truthTrackerHitCol,sdtTk,"SET",nSETHit);
@@ -459,13 +460,12 @@ int TruthTrackerAlg::addSimHitsToTk(
     if(nHitAdded>0) return nHitAdded;
     int nHit=0;
     const edm4hep::SimTrackerHitCollection* col=colHandle.get();
-    debug()<<"add "<<msg<<" "<<col->size()<<" simTrackerHit"<<endmsg;
     for(auto simTrackerHit:*col){
+        auto trackerHit=truthTrackerHitCol->create();
         if(m_skipSecondaryHit&&simTrackerHit.isProducedBySecondary()) {
             debug()<<"skip secondary simTrackerHit "<<msg<<endmsg;
             continue;
         }
-        auto trackerHit=truthTrackerHitCol->create();
         auto& pos = simTrackerHit.getPosition();
         UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string) ;
         int detID=encoder[lcio::ILDCellID0::subdet] ;
@@ -503,6 +503,7 @@ int TruthTrackerAlg::addSimHitsToTk(
         trackerHit.setType(-8);//FIXME?
         ++nHit;
     }
+    debug()<<"add simTrackerHit "<<msg<<" "<<nHit<<endmsg;
     return nHit;
 }
 
