@@ -407,10 +407,9 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     TVector3 fittedMom;
     int fittedState=genfitTrack->getFittedState(fittedPos,fittedMom,fittedCov);
     HelixClass helix;//mm and GeV
-    float pos[3]={float(fittedPos.X()/dd4hep::mm),
-        float(fittedPos.Y()/dd4hep::mm),float(fittedPos.Z()/dd4hep::mm)};
-    float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),
-        float(fittedMom.Z())};
+    double pos[3]={(fittedPos.X()/dd4hep::mm),(fittedPos.Y()/dd4hep::mm),
+        (fittedPos.Z()/dd4hep::mm)};
+    double mom[3]={(fittedMom.X()),(fittedMom.Y()),(fittedMom.Z())};
     helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
 
@@ -480,8 +479,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     for(auto mcParticle : *mcParticleCol){
         edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
         edm4hep::Vector3d mcPocaPos = mcParticle.getVertex();
-        float mcPos[3]={float(mcPocaPos.x),float(mcPocaPos.y),float(mcPocaPos.z)};
-        float mcMom[3]={float(mcPocaMom.x),float(mcPocaMom.y),float(mcPocaMom.z)};
+        double mcPos[3]={(mcPocaPos.x),(mcPocaPos.y),(mcPocaPos.z)};
+        double mcMom[3]={(mcPocaMom.x),(mcPocaMom.y),(mcPocaMom.z)};
         for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
         for(int i=0;i<3;i++){debug()<<"mcMom "<<mcMom[i]<<endmsg;}
         float mcCharge = mcParticle.getCharge();
