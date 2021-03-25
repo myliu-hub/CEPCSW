@@ -204,7 +204,7 @@ StatusCode TruthTrackerAlg::execute()
     ///Create track with mcParticle
     edm4hep::TrackState trackStateMc;
     getTrackStateFromMcParticle(mcParticleCol,trackStateMc);
-    if(m_useTruthTrack.value()){ sdtTk.addToTrackStates(trackStateMc); }
+    if(m_useTruthTrack.value()||!m_useSi){sdtTk.addToTrackStates(trackStateMc);}
 
     if(m_useSi){
         ///Retrieve silicon Track
@@ -346,8 +346,7 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
         edm4hep::Vector3f mcParticleMomSmeared;
         mcParticleMomSmeared.x=mcParticlePt*cos(mcParticleMomPhiSmeared);
         mcParticleMomSmeared.y=mcParticlePt*sin(mcParticleMomPhiSmeared);
-        mcParticleMomSmeared.z=
-            CLHEP::RandGauss::shoot(mcParticleMom.z,m_resPz);
+        mcParticleMomSmeared.z=CLHEP::RandGauss::shoot(mcParticleMom.z,m_resPz);
 
         ///Converted to Helix
         double B[3]={1e9,1e9,1e9};
@@ -467,6 +466,7 @@ int TruthTrackerAlg::addSimHitsToTk(
             continue;
         }
         auto& pos = simTrackerHit.getPosition();
+        debug()<<" addSimHitsToTk "<<msg<<" "<<sqrt(pos.x*pos.x+pos.y*pos.y)<<endmsg;
         UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string) ;
         int detID=encoder[lcio::ILDCellID0::subdet] ;
         double resolution[3];
@@ -489,13 +489,14 @@ int TruthTrackerAlg::addSimHitsToTk(
         encoder.setValue(simTrackerHit.getCellID()) ;
         trackerHit.setCellID(encoder.lowWord());//?FIXME
         std::array<float, 6> cov;
-        cov[0]=resolution[0];
+        cov[0]=resolution[0]*resolution[0];
         cov[1]=0.;
-        cov[2]=resolution[1];
+        cov[2]=resolution[1]*resolution[1];
         cov[3]=0.;
         cov[4]=0.;
-        cov[5]=resolution[2];
+        cov[5]=resolution[2]*resolution[2];
         trackerHit.setCovMatrix(cov);
+        debug()<<"add simTrackerHit "<<msg<<" trackerHit "<<trackerHit<<endmsg;
         ///Add hit to track
         track.addToTrackerHits(trackerHit);
         trackerHit.setEDep(simTrackerHit.getEDep());

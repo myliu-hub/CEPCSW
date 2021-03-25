@@ -102,6 +102,9 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
+        Gaudi::Property<bool> m_isUseCovTrack{this,"isUseCovTrack",false};
+        Gaudi::Property<std::vector<float> > m_hitError{this,"hitError",
+            {0.007,0.007,0.03}};
         //Fitter type default is DAFRef.
         //Candidates are DAF,DAFRef,KalmanFitter and KalmanFitterRefTrack.
         Gaudi::Property<std::string> m_fitterType{this,"fitterTyep","DAFRef"};

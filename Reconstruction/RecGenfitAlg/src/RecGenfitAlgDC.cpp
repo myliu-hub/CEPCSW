@@ -245,7 +245,7 @@ StatusCode RecGenfitAlgDC::execute()
             genfitTrack->setDebug(m_debug);
             double eventStartTime=0;
             if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,dcTrack,
-                        eventStartTime)){
+                        eventStartTime,m_isUseCovTrack)){
                 debug()<<"createGenfitTrackFromEDM4HepTrack failed!"<<endmsg;
                 return StatusCode::SUCCESS;
             }
@@ -253,8 +253,8 @@ StatusCode RecGenfitAlgDC::execute()
                 bool fitSiliconOnly=false;
                 bool isUseFixedSiHitError=true;
                 if(0==genfitTrack->addHitsOnEdm4HepTrack(dcTrack,assoDCHitsCol,
-                            m_sigmaHit.value(),m_smearHit,fitSiliconOnly,
-                            isUseFixedSiHitError)){
+                            m_sigmaHit.value(),m_smearHit,fitSiliconOnly
+                        , isUseFixedSiHitError)){
                     debug()<<"addSimTrackerHits failed!"<<endmsg;
                     return StatusCode::FAILURE;
                 }

@@ -77,7 +77,7 @@ class GenfitTrack {
     bool createGenfitTrackFromMCParticle(int pidTyep,const edm4hep::MCParticle&
             mcParticle, double eventStartTime=0.);
     bool createGenfitTrackFromEDM4HepTrack(int pidType,const edm4hep::Track& track,
-            double eventStartTime,bool isUseCovTrack=false);
+            double eventStartTime,bool isUseCovTrack);
 
     //  /// Prepare a hit list, return number of hits on track
     //  int PrepareHits();//TODO
@@ -112,8 +112,9 @@ class GenfitTrack {
             int ndfCut, double chi2Cut);
 
     ///A tool to convert track to the first layer of DC
-    void pivotToFirstLayer(edm4hep::Vector3d& pos,edm4hep::Vector3f& mom,
-            edm4hep::Vector3d& firstPos, edm4hep::Vector3f& firstMom);
+    void pivotToFirstLayer(const edm4hep::Vector3d& pos,
+            const edm4hep::Vector3f& mom, edm4hep::Vector3d& firstPos,
+            edm4hep::Vector3f& firstMom);
 
     /// Copy a track to event
     //void CopyATrack()const;

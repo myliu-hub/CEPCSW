@@ -91,6 +91,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "SDTRecParticleCollection", Gaudi::DataHandle::Writer, this};
 
         const unsigned int m_nPDG;//5:e,mu,pi,K,proton
+        int m_eventNo;
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::OverlayedField m_dd4hepField;
         dd4hep::Detector* m_dd4hep;
@@ -99,14 +100,16 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<std::string> m_readout_name{this,
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
+        Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
         Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.11};//mm
-        Gaudi::Property<bool> m_smearHit{this,"smearHit",false};
+        Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
+        Gaudi::Property<bool> m_isUseCovTrack{this,"isUseCovTrack",false};
         //Fitter type default is DAFRef.
         //Candidates are DAF,DAFRef,KalmanFitter and KalmanFitterRefTrack.
-        Gaudi::Property<std::string> m_fitterType{this,"fitterTyep","DAF"};
+        Gaudi::Property<std::string> m_fitterType{this,"fitterType","DAF"};
         Gaudi::Property<bool> m_correctBremsstrahlung{this,
             "correctBremsstrahlung",false};
         Gaudi::Property<bool> m_noMaterialEffects{this,
@@ -126,7 +129,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};
         Gaudi::Property<bool> m_fitSiliconOnly{this,"fitSiliconOnly",false};
-        Gaudi::Property<bool> m_isUseFixedSiHitError{this,"isUseFixedSiHitError",true};
+        Gaudi::Property<bool> m_isUseFixedSiHitError{this,"isUseFixedSiHitError",false};
+        Gaudi::Property<std::vector<float> > m_hitError{this,"hitError",
+            {0.007,0.007,0.03}};
         int m_fitSuccess[5];
         int m_nRecTrack;
         bool m_firstTuple;
@@ -143,6 +148,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Matrix<double> m_truthPocaMc;//2 dim matched particle and 3 pos.
         NTuple::Item<double> m_seedMomP;//for single track
         NTuple::Item<double> m_seedMomPt;
+        NTuple::Item<int> m_seedMomQ;
         NTuple::Array<double> m_seedMom;
         NTuple::Array<double> m_seedPos;
         NTuple::Matrix<double> m_pocaPosMc;//2 dim matched particle and 3 pos.
@@ -179,6 +185,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<int> m_isFitConverged;
         NTuple::Array<int> m_isFitConvergedFully;
         NTuple::Array<int> m_isFitted;
+        NTuple::Array<int> m_fittedState;
         NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;

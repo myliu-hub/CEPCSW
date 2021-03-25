@@ -9,6 +9,7 @@
 //cepcsw
 #include "DetInterface/IGeomSvc.h"
 #include "DataHelper/HelixClass.h"
+#include "DataHelper/TrackHelper.h"
 #include "DetSegmentation/GridDriftChamber.h"
 #include "UTIL/ILDConf.h"
 
@@ -67,6 +68,7 @@ StatusCode RecGenfitAlgSDT::initialize()
 {
     MsgStream log(msgSvc(), name());
     info()<<" RecGenfitAlgSDT initialize()"<<endmsg;
+    m_eventNo=0;
 
     ///Get GeomSvc
     m_geomSvc=Gaudi::svcLocator()->service("GeomSvc");
@@ -138,6 +140,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("mcIndex",m_mcIndex,0,100);//max. 100 particles
             sc=m_tuple->addItem("seedMomP",m_seedMomP);//for single track debug
             sc=m_tuple->addItem("seedMomPt",m_seedMomPt);
+            sc=m_tuple->addItem("seedMomQ",m_seedMomQ);
             sc=m_tuple->addItem("seedMom",3,m_seedMom);
             sc=m_tuple->addItem("seedPos",3,m_seedPos);
             sc=m_tuple->addItem("truthPocaMc",m_mcIndex,m_truthPocaMc,3);
@@ -176,6 +179,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("isFitConverged",5,m_isFitConverged);
             sc=m_tuple->addItem("isFitConvergedFully",5,
                     m_isFitConvergedFully);
+            sc=m_tuple->addItem("fittedState",5,m_fittedState);
             sc=m_tuple->addItem("nHitFailedKal",5,m_nHitFailedKal);
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
             sc=m_tuple->addItem("nDCDigi",m_nDCDigi);
@@ -225,6 +229,7 @@ StatusCode RecGenfitAlgSDT::execute()
 {
     info()<<"RecGenfitAlgSDT in execute()"<<endmsg;
 
+
     edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
         m_SDTRecParticleCol.createAndPut();
 
@@ -232,6 +237,12 @@ StatusCode RecGenfitAlgSDT::execute()
         m_SDTRecTrackCol.createAndPut();
 
     StatusCode sc=StatusCode::SUCCESS;
+
+    std::cout<<" RecGenfitAlgSDT execute eventNo  "<<m_eventNo++<<std::endl;
+    if(m_debug&&(abs(m_eventNoSelection)<1e8)&&m_eventNo!=m_eventNoSelection){
+        return sc;
+    }
+
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
     if(m_tuple) start=std::chrono::high_resolution_clock::now();
 
@@ -291,7 +302,7 @@ StatusCode RecGenfitAlgSDT::execute()
                 }
             }else{
                 if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,
-                            sdtTrack, eventStartTime)){
+                            sdtTrack, eventStartTime,m_isUseCovTrack)){
                     debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track\
                         failed!"<<endmsg;
                     return StatusCode::SUCCESS;
@@ -299,8 +310,8 @@ StatusCode RecGenfitAlgSDT::execute()
             }
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
                     dcHitAssociationCol,m_sigmaHit.value(),
-                    m_smearHit.value(),m_fitSiliconOnly.value(),
-                    m_isUseFixedSiHitError.value());
+                    m_smearHit.value(),m_fitSiliconOnly.value()
+                    ,m_isUseFixedSiHitError.value());
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
@@ -318,8 +329,12 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             auto dcRecParticle=sdtRecParticleCol->create();
             auto dcRecTrack=sdtRecTrackCol->create();
-            genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
-                    m_chi2Cut);
+            if(!genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
+                        m_chi2Cut)){
+                debug()<<"Fitting failed!"<<std::endl;
+            }else{
+                ++m_fitSuccess[pidType];
+            }
             if(m_debug) genfitTrack->printSeed();
 
             if(m_tuple) debugTrack(pidType,genfitTrack);
@@ -329,7 +344,6 @@ StatusCode RecGenfitAlgSDT::execute()
             }else{
                 delete genfitTrack;
             }
-            ++m_fitSuccess[pidType];
         }//end loop over particle type
     }//end loop over a track
     m_nRecTrack++;
@@ -369,8 +383,8 @@ StatusCode RecGenfitAlgSDT::finalize()
     if(m_nRecTrack>0){
         std::cout<<"RecGenfitAlgSDT Success rate = "<<std::endl;
         for (int i=0;i<5;i++){
-            std::cout<<Form("%d %2.2f",i,((float) m_fitSuccess[i])/m_nRecTrack)
-                <<std::endl;
+            std::cout<<Form("%d: %d/%d= %2.2f",i,m_fitSuccess[i],m_nRecTrack,
+                    ((float) m_fitSuccess[i])/m_nRecTrack)<<std::endl;
         }
     }
     return StatusCode::SUCCESS;
@@ -406,6 +420,7 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     TLorentzVector fittedPos;
     TVector3 fittedMom;
     int fittedState=genfitTrack->getFittedState(fittedPos,fittedMom,fittedCov);
+    m_fittedState[pidType]=fittedState;
     HelixClass helix;//mm and GeV
     double pos[3]={(fittedPos.X()/dd4hep::mm),(fittedPos.Y()/dd4hep::mm),
         (fittedPos.Z()/dd4hep::mm)};
@@ -421,9 +436,8 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
             <<" ndf "<<m_nDofKal[pidType]
             <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
-        if((0!=fittedState)||(!m_isFitted[pidType])||
-                (m_nDofKal[pidType]<m_ndfCut)){
-            debug()<<"fitting failed"<<endmsg;
+        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
+            debug()<<"evt "<<m_evt<<" fit failed"<<endmsg;
         }else{
             debug()<<"evt "<<m_evt<<" fit result: Pos("<<
                 fittedPos.X()<<" "<<
@@ -466,6 +480,19 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         m_seedMom[1]=momInit.Y();
         m_seedMom[2]=momInit.Z();
         iSdtTrack++;
+        TVector3 pos,mom;
+        TMatrixDSym cov(6);
+        double charge;
+        CEPC::getPosMomFromTrackState(trackStat,m_genfitField->getBzTesla({0.,0.,0.}),
+                pos,mom,charge,cov);
+        m_seedMomQ=charge;
+        debug()<<" sdtTrack charge "<<charge<<" seed mom "<<momInit.X()<<" "<<
+            momInit.Y()<<" "<<momInit.Z()<<endmsg;
+        if(m_debug>0){
+            pos.Print();
+            mom.Print();
+            cov.Print();
+        }
     }
 
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
@@ -492,7 +519,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         mcP_Z0 = helix_mcP.getZ0();
         mcP_tanLambda = helix_mcP.getTanLambda();
         debug()<< " debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
-            << " d0= " << mcP_D0
+            << " mc d0= " << mcP_D0
             << " phi0= " << mcP_phi
             << " omega= " << mcP_omega
             << " Z0= " << mcP_Z0
@@ -503,6 +530,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float pz=mcPocaMom.z;
         debug()<<"mc pxyz   "<<px<<" "<<py<<" "<<pz<<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
+        m_pocaMomMcPt[iMcParticle]=sqrt(px*px+py*py);
         m_pocaMomMc[iMcParticle][0]=px;
         m_pocaMomMc[iMcParticle][1]=py;
         m_pocaMomMc[iMcParticle][2]=pz;
