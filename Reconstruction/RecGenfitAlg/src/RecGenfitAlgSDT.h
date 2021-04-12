@@ -65,6 +65,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                 const edm4hep::TrackCollection* sdtRecTrackCol,
                 double eventStartTime);
 
+        void debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol);
+
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_DCDigiCol{

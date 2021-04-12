@@ -1093,6 +1093,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     int isFitted = fitState->isFitted();
     int isConverged = fitState->isFitConverged();
     int isConvergedFully = fitState->isFitConvergedFully();
+
     TMatrixDSym fittedCov(6);//cm, GeV
     TLorentzVector fittedPos;
     TVector3 fittedMom;
