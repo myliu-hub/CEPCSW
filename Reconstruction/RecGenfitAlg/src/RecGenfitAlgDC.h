@@ -62,7 +62,9 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         const GenfitField* m_genfitField;//The pointer to a GenfitField
 
         void debugTrack(int pidType,const GenfitTrack* genfitTrack);
-        void debugEvent();
+        void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
+                const edm4hep::TrackCollection* sdtRecTrackCol,
+                double eventStartTime);
 
         DataHandle<edm4hep::EventHeaderCollection> _headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
@@ -139,6 +141,13 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Item<int> m_evt;
         NTuple::Item<int> m_tkId;
         NTuple::Item<int> m_mcIndex;//number of navigated mcParicle
+
+        NTuple::Item<double> m_seedMomP;//for single track
+        NTuple::Item<double> m_seedMomPt;
+        NTuple::Item<int> m_seedMomQ;
+        NTuple::Array<double> m_seedMom;
+        NTuple::Array<double> m_seedPos;
+
         NTuple::Matrix<double> m_truthPocaMc;//2 dim matched particle and 3 pos.
         NTuple::Matrix<double> m_pocaPosMc;//2 dim matched particle and 3 pos.
         NTuple::Matrix<double> m_pocaMomMc;//2 dim matched particle and 3 mom.
@@ -150,6 +159,38 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Matrix<double> m_firstPosKal;//5 hyposis and pos. at first
         NTuple::Array<double> m_firstMomKalP;//5 hyposis and mom. at first
         NTuple::Array<double> m_firstMomKalPt;//5 hyposis and mom. at first
+
+        NTuple::Array<double> m_ErrorcovMatrix;
+        NTuple::Item<double> m_D0;
+        NTuple::Item<double> m_phi;
+        NTuple::Item<double> m_omega;
+        NTuple::Item<double> m_Z0;
+        NTuple::Item<double> m_tanLambda;
+
+        NTuple::Item<double> mcP_D0;
+        NTuple::Item<double> mcP_phi;
+        NTuple::Item<double> mcP_omega;
+        NTuple::Item<double> mcP_Z0;
+        NTuple::Item<double> mcP_tanLambda;
+
+        NTuple::Item<double> m_fitPosx;
+        NTuple::Item<double> m_fitPosy;
+        NTuple::Item<double> m_fitPosz;
+
+        NTuple::Item<double> m_fitMomx;
+        NTuple::Item<double> m_fitMomy;
+        NTuple::Item<double> m_fitMomz;
+
+        NTuple::Array<double> m_extraPos;
+        NTuple::Array<double> m_extraMom;
+        NTuple::Array<double> m_Error6;
+
+        NTuple::Item<int> m_ndcTrack;
+
+        NTuple::Item<int> m_ndcRecTrack;
+
+        NTuple::Item<int> m_nDCDigi;
+
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
         NTuple::Matrix<double> m_pocaMomKal;//5 hyposis and 3 mom.
         NTuple::Array<double> m_pocaMomKalP;//5 hyposis and p
