@@ -19,10 +19,10 @@
     <constant name="DC_length" value="DC_half_length*2"/>
 
     <constant name="SDT_inner_chamber_radius_min" value="235*mm-DC_safe_distance"/>
-    <constant name="SDT_inner_chamber_radius_max" value="InnerTracker_outer_radius"/>
+    <constant name="SDT_inner_chamber_radius_max" value="906*mm"/>
     <constant name="SDT_inner_chamber_length" value="DC_length"/>
 
-    <constant name="SDT_outer_chamber_radius_min" value="OuterTracker_inner_radius"/>
+    <constant name="SDT_outer_chamber_radius_min" value="1085*mm-DC_safe_distance"/>
     <constant name="SDT_outer_chamber_radius_max" value="1715*mm+DC_safe_distance"/>
     <constant name="SDT_outer_chamber_length" value="DC_length"/>
 
