@@ -241,7 +241,7 @@ StatusCode RecGenfitAlgDC::execute()
             ///Create a GenFit track
             ///-----------------------------------
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
-                    m_gridDriftChamber);
+                    m_gridDriftChamber,m_geomSvc);
             genfitTrack->setDebug(m_debug);
             double eventStartTime=0;
             if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,dcTrack,
@@ -362,7 +362,7 @@ void RecGenfitAlgDC::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
             <<" ndf "<<m_nDofKal[pidType]
             <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
-        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]<m_ndfCut)){
+        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
             debug()<<"fitting failed"<<endmsg;
         }else{
             debug()<<"evt "<<m_evt<<" fit result: Pos("<<

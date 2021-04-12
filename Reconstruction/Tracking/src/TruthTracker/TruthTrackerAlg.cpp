@@ -276,7 +276,7 @@ StatusCode TruthTrackerAlg::execute()
         edm4hep::Track dcTrack=dcTrackCol->create();
         ///Add DC hits to tracks
         nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
-        nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
+        if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
 
         ///Add other track properties
         dcTrack.addToTrackStates(trackStateMc);
@@ -393,48 +393,50 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
 
 void TruthTrackerAlg::debugEvent()
 {
-    ///Retrieve silicon Track
-    const edm4hep::TrackCollection* siTrackCol=nullptr;
-    siTrackCol=m_siSubsetTrackCol.get();
-    if(nullptr!=siTrackCol){
-        for(auto siTk:*siTrackCol){
-            debug()<<"siTk: "<<siTk<<endmsg;
-            edm4hep::TrackState trackStat=siTk.getTrackStates(0);//FIXME?
-            double B[3]={1e9,1e9,1e9};
-            m_dd4hepField.magneticField({0.,0.,0.},B);
-            HelixClass helix;
-            helix.Initialize_Canonical(trackStat.phi, trackStat.D0, trackStat.Z0,
-                    trackStat.omega, trackStat.tanLambda, B[2]/dd4hep::tesla);
+    if(m_useSi){
+        ///Retrieve silicon Track
+        const edm4hep::TrackCollection* siTrackCol=nullptr;
+        siTrackCol=m_siSubsetTrackCol.get();
+        if(nullptr!=siTrackCol){
+            for(auto siTk:*siTrackCol){
+                debug()<<"siTk: "<<siTk<<endmsg;
+                edm4hep::TrackState trackStat=siTk.getTrackStates(0);//FIXME?
+                double B[3]={1e9,1e9,1e9};
+                m_dd4hepField.magneticField({0.,0.,0.},B);
+                HelixClass helix;
+                helix.Initialize_Canonical(trackStat.phi, trackStat.D0, trackStat.Z0,
+                        trackStat.omega, trackStat.tanLambda, B[2]/dd4hep::tesla);
 
-            m_siMom[0]=helix.getMomentum()[0];
-            m_siMom[1]=helix.getMomentum()[1];
-            m_siMom[2]=helix.getMomentum()[2];
-            m_siPos[0]=helix.getReferencePoint()[0];
-            m_siPos[1]=helix.getReferencePoint()[1];
-            m_siPos[2]=helix.getReferencePoint()[2];
-            m_nHitOnSiTkVXD=nHotsOnTrack(siTk,lcio::ILDDetID::VXD);
-            m_nHitOnSiTkSIT=nHotsOnTrack(siTk,lcio::ILDDetID::SIT);
-            m_nHitOnSiTkSET=nHotsOnTrack(siTk,lcio::ILDDetID::SET);
-            m_nHitOnSiTkFTD=nHotsOnTrack(siTk,lcio::ILDDetID::FTD);
-        }//end of loop over siTk
+                m_siMom[0]=helix.getMomentum()[0];
+                m_siMom[1]=helix.getMomentum()[1];
+                m_siMom[2]=helix.getMomentum()[2];
+                m_siPos[0]=helix.getReferencePoint()[0];
+                m_siPos[1]=helix.getReferencePoint()[1];
+                m_siPos[2]=helix.getReferencePoint()[2];
+                m_nHitOnSiTkVXD=nHotsOnTrack(siTk,lcio::ILDDetID::VXD);
+                m_nHitOnSiTkSIT=nHotsOnTrack(siTk,lcio::ILDDetID::SIT);
+                m_nHitOnSiTkSET=nHotsOnTrack(siTk,lcio::ILDDetID::SET);
+                m_nHitOnSiTkFTD=nHotsOnTrack(siTk,lcio::ILDDetID::FTD);
+            }//end of loop over siTk
+        }
+        //SimTrackerHits
+        m_nSimTrackerHitVXD=simTrackerHitColSize(m_VXDCollection);
+        m_nSimTrackerHitSIT=simTrackerHitColSize(m_SITCollection);
+        m_nSimTrackerHitSET=simTrackerHitColSize(m_SETCollection);
+        m_nSimTrackerHitFTD=simTrackerHitColSize(m_FTDCollection);
+
+        //TrackerHits
+        m_nTrackerHitVXD=trackerHitColSize(m_VXDTrackerHits);
+        m_nTrackerHitSIT=trackerHitColSize(m_SITTrackerHits);
+        m_nTrackerHitSET=trackerHitColSize(m_SETTrackerHits);
+        m_nTrackerHitFTD=trackerHitColSize(m_FTDTrackerHits);
+        m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
+
+        //SpacePoints
+        m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+        m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
+        m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
     }
-    //SimTrackerHits
-    m_nSimTrackerHitVXD=simTrackerHitColSize(m_VXDCollection);
-    m_nSimTrackerHitSIT=simTrackerHitColSize(m_SITCollection);
-    m_nSimTrackerHitSET=simTrackerHitColSize(m_SETCollection);
-    m_nSimTrackerHitFTD=simTrackerHitColSize(m_FTDCollection);
-
-    //TrackerHits
-    m_nTrackerHitVXD=trackerHitColSize(m_VXDTrackerHits);
-    m_nTrackerHitSIT=trackerHitColSize(m_SITTrackerHits);
-    m_nTrackerHitSET=trackerHitColSize(m_SETTrackerHits);
-    m_nTrackerHitFTD=trackerHitColSize(m_FTDTrackerHits);
-    m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
-
-    //SpacePoints
-    m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
-    m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
-    m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
 }
 
 int TruthTrackerAlg::addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&

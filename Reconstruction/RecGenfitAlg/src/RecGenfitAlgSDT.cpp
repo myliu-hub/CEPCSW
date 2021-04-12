@@ -291,7 +291,7 @@ StatusCode RecGenfitAlgSDT::execute()
             ///Create a GenFit track
             ///-----------------------------------
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
-                    m_gridDriftChamber);
+                    m_gridDriftChamber,m_geomSvc);
             genfitTrack->setDebug(m_debug.value());
             if(m_useTruthTrack){
                 //single track only FIXME

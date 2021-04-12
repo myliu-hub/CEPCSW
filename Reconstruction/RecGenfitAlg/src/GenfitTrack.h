@@ -25,10 +25,14 @@
 #include "TVectorD.h"
 #include "TMatrixDSym.h"
 
+//Gaudi
+#include "GaudiKernel/SmartIF.h"
+
 //STL
 #include <vector>
 
 class TLorentzVector;
+class IGeomSvc;
 
 namespace genfit{
     class Track;
@@ -52,6 +56,9 @@ namespace dd4hep {
     namespace DDSegmentation{
         class GridDriftChamber;
     }
+    namespace rec{
+        class ISurface;
+    }
 }
 
 class GenfitTrack {
@@ -64,6 +71,7 @@ class GenfitTrack {
     public:
     GenfitTrack(const GenfitField* field,
             const dd4hep::DDSegmentation::GridDriftChamber* seg,
+            SmartIF<IGeomSvc> geom,
             const char* name="GenfitTrack");
     virtual ~GenfitTrack();
 
@@ -71,7 +79,7 @@ class GenfitTrack {
     virtual bool createGenfitTrack(int pdgType,int charge,TLorentzVector pos,
             TVector3 mom, TMatrixDSym covM);
     //virtual bool createGenfitTrack(TLorentzVector posInit,TVector3 momInit,
-            //TMatrixDSym covMInit);
+    //TMatrixDSym covMInit);
 
     ///Create genfit track from MCParticle
     bool createGenfitTrackFromMCParticle(int pidTyep,const edm4hep::MCParticle&
@@ -103,8 +111,8 @@ class GenfitTrack {
 
     ///Add space point from edm4hep::track
     int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
-        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            float sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
@@ -203,6 +211,7 @@ class GenfitTrack {
     genfit::AbsTrackRep* getRep(int id=0) const {return m_reps[id];}
     bool getMOP(int hitID, genfit::MeasuredStateOnPlane& mop,
             genfit::AbsTrackRep* trackRep=nullptr) const;
+    const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit hit);
 
     genfit::Track* m_track;/// track
     std::vector<genfit::AbsTrackRep*> m_reps;/// track repesentations
@@ -212,6 +221,8 @@ class GenfitTrack {
     const dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
 
     static const int s_PDG[2][5];
+
+    SmartIF<IGeomSvc> m_geomSvc;
 
 };
 

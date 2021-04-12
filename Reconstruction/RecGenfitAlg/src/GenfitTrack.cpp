@@ -5,9 +5,17 @@
 #include "DataHelper/HelixClass.h"
 #include "DataHelper/TrackHelper.h"
 #include "UTIL/ILDConf.h"
+#include "DetInterface/IGeomSvc.h"
 
 //Externals
+#include "GaudiKernel/SmartIF.h"
 #include "DD4hep/DD4hepUnits.h"
+#include "DD4hep/Detector.h"
+#include "DD4hep/DetElement.h"
+#include "DD4hep/Segmentations.h"
+#include "DDRec/ISurface.h"
+#include "DDRec/SurfaceManager.h"
+#include "DDRec/Vector3D.h"
 #include "edm4hep/MCParticle.h"
 #include "edm4hep/Track.h"
 #include "edm4hep/TrackerHitConst.h"
@@ -54,9 +62,11 @@ sortDCHit(edm4hep::ConstSimTrackerHit hit1,edm4hep::ConstSimTrackerHit hit2)
     return isEarly;
 }
 
-    GenfitTrack::GenfitTrack(const GenfitField* genfitField, const dd4hep::DDSegmentation::GridDriftChamber* seg, const char* name)
+    GenfitTrack::GenfitTrack(const GenfitField* genfitField,
+            const dd4hep::DDSegmentation::GridDriftChamber* seg,
+            SmartIF<IGeomSvc> geom, const char* name)
 :m_name(name),m_track(nullptr),m_reps(),m_debug(0),
-    m_genfitField(genfitField),m_gridDriftChamber(seg)
+    m_genfitField(genfitField),m_gridDriftChamber(seg),m_geomSvc(geom)
 {
 
 }
@@ -338,6 +348,43 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
     return true;
 }
 
+/// Return isurface of a silicon hit
+const dd4hep::rec::ISurface*
+GenfitTrack::getISurface(edm4hep::ConstTrackerHit hit){
+    dd4hep::rec::SurfaceManager surfaceManager(*m_geomSvc->lcdd());
+
+    std::string detectorName;
+    int detTypeID=getDetTypeID(hit.getCellID());
+    if(detTypeID==lcio::ILDDetID::VXD){
+        detectorName="VXD";
+    }else if(detTypeID==lcio::ILDDetID::SIT){
+        detectorName="SIT";
+    }else if(detTypeID==lcio::ILDDetID::SET){
+        detectorName="SET";
+    }else if(detTypeID==lcio::ILDDetID::FTD){
+        detectorName="FTD";
+    }else{
+        return nullptr;
+    }
+    std::cout<<__FILE__<<" detectorName  "<<detectorName<<" cellId "<<hit.getCellID()<<std::endl;
+    const dd4hep::rec::SurfaceMap* surfaceMap= surfaceManager.map(detectorName);
+    auto iter=surfaceMap->find(hit.getCellID());
+    dd4hep::rec::ISurface* iSurface=nullptr;
+    if(iter!=surfaceMap->end()){iSurface=(*iter).second;}
+
+    std::cout << "map size = " << surfaceMap->size() << std::endl;
+    std::multimap< unsigned long, dd4hep::rec::ISurface*>::const_iterator it,itend;
+    it=surfaceMap->begin();
+    itend= surfaceMap->end();
+    for(; it!=itend; it++){
+        dd4hep::rec::ISurface* surf = it->second;
+        std::cout<<__FILE__<<" surf cell id  "<<it->first<<std::endl;
+        dd4hep::rec::Vector3D origin = surf->origin();
+        std::cout <<"surf id "<< surf->id() << " origin xyz " << origin.x() << " " << origin.y() << " " << origin.z() << std::endl;
+    }
+    return iSurface;
+}
+
 /// Add a 1d strip or 2d pixel smeared by sigma
     bool
 GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
@@ -349,13 +396,27 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
         if(m_debug>=2)std::cout<<"cov "<<cov[i]<<std::endl;
     }
 
+    /////get surface by cellID
+    const dd4hep::rec::ISurface* iSurface = getISurface(hit);
+    if(nullptr!=iSurface){
+        dd4hep::rec::Vector3D u=iSurface->u();
+        dd4hep::rec::Vector3D v=iSurface->v();
+        double length_along_u=iSurface->length_along_u();
+        double length_along_v=iSurface->length_along_v();
+        std::cout<<__FILE__<<"   "<<__LINE__<<" u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
+        std::cout<<__FILE__<<"   "<<__LINE__<<" v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
+        std::cout<<__FILE__<<"   "<<__LINE__<<" length_along_u "<<length_along_u<<" length_along_v "<<length_along_v<<std::endl;
+
+    }else{
+        std::cout<<__FILE__<<" iSurface is null "<<std::endl;
+    }
     ////my cov
     //double detectorResolution(0.001); // resolution of planar detectors
     //TMatrixDSym hitCov(2);
     //hitCov.UnitMatrix();
     //hitCov *= detectorResolution*detectorResolution;
 
-    ////hit pos
+    ///hit pos
     //const edm4hep::Vector3d& pos=hit.getPosition();
 
     //TVectorD hitCoords(3);
@@ -365,7 +426,6 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
 
     //if(m_debug>=2)std::cout<<"TrackerHit pos "<<pos<<std::endl;
     ////TODO FIXME get from geometry
-    //TVector3 vU(cov[0],cov[1],0);
     //TVector3 vV(cov[3],cov[4],0);
 
     //// add some planar hits example
@@ -807,6 +867,8 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         bool isDriftChamberHit(false);
         if(7==detTypeID){
             isDriftChamberHit=true;
+        }else{
+            addPlanarHitFromTrakerHit(hit,hitID);//yzhang DEBUG FIXME
         }
         //bool isSpacePoint(true);
         //    isDriftChamberHit=true;
