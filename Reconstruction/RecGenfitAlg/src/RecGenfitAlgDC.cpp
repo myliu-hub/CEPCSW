@@ -390,35 +390,39 @@ void RecGenfitAlgDC::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     TVector3 fittedMom;
     int fittedState=genfitTrack->getFittedState(fittedPos,fittedMom,fittedCov);
 
-    TVector3 fittedpos;
-    fittedpos.SetXYZ(fittedPos.X(),fittedPos.Y(),fittedPos.Z());
-
-    TVector3& fittedPos_first = fittedpos;
-//    fittedPos_first.SetXYZ(fittedPos.X()/dd4hep::mm,fittedPos.Y()/dd4hep::mm,fittedPos.Z()/dd4hep::mm);
-    TVector3& fittedMom_first = fittedMom;
-//    fittedMom_first.SetXYZ(fittedMom.X(),fittedMom.Y(),fittedMom.Z());
-
     m_fitPosx = fittedPos.X();
     m_fitPosy = fittedPos.Y();
     m_fitPosz = fittedPos.Z();
-
     m_fitMomx = fittedMom.X();
     m_fitMomy = fittedMom.Y();
     m_fitMomz = fittedMom.Z();
 
-    const TVector3 referencePoint(0,0,0);
-    double TrackLength = genfitTrack->extrapolateToPoint(fittedPos_first,fittedMom_first,referencePoint,&fittedCov);
+    TVector3 fittedPos_ext2Origin(1e9,1e9,1e9);
+    TVector3 fittedMom_ext2Origin(1e9,1e9,1e9);
+    TMatrixDSym fittedCov_ext2Origin;
+    const TVector3 referencePoint(0.,0.,0.);
+    double trackLength = genfitTrack->extrapolateToPoint(fittedPos_ext2Origin,
+            fittedMom_ext2Origin,fittedCov_ext2Origin,referencePoint);
 
-    m_extraPos[0] = fittedPos_first.X();
-    m_extraPos[1] = fittedPos_first.Y();
-    m_extraPos[2] = fittedPos_first.Z();
+    if(m_debug>0){
+        debug()<<"Fitted pos and mom "<<endmsg;
+        fittedPos.Print();
+        fittedMom.Print();
+        debug()<<"After extrapolate to origin trackLength "<<trackLength<<endmsg;
+        fittedPos_ext2Origin.Print();
+        fittedMom_ext2Origin.Print();
+    }
 
-    m_extraMom[0] = fittedMom_first.X();
-    m_extraMom[1] = fittedMom_first.Y();
-    m_extraMom[2] = fittedMom_first.Z();
+    m_extraPos[0] = fittedPos_ext2Origin.X();
+    m_extraPos[1] = fittedPos_ext2Origin.Y();
+    m_extraPos[2] = fittedPos_ext2Origin.Z();
+
+    m_extraMom[0] = fittedMom_ext2Origin.X();
+    m_extraMom[1] = fittedMom_ext2Origin.Y();
+    m_extraMom[2] = fittedMom_ext2Origin.Z();
 
     for(int i=0; i<6;i++) {
-       m_Error6[i] = fittedCov[i][i];
+        m_Error6[i] = fittedCov[i][i];
     }
 
     HelixClass helix;//mm and GeV
@@ -577,37 +581,37 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 }
 
 /*void RecGenfitAlgDC::debugEvent()
-{
-    const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
-    const edm4hep::SimTrackerHitCollection* simDCHitCol=nullptr;
+  {
+  const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
+  const edm4hep::SimTrackerHitCollection* simDCHitCol=nullptr;
 
-    m_pidIndex=5;
+  m_pidIndex=5;
 
-    mcParticleCol=m_mcParticleCol.get();
-    simDCHitCol=m_simDCHitCol.get();
-    m_nSimDCHit=simDCHitCol->size();
-    int iMcParticle=0;
-    int iHit=0;
-    for(auto mcParticle : *mcParticleCol){
-        for(auto simDCHit: *simDCHitCol){
-            edm4hep::Vector3d pos=simDCHit.position();
-            TVectorD p(3);
-            p[0]=pos.x;//no unit conversion here
-            p[1]=pos.y;
-            p[2]=pos.z;
-            m_mdcHitMcX[iHit]=pos.x;
-            m_mdcHitMcY[iHit]=pos.y;
-            m_mdcHitMcZ[iHit]=pos.z;
-            iHit++;
-        }
-        edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
-        float px=mcPocaMom.x;
-        float py=mcPocaMom.y;
-        float pz=mcPocaMom.z;
-        debug()<<"   "<<px<<" "<<py<<" "<<pz<<endmsg;
-        m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
-        iMcParticle++;
-    }
-    m_mcIndex=iHit;
+  mcParticleCol=m_mcParticleCol.get();
+  simDCHitCol=m_simDCHitCol.get();
+  m_nSimDCHit=simDCHitCol->size();
+  int iMcParticle=0;
+  int iHit=0;
+  for(auto mcParticle : *mcParticleCol){
+  for(auto simDCHit: *simDCHitCol){
+  edm4hep::Vector3d pos=simDCHit.position();
+  TVectorD p(3);
+  p[0]=pos.x;//no unit conversion here
+  p[1]=pos.y;
+  p[2]=pos.z;
+  m_mdcHitMcX[iHit]=pos.x;
+  m_mdcHitMcY[iHit]=pos.y;
+  m_mdcHitMcZ[iHit]=pos.z;
+  iHit++;
+  }
+  edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
+  float px=mcPocaMom.x;
+  float py=mcPocaMom.y;
+  float pz=mcPocaMom.z;
+  debug()<<"   "<<px<<" "<<py<<" "<<pz<<endmsg;
+  m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
+  iMcParticle++;
+  }
+  m_mcIndex=iHit;
 
-}*/
+  }*/

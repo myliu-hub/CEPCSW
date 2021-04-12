@@ -962,7 +962,20 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
 }
 
 double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
-        const TVector3& point, const TMatrixDSym* G,
+        const TVector3& point,
+        int repID,// same with pidType
+        bool stopAtBoundary,
+        bool calcJacobianNoise) const
+{
+    TMatrixDSym cov;
+    return extrapolateToPoint(pos,mom,cov,point,repID,stopAtBoundary,
+            calcJacobianNoise);
+
+}//end of extrapolateToPoint
+
+
+double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
+        TMatrixDSym& cov, const TVector3& point,
         int repID,// same with pidType
         bool stopAtBoundary,
         bool calcJacobianNoise) const
@@ -993,17 +1006,29 @@ double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
         genfit::KalmanFittedStateOnPlane* state =
             static_cast<genfit::KalmanFitterInfo*>(
                     tp->getFitterInfo(rep))->getBackwardUpdate();
+        genfit::StateOnPlane orignalState(*state);
+        if(m_debug>3){
+            tp->Print();
+            std::cout<<" original state before extrapolate "<<std::endl;
+            state->Print();
+        }
 
         if(nullptr == state) {
-           if(m_debug>=2)std::cout<<
+            if(m_debug>=2)std::cout<<
                 "In extrapolateToPoint KalmanFittedStateOnPlane is null"<<std::endl;
             return trackLength*dd4hep::cm;
         }
         trackLength = rep->extrapolateToPoint(*state,
-                point*(1/dd4hep::cm),*G,stopAtBoundary, calcJacobianNoise);
-        rep->getPosMom(*state,pos,mom);//FIXME exception exist
+                point*(1/dd4hep::cm),stopAtBoundary, calcJacobianNoise);
+        rep->getPosMomCov(*state,pos,mom,cov);//FIXME exception exist
         pos = pos*dd4hep::cm;
         mom = mom*dd4hep::GeV;
+        if(m_debug>3){
+            std::cout<<" original state before extrapolate "<<std::endl;
+            orignalState.Print();
+            std::cout<<" extrapolated state "<<std::endl;
+            state->Print();
+        }
     } catch(genfit::Exception& e){
         if(m_debug>=3)std::cout
             <<"Exception in GenfitTrack::extrapolateToPoint"
@@ -1011,17 +1036,6 @@ double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
         trackLength = 1e9*dd4hep::cm;
     }
     return trackLength*dd4hep::cm;
-}//end of extrapolateToPoint
-
-double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
-        const TVector3& point,
-        int repID,// same with pidType
-        bool stopAtBoundary,
-        bool calcJacobianNoise) const
-{
-    return  extrapolateToPoint(pos,mom,point,nullptr,repID,
-            stopAtBoundary,calcJacobianNoise);
-
 }//end of extrapolateToPoint
 
 /// Extrapolate the track to the cyliner at fixed raidus
