@@ -859,7 +859,9 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
                 }
             }
             //std::cout<<"minTimeSimHit "<<minTimeSimHit<<std::endl;
-            sortedDCTrackHitCol.push_back(minTimeSimHit);
+            if(!minTimeSimHit.isProducedBySecondary()){
+                sortedDCTrackHitCol.push_back(minTimeSimHit);
+            }
         }else{
             if(m_debug>=2)std::cout<<"addHitsOnEdm4HepTrack Skip add this hit!"
                 <<std::endl;
@@ -931,12 +933,68 @@ double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
                     tp->getFitterInfo(rep))->getBackwardUpdate();
 
         if(nullptr == state) {
-            if(m_debug>=2)std::cout<<
+           if(m_debug>=2)std::cout<<
                 "In extrapolateToPoint KalmanFittedStateOnPlane is null"<<std::endl;
             return trackLength*dd4hep::cm;
         }
         trackLength = rep->extrapolateToPoint(*state,
                 point*(1/dd4hep::cm),stopAtBoundary, calcJacobianNoise);
+        rep->getPosMom(*state,pos,mom);//FIXME exception exist
+        pos = pos*dd4hep::cm;
+        mom = mom*dd4hep::GeV;
+    } catch(genfit::Exception& e){
+        if(m_debug>=3)std::cout
+            <<"Exception in GenfitTrack::extrapolateToPoint"
+                << e.what()<<std::endl;
+        trackLength = 1e9*dd4hep::cm;
+    }
+    return trackLength*dd4hep::cm;
+}//end of extrapolateToPoint
+
+double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
+        const TVector3& point, const TMatrixDSym* G,
+        int repID,// same with pidType
+        bool stopAtBoundary,
+        bool calcJacobianNoise) const
+{
+    if(&G == nullptr ) {
+        return  extrapolateToPoint(pos,mom,point,repID,
+                stopAtBoundary,calcJacobianNoise);
+    }
+
+    double trackLength(1e9*dd4hep::cm);
+    if(!getFitStatus(repID)->isFitted()) return trackLength;
+    try{
+        // get track rep
+        genfit::AbsTrackRep* rep = getRep(repID);
+        if(nullptr == rep) {
+            if(m_debug>=2)std::cout<<"In extrapolateToPoint rep "
+                <<repID<<" not exist!"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        /// extrapolate to point
+        //genfit::StateOnPlane state(*(&(track->getTrack()->getFittedState(0,rep))));
+
+        // get track point with fitter info
+        genfit::TrackPoint* tp = getTrack()->getPointWithFitterInfo(0,rep);
+        if(nullptr == tp) {
+            if(m_debug>=2)std::cout<<
+                "In extrapolateToPoint TrackPoint is null"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+
+        // get fitted state on plane of this track point
+        genfit::KalmanFittedStateOnPlane* state =
+            static_cast<genfit::KalmanFitterInfo*>(
+                    tp->getFitterInfo(rep))->getBackwardUpdate();
+
+        if(nullptr == state) {
+            if(m_debug>=2)std::cout<<
+                "In extrapolateToPoint KalmanFittedStateOnPlane is null"<<std::endl;
+            return trackLength*dd4hep::cm;
+        }
+        trackLength = rep->extrapolateToPoint(*state, point*(1/dd4hep::cm), *G, stopAtBoundary, calcJacobianNoise);
         rep->getPosMom(*state,pos,mom);//FIXME exception exist
         pos = pos*dd4hep::cm;
         mom = mom*dd4hep::GeV;
