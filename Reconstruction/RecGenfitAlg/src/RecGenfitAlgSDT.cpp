@@ -506,6 +506,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     for(auto mcParticle : *mcParticleCol){
         edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV
         edm4hep::Vector3d mcPocaPos = mcParticle.getVertex();
+
         double mcPos[3]={(mcPocaPos.x),(mcPocaPos.y),(mcPocaPos.z)};
         double mcMom[3]={(mcPocaMom.x),(mcPocaMom.y),(mcPocaMom.z)};
         for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
@@ -513,11 +514,13 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float mcCharge = mcParticle.getCharge();
         helix_mcP.Initialize_VP(mcPos,mcMom,mcCharge,
                 m_genfitField->getBzTesla(mcPos));
+
         mcP_D0 = helix_mcP.getD0();
         mcP_phi = helix_mcP.getPhi0();
         mcP_omega = helix_mcP.getOmega();
         mcP_Z0 = helix_mcP.getZ0();
         mcP_tanLambda = helix_mcP.getTanLambda();
+
         debug()<< " debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
             << " mc d0= " << mcP_D0
             << " phi0= " << mcP_phi
@@ -573,4 +576,31 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
             m_tanLambda = trackStat.tanLambda;
         }
     }
+}
+
+void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol) 
+{
+
+    m_nSdtRecTrack=sdtRecTrackCol->size();
+    for(auto sdtTrack: *sdtRecTrackCol){
+        for(int i=0; i<sdtTrack.trackStates_size(); i++) {
+
+            edm4hep::TrackState trackStat=sdtTrack.getTrackStates(i);
+
+            std::array<float,15> errorCov;
+
+            errorCov = trackStat.covMatrix;
+
+            for(int j=0; j<15; j++) {
+                m_ErrorcovMatrix[j] = errorCov[j];
+            }
+
+             m_D0 = trackStat.D0;
+             m_phi = trackStat.phi;
+             m_omega = trackStat.omega;
+             m_Z0 = trackStat.Z0;
+             m_tanLambda = trackStat.tanLambda;
+         }
+
+     }
 }

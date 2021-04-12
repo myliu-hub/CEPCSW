@@ -289,7 +289,7 @@ StatusCode TruthTrackerAlg::execute()
     }
 
     ///Set other track parameters
-    sdtTk.setNdf(sdtTk.trackerHits_size()-5);
+    //sdtTk.setNdf(sdtTk.trackerHits_size()-5);
     //double radiusOfInnermostHit=1e9;
     //edm4hep::Vector3d digiPos=digiDC.getPosition();
     //double r=sqrt(digiPos.x*digiPos.x+digiPos.y*digiPos.y);
@@ -305,7 +305,7 @@ StatusCode TruthTrackerAlg::execute()
         m_nHitOnSdtTkSET=nSETHit;
         m_nHitOnSdtTkFTD=nFTDHit;
         m_nHitOnSdtTkDC=nDCHitSDTTk;
-        m_nHitOnSdtTk=sdtTk.trackerHits_size();
+        //m_nHitOnSdtTk=sdtTk.trackerHits_size();
         debugEvent();
         StatusCode sc=m_tuple->write();
     }

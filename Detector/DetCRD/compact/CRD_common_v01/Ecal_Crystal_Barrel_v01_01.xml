@@ -6,6 +6,7 @@
     <constant name="ecalbarrel_zlength"      value="Ecal_barrel_half_length*2"/>   <!--Must be n*10*mm! -->
   </define>
 
+ <regions>
   <regions>
     <region name="EcalBarrelRegion">
     </region>

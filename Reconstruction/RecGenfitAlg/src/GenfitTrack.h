@@ -148,6 +148,10 @@ class GenfitTrack {
             const TVector3& point, int repID=0, bool stopAtBoundary = false,
             bool calcJacobianNoise = false) const;
 
+    double extrapolateToPoint(TVector3& pos, TVector3& mom,
+            const TVector3& point, const TMatrixDSym* G, int repID=0,
+            bool stopAtBoundary = false, bool calcJacobianNoise = true) const;
+
     /// Extrapolate the track to the cyliner at fixed raidus
     /// Output: pos and mom at fixed radius
     /// Input: genfitTrack, radius of cylinder at center of the origin,
