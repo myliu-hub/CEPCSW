@@ -164,10 +164,17 @@ StatusCode TruthTrackerAlg::execute()
         debug()<<"MCParticleCollection not found"<<endmsg;
         return StatusCode::SUCCESS;
     }
-
     ///Retrieve DC digi
     const edm4hep::TrackerHitCollection* digiDCHitsCol=nullptr;
     if(m_useDC){
+        const edm4hep::SimTrackerHitCollection* dcSimHitCol
+            =m_DCSimTrackerHitCol.get();
+        if(nullptr==dcSimHitCol){
+            debug()<<"DC SimTrackerHitCollection not found"<<endmsg;
+        }else{
+            debug()<<"DriftChamberHitsCollection size "
+                <<dcSimHitCol->size()<<endmsg;
+        }
         digiDCHitsCol=m_DCDigiCol.get();
         if(nullptr==digiDCHitsCol){
             debug()<<"TrackerHitCollection not found"<<endmsg;

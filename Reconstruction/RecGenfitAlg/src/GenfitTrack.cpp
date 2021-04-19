@@ -1018,6 +1018,7 @@ double GenfitTrack::extrapolateToPoint(TVector3& pos, TVector3& mom,
                 "In extrapolateToPoint KalmanFittedStateOnPlane is null"<<std::endl;
             return trackLength*dd4hep::cm;
         }
+        //rep->setDebugLvl(10);
         trackLength = rep->extrapolateToPoint(*state,
                 point*(1/dd4hep::cm),stopAtBoundary, calcJacobianNoise);
         rep->getPosMomCov(*state,pos,mom,cov);//FIXME exception exist
