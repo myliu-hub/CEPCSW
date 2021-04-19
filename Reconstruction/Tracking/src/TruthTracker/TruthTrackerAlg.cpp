@@ -174,6 +174,7 @@ StatusCode TruthTrackerAlg::execute()
         }else{
             debug()<<"DriftChamberHitsCollection size "
                 <<dcSimHitCol->size()<<endmsg;
+            m_nSimTrackerHitDC=dcSimHitCol->size();
         }
         digiDCHitsCol=m_DCDigiCol.get();
         if(nullptr==digiDCHitsCol){
