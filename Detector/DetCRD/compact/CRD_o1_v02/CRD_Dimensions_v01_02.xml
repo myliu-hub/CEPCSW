@@ -102,7 +102,6 @@
     <constant name="Tracker_inner_radius" value="799.78*mm"/>
     <constant name="Tracker_outer_radius" value="1803*mm"/>
 
-
     <constant name="SIT1_inner_radius"   value="140*mm"/>
     <constant name="SIT1_half_length"    value="368.00*mm"/>
     <constant name="SIT2_inner_radius"   value="225*mm"/>
