@@ -185,10 +185,8 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Array<double> m_extraMom;
         NTuple::Array<double> m_Error6;
 
-        NTuple::Item<int> m_ndcTrack;
-
-        NTuple::Item<int> m_ndcRecTrack;
-
+        NTuple::Item<int> m_nSdtTrack;
+        NTuple::Item<int> m_nDcTrack;
         NTuple::Item<int> m_nDCDigi;
 
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
@@ -206,31 +204,38 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
-        NTuple::Array<double> m_mdcHitDriftT;
-        NTuple::Array<double> m_mdcHitDriftDl;
-        NTuple::Array<double> m_mdcHitDriftDr;
-        NTuple::Array<int> m_mdcHitLr;
-        NTuple::Array<int> m_mdcHitLayer;
-        NTuple::Array<int> m_mdcHitWire;
-        NTuple::Array<double> m_mdcHitExpDoca;
-        NTuple::Array<double> m_mdcHitExpMcDoca;
-        NTuple::Array<double> m_mdcHitErr;
+        NTuple::Array<double> m_dcHitTime;
+        NTuple::Array<double> m_dcHitDoca;
+        NTuple::Array<double> m_dcHitWireX;
+        NTuple::Array<double> m_dcHitWireY;
+        NTuple::Array<double> m_dcHitDriftT;
+        NTuple::Array<double> m_dcHitDriftDl;
+        NTuple::Array<double> m_dcHitDriftDr;
+        NTuple::Array<int> m_dcHitLr;
+        NTuple::Array<int> m_dcHitLayer;
+        NTuple::Array<int> m_dcHitWire;
+        NTuple::Array<double> m_dcHitExpDoca;
+        NTuple::Array<double> m_dcHitExpMcDoca;
+        NTuple::Array<double> m_dcHitErr;
         NTuple::Array<int> m_nHitFailedKal;
         NTuple::Array<int> m_nHitFitted;
         NTuple::Array<double> m_time;
         //truth
-        NTuple::Array<int> m_mdcHitMcLr;
-        NTuple::Array<int> m_mdcHitMcTkId;
-        NTuple::Array<double> m_mdcHitMcDrift;
-        NTuple::Array<double> m_mdcHitMcX;
-        NTuple::Array<double> m_mdcHitMcY;
-        NTuple::Array<double> m_mdcHitMcZ;
-        NTuple::Array<double> m_mdcHitExpMcPocaX;
-        NTuple::Array<double> m_mdcHitExpMcPocaY;
-        NTuple::Array<double> m_mdcHitExpMcPocaZ;
-        NTuple::Array<double> m_mdcHitExpMcPocaWireX;
-        NTuple::Array<double> m_mdcHitExpMcPocaWireY;
-        NTuple::Array<double> m_mdcHitExpMcPocaWireZ;
+        NTuple::Array<int> m_dcHitMcLr;
+        NTuple::Array<int> m_dcHitMcTkId;
+        NTuple::Array<double> m_dcHitMcDrift;
+        NTuple::Array<double> m_dcHitMcX;
+        NTuple::Array<double> m_dcHitMcY;
+        NTuple::Array<double> m_dcHitMcZ;
+        NTuple::Array<double> m_dcHitMcDoca;
+        NTuple::Array<double> m_dcHitMcWireX;
+        NTuple::Array<double> m_dcHitMcWireY;
+        NTuple::Array<double> m_dcHitExpMcPocaX;
+        NTuple::Array<double> m_dcHitExpMcPocaY;
+        NTuple::Array<double> m_dcHitExpMcPocaZ;
+        NTuple::Array<double> m_dcHitExpMcPocaWireX;
+        NTuple::Array<double> m_dcHitExpMcPocaWireY;
+        NTuple::Array<double> m_dcHitExpMcPocaWireZ;
 
 };
 #endif

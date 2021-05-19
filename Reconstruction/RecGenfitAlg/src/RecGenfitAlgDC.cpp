@@ -129,9 +129,8 @@ StatusCode RecGenfitAlgDC::initialize()
             sc=m_tuple->addItem("run",m_run);
             sc=m_tuple->addItem("evt",m_evt);
             sc=m_tuple->addItem("tkId",m_tkId);
-
-            sc=m_tuple->addItem("ndcTrack",m_ndcTrack);
-            sc=m_tuple->addItem("ndcRecTrack",m_ndcRecTrack);
+            sc=m_tuple->addItem("nSdtTrack",m_nSdtTrack);
+            sc=m_tuple->addItem("nDcTrack",m_nDcTrack);
 
             sc=m_tuple->addItem("mcIndex",m_mcIndex,0,100);//max. 100 particles
             sc=m_tuple->addItem("seedMomP",m_seedMomP);//for single track debug
@@ -177,7 +176,7 @@ StatusCode RecGenfitAlgDC::initialize()
 
             sc=m_tuple->addItem("Errorcov6",6,m_Error6);
 
-            sc=m_tuple->addItem("nDCDigi",m_nDCDigi);
+            sc=m_tuple->addItem("nDCDigi",m_nDCDigi,0,50000);
 
             sc=m_tuple->addItem("pocaPosKal",5,3,m_pocaPosKal);
             sc=m_tuple->addItem("pocaMomKal",5,3,m_pocaMomKal);
@@ -197,28 +196,36 @@ StatusCode RecGenfitAlgDC::initialize()
             sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
             sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
-            sc=m_tuple->addItem("mdcHitDriftT",m_nSimDCHit,m_mdcHitDriftT);
-            sc=m_tuple->addItem("mdcHitDriftDl",m_nSimDCHit,m_mdcHitDriftDl);
-            sc=m_tuple->addItem("mdcHitDriftDr",m_nSimDCHit,m_mdcHitDriftDr);
-            sc=m_tuple->addItem("mdcHitLr",m_nSimDCHit,m_mdcHitLr);
-            sc=m_tuple->addItem("mdcHitLayer",m_nSimDCHit,m_mdcHitLayer);
-            sc=m_tuple->addItem("mdcHitWire",m_nSimDCHit,m_mdcHitWire);
-            sc=m_tuple->addItem("mdcHitExpDoca",m_nSimDCHit,m_mdcHitExpDoca);
-            sc=m_tuple->addItem("mdcHitExpMcDoca",m_nSimDCHit,m_mdcHitExpMcDoca);
-            sc=m_tuple->addItem("mdcHitErr",m_nSimDCHit,m_mdcHitErr);
+            sc=m_tuple->addItem("dcHitTime",m_nDCDigi,m_dcHitTime);
+            sc=m_tuple->addItem("dcHitDoca",m_nDCDigi,m_dcHitDoca);
+            sc=m_tuple->addItem("dcHitWireX",m_nDCDigi,m_dcHitWireX);
+            sc=m_tuple->addItem("dcHitWireY",m_nDCDigi,m_dcHitWireY);
+            sc=m_tuple->addItem("dcHitDriftT",m_nSimDCHit,m_dcHitDriftT);
+            sc=m_tuple->addItem("dcHitDriftDl",m_nSimDCHit,m_dcHitDriftDl);
+            sc=m_tuple->addItem("dcHitDriftDr",m_nSimDCHit,m_dcHitDriftDr);
+            sc=m_tuple->addItem("dcHitLr",m_nSimDCHit,m_dcHitLr);
+            sc=m_tuple->addItem("dcHitLayer",m_nSimDCHit,m_dcHitLayer);
+            sc=m_tuple->addItem("dcHitWire",m_nSimDCHit,m_dcHitWire);
+            sc=m_tuple->addItem("dcHitExpDoca",m_nSimDCHit,m_dcHitExpDoca);
+            sc=m_tuple->addItem("dcHitExpMcDoca",m_nSimDCHit,m_dcHitExpMcDoca);
+            sc=m_tuple->addItem("dcHitErr",m_nSimDCHit,m_dcHitErr);
             sc=m_tuple->addItem("time",5,m_time);
-            sc=m_tuple->addItem("mdcHitMcTkId",m_nSimDCHit,m_mdcHitMcTkId);
-            sc=m_tuple->addItem("mdcHitMcLr",m_nSimDCHit,m_mdcHitMcLr);
-            sc=m_tuple->addItem("mdcHitMcDrift",m_nSimDCHit,m_mdcHitMcDrift);
-            sc=m_tuple->addItem("mdcHitMcX",m_nSimDCHit,m_mdcHitMcX);
-            sc=m_tuple->addItem("mdcHitMcY",m_nSimDCHit,m_mdcHitMcY);
-            sc=m_tuple->addItem("mdcHitMcZ",m_nSimDCHit,m_mdcHitMcZ);
-            sc=m_tuple->addItem("mcPocaX",m_nSimDCHit,m_mdcHitExpMcPocaX);
-            sc=m_tuple->addItem("mcPocaY",m_nSimDCHit,m_mdcHitExpMcPocaY);
-            sc=m_tuple->addItem("mcPocaZ",m_nSimDCHit,m_mdcHitExpMcPocaZ);
-            sc=m_tuple->addItem("mcPocaWireX",m_nSimDCHit,m_mdcHitExpMcPocaWireX);
-            sc=m_tuple->addItem("mcPocaWireY",m_nSimDCHit,m_mdcHitExpMcPocaWireY);
-            sc=m_tuple->addItem("mcPocaWireZ",m_nSimDCHit,m_mdcHitExpMcPocaWireZ);
+            sc=m_tuple->addItem("dcHitMcTkId",m_nSimDCHit,m_dcHitMcTkId);
+            sc=m_tuple->addItem("dcHitMcLr",m_nSimDCHit,m_dcHitMcLr);
+            sc=m_tuple->addItem("dcHitMcDrift",m_nSimDCHit,m_dcHitMcDrift);
+            sc=m_tuple->addItem("dcHitMcX",m_nSimDCHit,m_dcHitMcX);
+            sc=m_tuple->addItem("dcHitMcY",m_nSimDCHit,m_dcHitMcY);
+            sc=m_tuple->addItem("dcHitMcZ",m_nSimDCHit,m_dcHitMcZ);
+            sc=m_tuple->addItem("dcHitMcDoca",m_nSimDCHit,m_dcHitMcDoca);
+            sc=m_tuple->addItem("dcHitMcWireX",m_nSimDCHit,m_dcHitMcWireX);
+            sc=m_tuple->addItem("dcHitMcWireY",m_nSimDCHit,m_dcHitMcWireY);
+            //sc=m_tuple->addItem("dcHitMcLayer",m_nSimDCHit,m_dcHitMcLayer);
+            sc=m_tuple->addItem("mcPocaX",m_nSimDCHit,m_dcHitExpMcPocaX);
+            sc=m_tuple->addItem("mcPocaY",m_nSimDCHit,m_dcHitExpMcPocaY);
+            sc=m_tuple->addItem("mcPocaZ",m_nSimDCHit,m_dcHitExpMcPocaZ);
+            sc=m_tuple->addItem("mcPocaWireX",m_nSimDCHit,m_dcHitExpMcPocaWireX);
+            sc=m_tuple->addItem("mcPocaWireY",m_nSimDCHit,m_dcHitExpMcPocaWireY);
+            sc=m_tuple->addItem("mcPocaWireZ",m_nSimDCHit,m_dcHitExpMcPocaWireZ);
             debug()<< "Book tuple RecGenfitAlgDC/genfit" << endmsg;
         }else{
             error()<< "Cannot book tuple RecGenfitAlgDC/genfit" << endmsg;
@@ -275,6 +282,7 @@ StatusCode RecGenfitAlgDC::execute()
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
     debug()<<"DCTrackCol size="<<dcTrackCol->size()<<endmsg;
+    m_nDcTrack=dcTrackCol->size();
     for(auto dcTrack: *dcTrackCol){
         ///Loop over 5 particle hypothesis(0-4): e,mu,pi,K,p
         ///-1 for chargedgeantino
@@ -462,7 +470,7 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         double eventStartTime)
 {
     int iSdtTrack=0;
-    m_ndcTrack=sdtTrackCol->size();
+    m_nSdtTrack=sdtTrackCol->size();
     for(auto sdtTrack: *sdtTrackCol){
         if(iSdtTrack>0) break;//TODO debug for single track only
         edm4hep::TrackState trackStat=sdtTrack.getTrackStates(0);//FIXME?
@@ -551,32 +559,51 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         p[0]=pos.x;//no unit conversion here
         p[1]=pos.y;
         p[2]=pos.z;
-        m_mdcHitMcX[iHit]=pos.x;
-        m_mdcHitMcY[iHit]=pos.y;
-        m_mdcHitMcZ[iHit]=pos.z;
+        m_dcHitMcX[iHit]=pos.x;
+        m_dcHitMcY[iHit]=pos.y;
+        m_dcHitMcZ[iHit]=pos.z;
+        m_dcHitMcDoca[iHit]=simDCHit.getTime()*40.*dd4hep::um*dd4hep::mm;
+        TVector3 endPointStart(0,0,0);
+        TVector3 endPointEnd(0,0,0);
+        m_gridDriftChamber->cellposition(simDCHit.getCellID(),endPointStart,
+            endPointEnd);
+        m_dcHitMcWireX[iHit]=endPointStart.X();
+        m_dcHitMcWireY[iHit]=endPointStart.Y();
         iHit++;
     }
     m_nSimDCHit=simDCHitCol->size();
     const edm4hep::TrackerHitCollection* dCDigiCol=nullptr;
     dCDigiCol=m_digiDCHitsCol.get();
     if(nullptr!=dCDigiCol){ m_nDCDigi=dCDigiCol->size(); }
+    int iDCDigi=0;
+    for(auto dcDigi: *dCDigiCol){
+      m_dcHitTime[iDCDigi]=dcDigi.getTime();
+      m_dcHitDoca[iDCDigi]=dcDigi.getTime()*40./10000.;
+      TVector3 endPointStart(0,0,0);
+      TVector3 endPointEnd(0,0,0);
+      m_gridDriftChamber->cellposition(dcDigi.getCellID(),endPointStart,
+          endPointEnd);
+      m_dcHitWireX[iDCDigi]=endPointStart.X();
+      m_dcHitWireY[iDCDigi]=endPointStart.Y();
+      iDCDigi++;
+    }
 
-    m_ndcRecTrack=sdtRecTrackCol->size();
+    m_nSdtTrack=sdtRecTrackCol->size();
     for(auto sdtTrack: *sdtRecTrackCol){
-        for(unsigned int i=0; i<sdtTrack.trackStates_size(); i++) {
-            edm4hep::TrackState trackStat=sdtTrack.getTrackStates(i);
-            std::array<float,15> errorCov;
-            errorCov = trackStat.covMatrix;
-            for(int j=0; j<15; j++) {
-                m_ErrorcovMatrix[j] = errorCov[j];
-                debug()<<"debugEvent2 errorCov "<<j<<" "<<errorCov[j]<<endmsg;
-            }
-            m_D0 = trackStat.D0;
-            m_phi = trackStat.phi;
-            m_omega = trackStat.omega;
-            m_Z0 = trackStat.Z0;
-            m_tanLambda = trackStat.tanLambda;
+      for(unsigned int i=0; i<sdtTrack.trackStates_size(); i++) {
+        edm4hep::TrackState trackStat=sdtTrack.getTrackStates(i);
+        std::array<float,15> errorCov;
+        errorCov = trackStat.covMatrix;
+        for(int j=0; j<15; j++) {
+          m_ErrorcovMatrix[j] = errorCov[j];
+          debug()<<"debugEvent2 errorCov "<<j<<" "<<errorCov[j]<<endmsg;
         }
+        m_D0 = trackStat.D0;
+        m_phi = trackStat.phi;
+        m_omega = trackStat.omega;
+        m_Z0 = trackStat.Z0;
+        m_tanLambda = trackStat.tanLambda;
+      }
     }
 }
 
@@ -599,9 +626,9 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
   p[0]=pos.x;//no unit conversion here
   p[1]=pos.y;
   p[2]=pos.z;
-  m_mdcHitMcX[iHit]=pos.x;
-  m_mdcHitMcY[iHit]=pos.y;
-  m_mdcHitMcZ[iHit]=pos.z;
+  m_dcHitMcX[iHit]=pos.x;
+  m_dcHitMcY[iHit]=pos.y;
+  m_dcHitMcZ[iHit]=pos.z;
   iHit++;
   }
   edm4hep::Vector3f mcPocaMom = mcParticle.getMomentum();//GeV

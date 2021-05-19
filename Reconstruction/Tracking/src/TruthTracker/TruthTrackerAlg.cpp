@@ -415,35 +415,39 @@ void TruthTrackerAlg::debugEvent()
                 helix.Initialize_Canonical(trackStat.phi, trackStat.D0, trackStat.Z0,
                         trackStat.omega, trackStat.tanLambda, B[2]/dd4hep::tesla);
 
-                m_siMom[0]=helix.getMomentum()[0];
-                m_siMom[1]=helix.getMomentum()[1];
-                m_siMom[2]=helix.getMomentum()[2];
-                m_siPos[0]=helix.getReferencePoint()[0];
-                m_siPos[1]=helix.getReferencePoint()[1];
-                m_siPos[2]=helix.getReferencePoint()[2];
-                m_nHitOnSiTkVXD=nHotsOnTrack(siTk,lcio::ILDDetID::VXD);
-                m_nHitOnSiTkSIT=nHotsOnTrack(siTk,lcio::ILDDetID::SIT);
-                m_nHitOnSiTkSET=nHotsOnTrack(siTk,lcio::ILDDetID::SET);
-                m_nHitOnSiTkFTD=nHotsOnTrack(siTk,lcio::ILDDetID::FTD);
+                if(m_tuple){
+                    m_siMom[0]=helix.getMomentum()[0];
+                    m_siMom[1]=helix.getMomentum()[1];
+                    m_siMom[2]=helix.getMomentum()[2];
+                    m_siPos[0]=helix.getReferencePoint()[0];
+                    m_siPos[1]=helix.getReferencePoint()[1];
+                    m_siPos[2]=helix.getReferencePoint()[2];
+                    m_nHitOnSiTkVXD=nHotsOnTrack(siTk,lcio::ILDDetID::VXD);
+                    m_nHitOnSiTkSIT=nHotsOnTrack(siTk,lcio::ILDDetID::SIT);
+                    m_nHitOnSiTkSET=nHotsOnTrack(siTk,lcio::ILDDetID::SET);
+                    m_nHitOnSiTkFTD=nHotsOnTrack(siTk,lcio::ILDDetID::FTD);
+                }
             }//end of loop over siTk
         }
-        //SimTrackerHits
-        m_nSimTrackerHitVXD=simTrackerHitColSize(m_VXDCollection);
-        m_nSimTrackerHitSIT=simTrackerHitColSize(m_SITCollection);
-        m_nSimTrackerHitSET=simTrackerHitColSize(m_SETCollection);
-        m_nSimTrackerHitFTD=simTrackerHitColSize(m_FTDCollection);
+        if(m_tuple){
+            //SimTrackerHits
+            m_nSimTrackerHitVXD=simTrackerHitColSize(m_VXDCollection);
+            m_nSimTrackerHitSIT=simTrackerHitColSize(m_SITCollection);
+            m_nSimTrackerHitSET=simTrackerHitColSize(m_SETCollection);
+            m_nSimTrackerHitFTD=simTrackerHitColSize(m_FTDCollection);
 
-        //TrackerHits
-        m_nTrackerHitVXD=trackerHitColSize(m_VXDTrackerHits);
-        m_nTrackerHitSIT=trackerHitColSize(m_SITTrackerHits);
-        m_nTrackerHitSET=trackerHitColSize(m_SETTrackerHits);
-        m_nTrackerHitFTD=trackerHitColSize(m_FTDTrackerHits);
-        m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
+            //TrackerHits
+            m_nTrackerHitVXD=trackerHitColSize(m_VXDTrackerHits);
+            m_nTrackerHitSIT=trackerHitColSize(m_SITTrackerHits);
+            m_nTrackerHitSET=trackerHitColSize(m_SETTrackerHits);
+            m_nTrackerHitFTD=trackerHitColSize(m_FTDTrackerHits);
+            m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
 
-        //SpacePoints
-        m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
-        m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
-        m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
+            //SpacePoints
+            m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+            m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
+            m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
+        }
     }
 }
 
