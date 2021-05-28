@@ -1,7 +1,6 @@
 ///
 ///   Authors: ZHANG Yao (zhangyao@ihep.ac.cn)
 ///
-
 #include "GenfitMaterialInterface.h"
 //Gaudi
 #include "GaudiKernel/Bootstrap.h"
@@ -21,7 +20,7 @@
 #include "TGeoMaterial.h"
 #include "TGeoManager.h"
 #include "MaterialEffects.h"
-#include "Material.h"
+//#include "Material.h"
 //STL
 #include <assert.h>
 #include <math.h>
@@ -87,22 +86,22 @@ GenfitMaterialInterface::initTrack(double posX, double posY,
 }
 
 
-genfit::Material GenfitMaterialInterface::getMaterialParameters()
-{
-    TGeoMaterial* mat =
-        getGeoManager()->GetCurrentVolume()->GetMedium()->GetMaterial();
-    //Scalar density;  /// Density in g / cm^3
-    //Scalar Z;  /// Atomic number
-    //Scalar A;  /// Mass number in g / mol
-    //Scalar radiationLength;  /// Radiation Length in cm
-    //Scalar mEE;  /// Mean excitaiton energy in eV
-    //Material from CEPCSW is NOT follow the dd4hep?FIXME
-
-    //std::cout<<__FILE__<<" "<<__LINE__<<" yzhang debug material "<<std::endl;
-    //mat->Print();
-    return genfit::Material(mat->GetDensity(), mat->GetZ(), mat->GetA(),
-            mat->GetRadLen(), MeanExcEnergy_get(mat));
-}
+//genfit::Material GenfitMaterialInterface::getMaterialParameters()
+//{
+//    TGeoMaterial* mat =
+//        getGeoManager()->GetCurrentVolume()->GetMedium()->GetMaterial();
+//    //Scalar density;  /// Density in g / cm^3
+//    //Scalar Z;  /// Atomic number
+//    //Scalar A;  /// Mass number in g / mol
+//    //Scalar radiationLength;  /// Radiation Length in cm
+//    //Scalar mEE;  /// Mean excitaiton energy in eV
+//    //Material from CEPCSW is NOT follow the dd4hep?FIXME
+//
+//    //std::cout<<__FILE__<<" "<<__LINE__<<" yzhang debug material "<<std::endl;
+//    //mat->Print();
+//    return genfit::Material(mat->GetDensity(), mat->GetZ(), mat->GetA(),
+//            mat->GetRadLen(), MeanExcEnergy_get(mat));
+//}
 
     double
 GenfitMaterialInterface::findNextBoundary(const genfit::RKTrackRep* rep,
