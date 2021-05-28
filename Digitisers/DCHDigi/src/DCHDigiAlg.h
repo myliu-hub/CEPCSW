@@ -55,12 +55,14 @@ protected:
   NTuple::Array<float> m_simhit_x  ;
   NTuple::Array<float> m_simhit_y  ;
   NTuple::Array<float> m_simhit_z  ;
+  NTuple::Array<float> m_simhit_time  ;
   NTuple::Array<float> m_hit_x     ;
   NTuple::Array<float> m_hit_y     ;
   NTuple::Array<float> m_hit_z     ;
   NTuple::Array<float> m_dca       ;
   NTuple::Array<float> m_hit_dE    ;
   NTuple::Array<float> m_hit_dE_dx ;
+  NTuple::Array<float> m_Radius    ;
 
 
 

@@ -196,6 +196,9 @@ StatusCode RecGenfitAlgDC::initialize()
             sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
             sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
+            sc=m_tuple->addItem("dcHitX",m_nDCDigi,m_dcHitX);
+            sc=m_tuple->addItem("dcHitY",m_nDCDigi,m_dcHitY);
+            sc=m_tuple->addItem("dcHitZ",m_nDCDigi,m_dcHitZ);
             sc=m_tuple->addItem("dcHitTime",m_nDCDigi,m_dcHitTime);
             sc=m_tuple->addItem("dcHitDoca",m_nDCDigi,m_dcHitDoca);
             sc=m_tuple->addItem("dcHitWireX",m_nDCDigi,m_dcHitWireX);
@@ -216,6 +219,8 @@ StatusCode RecGenfitAlgDC::initialize()
             sc=m_tuple->addItem("dcHitMcX",m_nSimDCHit,m_dcHitMcX);
             sc=m_tuple->addItem("dcHitMcY",m_nSimDCHit,m_dcHitMcY);
             sc=m_tuple->addItem("dcHitMcZ",m_nSimDCHit,m_dcHitMcZ);
+            sc=m_tuple->addItem("doca",m_nSimDCHit,m_doca);
+            sc=m_tuple->addItem("dcHitMcTime",m_nSimDCHit,m_dcHitMcTime);
             sc=m_tuple->addItem("dcHitMcDoca",m_nSimDCHit,m_dcHitMcDoca);
             sc=m_tuple->addItem("dcHitMcWireX",m_nSimDCHit,m_dcHitMcWireX);
             sc=m_tuple->addItem("dcHitMcWireY",m_nSimDCHit,m_dcHitMcWireY);
@@ -309,7 +314,7 @@ StatusCode RecGenfitAlgDC::execute()
                     return StatusCode::FAILURE;
                 }
             }else{
-                if(0==genfitTrack->addWireMeasurementOnTrack(dcTrack,
+                if(0==genfitTrack->addWireMeasurementOnTrack(dcTrack, assoDCHitsCol,
                             m_sigmaHit.value())){
                     debug()<<"addWireMeasurementOnTrack failed!"<<endmsg;
                     return StatusCode::FAILURE;
@@ -344,7 +349,6 @@ StatusCode RecGenfitAlgDC::execute()
     }//end loop over a track
 
     if(m_tuple) debugEvent(dcTrackCol,dcRecParticleTrackCol,eventStartTime);
-
 
     //if(m_genfitDisplay) while(1){
     //    std::cout<<"Press any key to finish..."<<std::endl;
@@ -439,6 +443,7 @@ void RecGenfitAlgDC::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     float mom[3]={float(fittedMom.X()),float(fittedMom.Y()),float(fittedMom.Z())};
     helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
+    m_pocaMomKalPt[pidType]=fittedMom.Perp();
 
     if(m_debug>0){
         /// Get fit status
@@ -559,14 +564,17 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         p[0]=pos.x;//no unit conversion here
         p[1]=pos.y;
         p[2]=pos.z;
-        m_dcHitMcX[iHit]=pos.x;
-        m_dcHitMcY[iHit]=pos.y;
-        m_dcHitMcZ[iHit]=pos.z;
+        m_dcHitMcX[iHit]=pos.x*dd4hep::mm;
+        m_dcHitMcY[iHit]=pos.y*dd4hep::mm;
+        m_dcHitMcZ[iHit]=pos.z*dd4hep::mm;
+        m_dcHitMcTime[iHit]=simDCHit.getTime();
         m_dcHitMcDoca[iHit]=simDCHit.getTime()*40.*dd4hep::um*dd4hep::mm;
         TVector3 endPointStart(0,0,0);
         TVector3 endPointEnd(0,0,0);
         m_gridDriftChamber->cellposition(simDCHit.getCellID(),endPointStart,
             endPointEnd);
+        TVector3 Hitpos(m_dcHitMcX[iHit],m_dcHitMcY[iHit],m_dcHitMcZ[iHit]);
+        m_doca[iHit] = m_gridDriftChamber->distanceTrackWire2(simDCHit.getCellID(),Hitpos);
         m_dcHitMcWireX[iHit]=endPointStart.X();
         m_dcHitMcWireY[iHit]=endPointStart.Y();
         iHit++;
@@ -577,6 +585,12 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     if(nullptr!=dCDigiCol){ m_nDCDigi=dCDigiCol->size(); }
     int iDCDigi=0;
     for(auto dcDigi: *dCDigiCol){
+      edm4hep::Vector3d digipos=dcDigi.position();
+      TVectorD digi_p(3);
+      m_dcHitX[iDCDigi] = digipos.x*dd4hep::mm;
+      m_dcHitY[iDCDigi] = digipos.y*dd4hep::mm;
+      m_dcHitZ[iDCDigi] = digipos.z*dd4hep::mm;
+
       m_dcHitTime[iDCDigi]=dcDigi.getTime();
       m_dcHitDoca[iDCDigi]=dcDigi.getTime()*40./10000.;
       TVector3 endPointStart(0,0,0);

@@ -1,6 +1,8 @@
 #include "DetSegmentation/GridDriftChamber.h"
 #include <map>
 
+#include "DD4hep/DD4hepUnits.h"
+
 namespace dd4hep {
 namespace DDSegmentation {
 
@@ -109,6 +111,9 @@ double GridDriftChamber::distanceTrackWire(const CellID& cID, const TVector3& hi
   TVector3 Wend = {0,0,0};
   cellposition(cID,Wstart,Wend);
 
+  Wstart =(1/dd4hep::mm)* Wstart;
+  Wend   =(1/dd4hep::mm)* Wend  ;
+
   TVector3 a = hit_end - hit_start;
   TVector3 b = Wend - Wstart;
   TVector3 c = Wstart - hit_start;
@@ -124,6 +129,46 @@ double GridDriftChamber::distanceTrackWire(const CellID& cID, const TVector3& hi
 
   return DCA;
 }
+
+double GridDriftChamber::distanceTrackWire2(const CellID& cID, const TVector3& hit_pos) const {
+
+    TVector3 Wstart = {0,0,0};
+    TVector3 Wend = {0,0,0};
+    cellposition(cID,Wstart,Wend);
+
+//    Wstart =(1/dd4hep::mm)* Wstart;
+//    Wend   =(1/dd4hep::mm)* Wend  ;
+
+    TVector3 denominator = Wend - Wstart;
+    TVector3  numerator = denominator.Cross(Wstart-hit_pos);
+
+    double DCA = numerator.Mag()/denominator.Mag() ;
+
+    return DCA;
+}
+
+TVector3 GridDriftChamber::distanceClosestApproach(const CellID& cID, const TVector3& hitPos) const {
+
+   TVector3 Wstart = {0,0,0};
+   TVector3 Wend = {0,0,0};
+   cellposition(cID,Wstart,Wend);
+
+   Wstart =(1/dd4hep::mm)* Wstart;
+   Wend   =(1/dd4hep::mm)* Wend  ;
+   TVector3 temp = (Wend + Wstart);
+   TVector3 Wmid(temp.X() / 2.0, temp.Y() / 2.0, temp.Z() / 2.0);
+
+  double hitPhi = hitPos.Phi();
+  if (hitPhi < 0) {
+    hitPhi = hitPhi + 2 * M_PI;
+  }
+
+  TVector3 PCA = Wstart + ((Wend - Wstart).Unit()).Dot((hitPos - Wstart)) * ((Wend - Wstart).Unit());
+  TVector3 dca = hitPos - PCA;
+
+  return dca;
+}
+
 
 
 }

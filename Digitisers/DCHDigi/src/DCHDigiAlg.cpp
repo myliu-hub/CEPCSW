@@ -63,6 +63,7 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "simhit_x", m_n_sim, m_simhit_x).ignore();
             m_tuple->addItem( "simhit_y", m_n_sim, m_simhit_y).ignore();
             m_tuple->addItem( "simhit_z", m_n_sim, m_simhit_z).ignore();
+            m_tuple->addItem( "simhit_time", m_n_sim, m_simhit_time).ignore();
             m_tuple->addItem( "chamber" , m_n_digi, m_chamber  ).ignore();
             m_tuple->addItem( "layer"   , m_n_digi, m_layer    ).ignore();
             m_tuple->addItem( "cell"    , m_n_digi, m_cell     ).ignore();
@@ -74,6 +75,7 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "dca"      , m_n_digi,m_dca       ).ignore();
             m_tuple->addItem( "hit_dE"   , m_n_digi,m_hit_dE    ).ignore();
             m_tuple->addItem( "hit_dE_dx", m_n_digi,m_hit_dE_dx ).ignore();
+            m_tuple->addItem( "Radius", m_n_digi,m_Radius ).ignore();
           } else { // did not manage to book the N tuple....
             info() << "    Cannot book N-tuple:" << long( m_tuple ) << endmsg;
           }
@@ -166,6 +168,7 @@ StatusCode DCHDigiAlg::execute()
             m_simhit_x[m_n_sim] = pos.x();
             m_simhit_y[m_n_sim] = pos.y();
             m_simhit_z[m_n_sim] = pos.z();
+            m_simhit_time[m_n_sim] = min_distance*1e3/m_velocity;
             m_n_sim ++ ;
         }
     }
@@ -188,6 +191,7 @@ StatusCode DCHDigiAlg::execute()
         m_dca      [m_n_digi] = min_distance;
         m_hit_dE   [m_n_digi] = trkHit.getEDep();
         m_hit_dE_dx[m_n_digi] = trkHit.getEdx() ;
+        m_Radius   [m_n_digi] = sqrt(pos_x*pos_x+pos_y*pos_y);
         m_n_digi ++ ;
     }
   }

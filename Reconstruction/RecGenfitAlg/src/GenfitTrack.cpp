@@ -486,7 +486,8 @@ void GenfitTrack::addWireMeasurement(double driftDistance,
 }//end of addWireMeasurementOnTrack
 
 //Add wire measurement on wire, unit conversion here
-bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
+bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits, double sigma)
 {
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
@@ -497,7 +498,23 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
         TVector3 endPointEnd(0,0,0);
         m_gridDriftChamber->cellposition(hit.getCellID(),endPointStart,
                 endPointEnd);
-        int lrAmbig=0;
+
+        unsigned long long wcellid = hit.getCellID();
+
+        if(m_debug>=2) {
+            std::cout<< m_name << " endPointStartX " << endPointStart.X()
+                <<" sigma " << sigma  << std::endl;
+        }
+
+        int lrAmbig = 0;
+        TVector3 w = (endPointEnd-endPointStart).Unit();
+        TVector3 trackdir(hit.getPosition()[0],hit.getPosition()[1],hit.getPosition()[2]);
+        TVector3 dca = (m_gridDriftChamber->distanceClosestApproach(hit.getCellID(),trackdir)).Unit();
+        TVector3 t(assoHits->at(iHit).getSim().getMomentum()[0],assoHits->at(iHit).getSim().getMomentum()[1],assoHits->at(iHit).getSim().getMomentum()[2]);
+        double lrA = (w.Cross(dca)).Dot(t.Unit());
+        if(lrA<0) lrAmbig = -1;
+        else if(lrA>0) lrAmbig = 1;
+
         endPointStart.SetX(endPointStart.x()*dd4hep::cm);
         endPointStart.SetY(endPointStart.y()*dd4hep::cm);
         endPointStart.SetZ(endPointStart.z()*dd4hep::cm);
@@ -514,7 +531,8 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
               <<" driftVelocity " <<driftVelocity
               <<" driftDistance "<<driftDistance<<" dd4hep::cm "
               <<dd4hep::cm<<" dd4hep::mm "<<dd4hep::mm
-              <<" sigma "<<sigma*dd4hep::cm<<std::endl;
+              <<" sigma "<<sigma*dd4hep::cm<<" wcellid "
+              <<wcellid <<"lrAmbig " << lrAmbig<<std::endl;
           }
     }
     return true;

@@ -100,7 +100,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",false};
         Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
-        Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.11};//mm
+        Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.011};//cm
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
@@ -204,6 +204,9 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
+        NTuple::Array<double> m_dcHitX;
+        NTuple::Array<double> m_dcHitY;
+        NTuple::Array<double> m_dcHitZ;
         NTuple::Array<double> m_dcHitTime;
         NTuple::Array<double> m_dcHitDoca;
         NTuple::Array<double> m_dcHitWireX;
@@ -227,7 +230,9 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Array<double> m_dcHitMcX;
         NTuple::Array<double> m_dcHitMcY;
         NTuple::Array<double> m_dcHitMcZ;
+        NTuple::Array<double> m_dcHitMcTime;
         NTuple::Array<double> m_dcHitMcDoca;
+        NTuple::Array<double> m_doca;
         NTuple::Array<double> m_dcHitMcWireX;
         NTuple::Array<double> m_dcHitMcWireY;
         NTuple::Array<double> m_dcHitExpMcPocaX;

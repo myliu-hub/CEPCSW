@@ -60,7 +60,9 @@ public:
   virtual CellID cellID(const Vector3D& aLocalPosition, const Vector3D& aGlobalPosition,
                         const VolumeID& aVolumeID) const;
   virtual double distanceTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
+  virtual double distanceTrackWire2(const CellID& cID, const TVector3& hit_pos) const;
   virtual void cellposition(const CellID& cID, TVector3& Wstart, TVector3& Wend) const;
+  virtual TVector3 distanceClosestApproach(const CellID& cID, const TVector3& hitPos) const;
 
 //  double phi(const CellID& cID) const;
   inline double cell_Size() const { return m_cellSize; }
