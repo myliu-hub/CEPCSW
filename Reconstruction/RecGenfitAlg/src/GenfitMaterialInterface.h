@@ -34,16 +34,16 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
         //Set Detector pointer of dd4hep
         void setDetector(dd4hep::Detector*);
 
-        void getMaterialParameters(double& density,double& Z,double& A,
-                double& radiationLength, double& mEE) {return;}
-        void getMaterialParameters(genfit::MaterialProperties& parameters) {return;}
+        //void getMaterialParameters(double& density,double& Z,double& A,
+        //        double& radiationLength, double& mEE) {return;}
+       // void getMaterialParameters(genfit::MaterialProperties& parameters) {return;}
         /** @brief Initialize the navigator at given position and with given
           direction.  Returns true if the volume changed.
           */
         bool initTrack(double posX, double posY, double posZ,
                 double dirX, double dirY, double dirZ) override;
 
-        //genfit::Material getMaterialParameters() override;
+        genfit::Material getMaterialParameters() override;
 
 
         /** @brief Make a step (following the curvature) until step length
