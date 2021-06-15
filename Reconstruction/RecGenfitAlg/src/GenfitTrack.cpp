@@ -62,9 +62,9 @@ sortDCHit(edm4hep::ConstSimTrackerHit hit1,edm4hep::ConstSimTrackerHit hit2)
     return isEarly;
 }
 
-    GenfitTrack::GenfitTrack(const GenfitField* genfitField,
-            const dd4hep::DDSegmentation::GridDriftChamber* seg,
-            SmartIF<IGeomSvc> geom, const char* name)
+GenfitTrack::GenfitTrack(const GenfitField* genfitField,
+        const dd4hep::DDSegmentation::GridDriftChamber* seg,
+        SmartIF<IGeomSvc> geom, const char* name)
 :m_name(name),m_track(nullptr),m_reps(),m_debug(0),
     m_genfitField(genfitField),m_gridDriftChamber(seg),m_geomSvc(geom)
 {
@@ -98,7 +98,7 @@ bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
 
     ///new a track representation and add to the track
     int chargeId=0;
-    charge>0 ? chargeId=0 : chargeId=1;
+    charge>0 ? chargeId=0 : chargeId=1;//s_PDG[0]: positive particle
     addTrackRep(s_PDG[chargeId][pdgType]);
 
     if(m_debug>0){
@@ -194,12 +194,15 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
             posInit_vector3,momInit,charge,
             covMInit_6);
     if(m_debug>=2){
+        std::cout<<" trackState "<<track.getTrackStates(0)<<std::endl;
         std::cout<<m_name<<" posInit " <<std::endl;
         posInit_vector3.Print();
         std::cout<<m_name<<" momInit " <<std::endl;
         momInit.Print();
         std::cout<<m_name<<" covMInit_6 from edm4hep Track" <<std::endl;
         covMInit_6.Print();
+        std::cout<<m_name<<" charge "<<charge
+            <<" Bz "<<m_genfitField->getBzTesla(TVector3{0.,0.,0.}) <<std::endl;
     }
 
     ///unit conversion
@@ -459,7 +462,7 @@ void GenfitTrack::addWireMeasurement(double driftDistance,
         genfit::WireMeasurementNew* wireMeas = new genfit::WireMeasurementNew(
                 driftDistance, driftDistanceError, endPoint1, endPoint2, detID,
                 hitID, nullptr);
-        wireMeas->setMaxDistance(1.);//1. cm FIXME
+        wireMeas->setMaxDistance(0.5*1.4);//0.5*sqrt(2) cm FIXME
         wireMeas->setLeftRightResolution(lrAmbig);
 
         if(m_debug>=2)std::cout<<m_name<<" Add wire measurement(cm) "<<hitID
@@ -488,27 +491,31 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
 
-        double driftVelocity=40;//FIXME, TODO, um/ns
-        double driftDistance=hit.getTime()*driftVelocity*dd4hep::um;
+        double driftVelocity=40.;//FIXME, TODO, um/ns
+        double driftDistance=hit.getTime()*driftVelocity*dd4hep::um*dd4hep::cm;
         TVector3 endPointStart(0,0,0);
         TVector3 endPointEnd(0,0,0);
         m_gridDriftChamber->cellposition(hit.getCellID(),endPointStart,
-                endPointEnd);
+                endPointEnd);//cm
         int lrAmbig=0;
-        if(m_debug>=2)std::cout<<m_name<<" time "<<hit.getTime()
-            <<" driftVelocity " <<driftVelocity<<std::endl;
-        if(m_debug>=2)std::cout<<m_name<<" wire pos " <<endPointStart.X()
-            <<" "<<endPointStart.Y()<<" " <<endPointStart.Z()<<" "
-                <<endPointEnd.X()<<" " <<endPointEnd.Y()<<" "
-                <<endPointEnd.Z()<<" " <<std::endl;
         endPointStart.SetX(endPointStart.x()*dd4hep::cm);
         endPointStart.SetY(endPointStart.y()*dd4hep::cm);
         endPointStart.SetZ(endPointStart.z()*dd4hep::cm);
         endPointEnd.SetX(endPointEnd.x()*dd4hep::cm);
         endPointEnd.SetY(endPointEnd.y()*dd4hep::cm);
         endPointEnd.SetZ(endPointEnd.z()*dd4hep::cm);
-        addWireMeasurement(driftDistance,sigma*dd4hep::cm,endPointStart,
+        addWireMeasurement(driftDistance,sigma*dd4hep::mm,endPointStart,
                 endPointEnd,lrAmbig,hit.getCellID(),iHit);
+        if(m_debug>=2){
+            std::cout<<m_name<<" wire pos " <<endPointStart.X()
+                <<" "<<endPointStart.Y()<<" " <<endPointStart.Z()<<" "
+                <<endPointEnd.X()<<" " <<endPointEnd.Y()<<" "
+                <<endPointEnd.Z()<<" time "<<hit.getTime()
+                <<" driftVelocity " <<driftVelocity
+                <<" driftDistance "<<driftDistance<<" dd4hep::cm "
+                <<dd4hep::cm<<" dd4hep::mm "<<dd4hep::mm
+                <<" sigma "<<sigma*dd4hep::cm<<std::endl;
+        }
     }
     return true;
 }//end of addWireMeasurementOnTrack of Track
