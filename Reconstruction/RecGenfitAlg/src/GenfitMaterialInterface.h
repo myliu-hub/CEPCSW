@@ -36,7 +36,7 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
 
         //void getMaterialParameters(double& density,double& Z,double& A,
         //        double& radiationLength, double& mEE) {return;}
-       // void getMaterialParameters(genfit::MaterialProperties& parameters) {return;}
+        //void getMaterialParameters(genfit::MaterialProperties& parameters) {return;}
         /** @brief Initialize the navigator at given position and with given
           direction.  Returns true if the volume changed.
           */

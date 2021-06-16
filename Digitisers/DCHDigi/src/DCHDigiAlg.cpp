@@ -20,6 +20,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include "time.h"
+
 DECLARE_COMPONENT( DCHDigiAlg )
 
 DCHDigiAlg::DCHDigiAlg(const std::string& name, ISvcLocator* svcLoc)
@@ -58,12 +60,13 @@ StatusCode DCHDigiAlg::initialize()
       else {
           m_tuple = ntupleSvc()->book( "MyTuples/DCH_digi_evt", CLID_ColumnWiseTuple, "DCH_digi_evt" );
           if ( m_tuple ) {
-            m_tuple->addItem( "N_sim" , m_n_sim , 0, 100000 ).ignore();
-            m_tuple->addItem( "N_digi", m_n_digi, 0, 100000 ).ignore();
+            m_tuple->addItem( "N_evt" , m_evt ).ignore();
+            m_tuple->addItem( "N_sim" , m_n_sim , 0, 1000000 ).ignore();
+            m_tuple->addItem( "N_digi", m_n_digi, 0, 1000000 ).ignore();
+            m_tuple->addItem( "run_time" , m_time ).ignore();
             m_tuple->addItem( "simhit_x", m_n_sim, m_simhit_x).ignore();
             m_tuple->addItem( "simhit_y", m_n_sim, m_simhit_y).ignore();
             m_tuple->addItem( "simhit_z", m_n_sim, m_simhit_z).ignore();
-            m_tuple->addItem( "simhit_time", m_n_sim, m_simhit_time).ignore();
             m_tuple->addItem( "chamber" , m_n_digi, m_chamber  ).ignore();
             m_tuple->addItem( "layer"   , m_n_digi, m_layer    ).ignore();
             m_tuple->addItem( "cell"    , m_n_digi, m_cell     ).ignore();
@@ -75,7 +78,6 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "dca"      , m_n_digi,m_dca       ).ignore();
             m_tuple->addItem( "hit_dE"   , m_n_digi,m_hit_dE    ).ignore();
             m_tuple->addItem( "hit_dE_dx", m_n_digi,m_hit_dE_dx ).ignore();
-            m_tuple->addItem( "Radius", m_n_digi,m_Radius ).ignore();
           } else { // did not manage to book the N tuple....
             info() << "    Cannot book N-tuple:" << long( m_tuple ) << endmsg;
           }
@@ -88,7 +90,10 @@ StatusCode DCHDigiAlg::initialize()
 
 StatusCode DCHDigiAlg::execute()
 {
+  m_start = clock();
+
   info() << "Processing " << _nEvt << " events " << endmsg;
+  m_evt = _nEvt;
   std::map<unsigned long long, std::vector<edm4hep::SimTrackerHit> > id_hits_map;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
@@ -137,20 +142,37 @@ StatusCode DCHDigiAlg::execute()
     m_segmentation->cellposition(wcellid, Wstart, Wend);
     float dd4hep_mm = dd4hep::mm;
     //std::cout<<"dd4hep_mm="<<dd4hep_mm<<std::endl;
-    Wstart =(1/dd4hep_mm)* Wstart;// from DD4HEP cm to mm
-    Wend   =(1/dd4hep_mm)* Wend  ;
+//    Wstart =(1/dd4hep_mm)* Wstart;// from DD4HEP cm to mm
+//    Wend   =(1/dd4hep_mm)* Wend  ;
     //std::cout<<"wcellid="<<wcellid<<",chamber="<<chamber<<",layer="<<layer<<",cellID="<<cellID<<",s_x="<<Wstart.x()<<",s_y="<<Wstart.y()<<",s_z="<<Wstart.z()<<",E_x="<<Wend.x()<<",E_y="<<Wend.y()<<",E_z="<<Wend.z()<<std::endl;
 
     TVector3  denominator = (Wend-Wstart) ;
     float min_distance = 999 ;
+    float min_line_distance = 999 ;
+    float tmp_distance =0;
     for(unsigned int i=0; i< simhit_size; i++)
     {
         float sim_hit_mom = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] + iter->second.at(i).getMomentum()[2]*iter->second.at(i).getMomentum()[2] );//GeV
         float sim_hit_pt = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] );//GeV
-        TVector3  pos(iter->second.at(i).getPosition()[0], iter->second.at(i).getPosition()[1], iter->second.at(i).getPosition()[2]);
-        TVector3  numerator = denominator.Cross(Wstart-pos) ;
-        float tmp_distance = numerator.Mag()/denominator.Mag() ;
-        //std::cout<<"tmp_distance="<<tmp_distance<<",x="<<pos.x()<<",y="<<pos.y()<<",z="<<pos.z()<<",mom="<<sim_hit_mom<<",pt="<<sim_hit_pt<<std::endl;
+        TVector3  pos(iter->second.at(i).getPosition()[0]*dd4hep_mm, iter->second.at(i).getPosition()[1]*dd4hep_mm, iter->second.at(i).getPosition()[2]*dd4hep_mm);
+
+//        TVector3  numerator = denominator.Cross(Wstart-pos) ;
+//        float tmp_distance = numerator.Mag()/denominator.Mag() ;
+
+        TVector3 sim_mon(iter->second.at(i).getMomentum()[0],iter->second.at(i).getMomentum()[1],iter->second.at(i).getMomentum()[2]);
+        float Steplength = iter->second.at(i).getPathLength();
+        TVector3  pos_start = pos - 0.5 * Steplength * sim_mon.Unit();
+        TVector3  pos_end = pos + 0.5 * Steplength * sim_mon.Unit();
+        if(m_Doca) {
+            tmp_distance = m_segmentation->distanceTrackWire(wcellid,pos_start,pos_end);
+        } else {
+            tmp_distance = (m_segmentation->distanceClosestApproach(wcellid,pos)).Mag();
+        }
+
+
+       // std::cout << " Steplength= " << Steplength << std::endl;
+       // std::cout<<"tmp_distance="<<tmp_distance<<",x="<<pos.x()<<",y="<<pos.y()<<",z="<<pos.z()<<",mom="<<sim_hit_mom<<",pt="<<sim_hit_pt<<std::endl;
+
         if(tmp_distance < min_distance){
             min_distance = tmp_distance;
             pos_x = pos.x();
@@ -158,28 +180,26 @@ StatusCode DCHDigiAlg::execute()
             pos_z = pos.z();
         }
         tot_length += iter->second.at(i).getPathLength();//mm
- 
         auto asso = AssoVec->create();
         asso.setRec(trkHit);
         asso.setSim(iter->second.at(i));
         asso.setWeight(iter->second.at(i).getEDep()/tot_edep);
 
-        if(m_WriteAna && (nullptr!=m_tuple)){
+        if(m_WriteAna && (nullptr!=m_tuple)) { // && min_distance <0.3){
             m_simhit_x[m_n_sim] = pos.x();
             m_simhit_y[m_n_sim] = pos.y();
             m_simhit_z[m_n_sim] = pos.z();
-            m_simhit_time[m_n_sim] = min_distance*1e3/m_velocity;
             m_n_sim ++ ;
         }
     }
-    
+
     trkHit.setTime(min_distance*1e3/m_velocity);//m_velocity is um/ns, drift time in ns
     trkHit.setEDep(tot_edep);// GeV
     trkHit.setEdx (tot_edep/tot_length); // GeV/mm
     trkHit.setPosition (edm4hep::Vector3d(pos_x, pos_y, pos_z));//position of closest sim hit
     trkHit.setCovMatrix(std::array<float, 6>{m_res_x, 0, m_res_y, 0, 0, m_res_z});//cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z) in mm
 
-    if(m_WriteAna && (nullptr!=m_tuple)){
+    if(m_WriteAna && (nullptr!=m_tuple)) { // && min_distance <0.3){
         m_chamber  [m_n_digi] = chamber;
         m_layer    [m_n_digi] = layer  ;
         m_cell     [m_n_digi] = cellID;
@@ -191,7 +211,6 @@ StatusCode DCHDigiAlg::execute()
         m_dca      [m_n_digi] = min_distance;
         m_hit_dE   [m_n_digi] = trkHit.getEDep();
         m_hit_dE_dx[m_n_digi] = trkHit.getEdx() ;
-        m_Radius   [m_n_digi] = sqrt(pos_x*pos_x+pos_y*pos_y);
         m_n_digi ++ ;
     }
   }
@@ -207,6 +226,9 @@ StatusCode DCHDigiAlg::execute()
         return StatusCode::FAILURE;
       }
   }
+  m_end = clock();
+  m_time = (m_end - m_start);
+
   return StatusCode::SUCCESS;
 }
 
