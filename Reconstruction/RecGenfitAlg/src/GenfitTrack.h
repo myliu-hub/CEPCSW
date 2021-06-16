@@ -108,7 +108,8 @@ class GenfitTrack {
 
     /// Add a WireMeasurement with DC digi
     virtual bool addWireMeasurementOnTrack(edm4hep::Track& track,
-            const edm4hep::MCRecoTrackerAssociationCollection* assoHits, double sigma);
+           // const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            double sigma);
 
     ///Add space point from edm4hep::track
     int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
