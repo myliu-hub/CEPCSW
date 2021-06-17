@@ -60,10 +60,9 @@ StatusCode DCHDigiAlg::initialize()
       else {
           m_tuple = ntupleSvc()->book( "MyTuples/DCH_digi_evt", CLID_ColumnWiseTuple, "DCH_digi_evt" );
           if ( m_tuple ) {
-            m_tuple->addItem( "N_evt" , m_evt ).ignore();
+//            m_tuple->addItem( "N_evt" , m_evt ).ignore();
             m_tuple->addItem( "N_sim" , m_n_sim , 0, 1000000 ).ignore();
             m_tuple->addItem( "N_digi", m_n_digi, 0, 1000000 ).ignore();
-            m_tuple->addItem( "run_time" , m_time ).ignore();
             m_tuple->addItem( "simhit_x", m_n_sim, m_simhit_x).ignore();
             m_tuple->addItem( "simhit_y", m_n_sim, m_simhit_y).ignore();
             m_tuple->addItem( "simhit_z", m_n_sim, m_simhit_z).ignore();
@@ -90,10 +89,9 @@ StatusCode DCHDigiAlg::initialize()
 
 StatusCode DCHDigiAlg::execute()
 {
-  m_start = clock();
 
   info() << "Processing " << _nEvt << " events " << endmsg;
-  m_evt = _nEvt;
+//  m_evt = _nEvt;
   std::map<unsigned long long, std::vector<edm4hep::SimTrackerHit> > id_hits_map;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
@@ -226,8 +224,6 @@ StatusCode DCHDigiAlg::execute()
         return StatusCode::FAILURE;
       }
   }
-  m_end = clock();
-  m_time = (m_end - m_start);
 
   return StatusCode::SUCCESS;
 }
