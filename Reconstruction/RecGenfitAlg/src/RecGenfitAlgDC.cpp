@@ -578,7 +578,7 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     int iDCDigi=0;
     for(auto dcDigi: *dCDigiCol){
       m_dcHitTime[iDCDigi]=dcDigi.getTime();
-      m_dcHitDoca[iDCDigi]=dcDigi.getTime()*40./10000.;
+      m_dcHitDoca[iDCDigi]=dcDigi.getTime()*40./10000.; //cm
       TVector3 endPointStart(0,0,0);
       TVector3 endPointEnd(0,0,0);
       m_gridDriftChamber->cellposition(dcDigi.getCellID(),endPointStart,

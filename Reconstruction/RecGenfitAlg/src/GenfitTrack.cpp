@@ -492,7 +492,7 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
 
         double driftVelocity=40.;//FIXME, TODO, um/ns
-        double driftDistance=hit.getTime()*driftVelocity*dd4hep::um*dd4hep::cm;
+        double driftDistance=hit.getTime()*driftVelocity*dd4hep::um*dd4hep::cm; //cm
         TVector3 endPointStart(0,0,0);
         TVector3 endPointEnd(0,0,0);
         m_gridDriftChamber->cellposition(hit.getCellID(),endPointStart,
