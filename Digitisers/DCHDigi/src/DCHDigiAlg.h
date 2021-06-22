@@ -45,8 +45,10 @@ protected:
   int _nEvt ;
 
   NTuple::Tuple* m_tuple = nullptr ;
+  NTuple::Item<int> m_evt;
   NTuple::Item<long>   m_n_sim;
   NTuple::Item<long>   m_n_digi;
+  NTuple::Item<float> m_time;
   NTuple::Array<int  > m_chamber   ;
   NTuple::Array<int  > m_layer     ;
   NTuple::Array<int  > m_cell      ;

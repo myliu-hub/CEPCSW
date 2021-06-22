@@ -84,12 +84,6 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     // - chamber volume
     dd4hep::Tube det_chamber_solid(chamber_radius_min, chamber_radius_max, chamber_half_length);
     dd4hep::Volume det_chamber_vol(det_name+"_chamber_vol", det_chamber_solid, chamber_mat);
-//    if ( x_det.isSensitive() )   {
-//        det_chamber_vol.setRegion(theDetector,x_det.regionStr());
-//        det_chamber_vol.setLimitSet(theDetector,x_det.limitsStr());
-//        det_chamber_vol.setSensitiveDetector(sens);
-//        sd.setType("tracker");
-//    }
 
     // - wall
     double chamber_inner_wall_rmin = theDetector.constant<double>("SDT_chamber_inner_wall_radius_min");
@@ -205,7 +199,6 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
             dd4hep::PlacedVolume module_phy = (*current_vol_ptr).placeVolume(module_vol,transform_module);
            // - Field wire
             dd4hep::PlacedVolume Module_phy;
-//            double radius[9] = {rmid-chamber_layer_width*0.5,rmid-chamber_layer_width*0.5,rmid-chamber_layer_width*0.5,rmid-chamber_layer_width*0.5,rmid,rmid+chamber_layer_width*0.5,rmid+chamber_layer_width*0.5,rmid+chamber_layer_width*0.5,rmid+chamber_layer_width*0.5};
             double radius[9] = {rmid-chamber_layer_width*0.5+safe_distance,rmid-chamber_layer_width*0.5+safe_distance,rmid-chamber_layer_width*0.5+safe_distance,rmid-chamber_layer_width*0.5+safe_distance,rmid,rmid+chamber_layer_width*0.5-safe_distance,rmid+chamber_layer_width*0.5-safe_distance,rmid+chamber_layer_width*0.5-safe_distance,rmid+chamber_layer_width*0.5-safe_distance};
             double phi[9] = {wire_phi+layer_Phi*0.25,wire_phi,wire_phi-layer_Phi*0.25,wire_phi-layer_Phi*0.5,wire_phi-layer_Phi*0.5,wire_phi-layer_Phi*0.5,wire_phi-layer_Phi*0.25,wire_phi,wire_phi+layer_Phi*0.25};
             int num = 5;
