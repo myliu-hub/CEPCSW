@@ -3,6 +3,7 @@
 if (GenFit_FOUND)
 gaudi_add_module(RecGenfitAlg
         SOURCES src/RecGenfitAlgDC.cpp
+                src/DCHDigiSMAlg.cpp
                 src/GenfitTrack.cpp
                 src/GenfitField.cpp
                 src/GenfitFitter.cpp

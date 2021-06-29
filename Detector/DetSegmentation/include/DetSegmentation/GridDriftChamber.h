@@ -66,6 +66,7 @@ public:
   virtual TVector3 Line_TrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual TVector3 IntersectionTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual TVector3 wirePos_vs_z(const CellID& cID, const double& zpos) const;
+  virtual double Distance(const CellID& cID, const TVector3& pointIn, const TVector3& pointOut, TVector3& hitPosition) const;
 
 //  double phi(const CellID& cID) const;
   inline double cell_Size() const { return m_cellSize; }

@@ -32,6 +32,9 @@ class GenfitField : public genfit::AbsBField{
         //Get dd4hep field
         const dd4hep::OverlayedField field() const {return m_dd4hepField;}
 
+        //Get Bz, Tesla
+        double getBzTesla(const TVector3& pos) const;
+
     private:
         dd4hep::OverlayedField m_dd4hepField;
 };
