@@ -48,6 +48,9 @@ class TruthTrackerAlg: public GaudiAlgorithm
         int nHotsOnTrack(edm4hep::Track& track, int hitType);
         int trackerHitColSize(DataHandle<edm4hep::TrackerHitCollection>& hitCol);
         int simTrackerHitColSize(DataHandle<edm4hep::SimTrackerHitCollection>& hitCol);
+        bool getTrackStateFirstHit(
+                DataHandle<edm4hep::SimTrackerHitCollection>& dcSimTrackerHitCol,
+                float charge,edm4hep::TrackState& trackState);
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::Detector* m_dd4hep;
         dd4hep::OverlayedField m_dd4hepField;

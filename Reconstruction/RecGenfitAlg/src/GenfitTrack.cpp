@@ -483,10 +483,11 @@ void GenfitTrack::addWireMeasurement(double driftDistance,
             <<"Add wire measurement exception"<<std::endl;
         e.what();
     }
-}//end of addWireMeasurementOnTrack
+}//end of addWireMeasurement
 
 //Add wire measurement on wire, unit conversion here
-bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
+bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma,
+        bool smear)
 {
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
@@ -504,7 +505,8 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma)
         endPointEnd.SetX(endPointEnd.x()*dd4hep::cm);
         endPointEnd.SetY(endPointEnd.y()*dd4hep::cm);
         endPointEnd.SetZ(endPointEnd.z()*dd4hep::cm);
-        addWireMeasurement(driftDistance,sigma*dd4hep::mm,endPointStart,
+        if(smear) driftDistance+=gRandom->Gaus(0,sigma);
+        addWireMeasurement(driftDistance,sigma,endPointStart,
                 endPointEnd,lrAmbig,hit.getCellID(),iHit);
         if(m_debug>=2){
             std::cout<<m_name<<" wire pos " <<endPointStart.X()

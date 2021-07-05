@@ -310,7 +310,7 @@ StatusCode RecGenfitAlgDC::execute()
                 }
             }else{
                 if(0==genfitTrack->addWireMeasurementOnTrack(dcTrack,// assoDCHitsCol,
-                            m_sigmaHit.value())){
+                            m_sigmaHit.value(),m_smearHit)){
                     debug()<<"addWireMeasurementOnTrack failed!"<<endmsg;
                     return StatusCode::FAILURE;
                 }

@@ -286,6 +286,14 @@ StatusCode TruthTrackerAlg::execute()
         nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
         if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
 
+        edm4hep::TrackState trackStateFirstDCHit;
+        float charge=trackStateMc.omega/fabs(trackStateMc.omega);
+        if(!getTrackStateFirstHit(m_DCSimTrackerHitCol,charge,trackStateFirstDCHit)){
+            dcTrack.addToTrackStates(trackStateMc);
+        }else{
+            dcTrack.addToTrackStates(trackStateFirstDCHit);
+        }
+
         ///Add other track properties
         dcTrack.addToTrackStates(trackStateMc);
         dcTrack.setNdf(dcTrack.trackerHits_size()-5);
@@ -328,7 +336,8 @@ StatusCode TruthTrackerAlg::finalize()
 
 void TruthTrackerAlg::getTrackStateFromMcParticle(
         const edm4hep::MCParticleCollection* mcParticleCol,
-        edm4hep::TrackState& trackState){
+        edm4hep::TrackState& trackState)
+{
     ///Convert MCParticle to DC Track and ReconstructedParticle
     debug()<<"MCParticleCol size="<<mcParticleCol->size()<<endmsg;
     for(auto mcParticle : *mcParticleCol){
@@ -398,6 +407,49 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
             <<" "<<B[2]/dd4hep::tesla<<" tesla"<<endmsg;
     }//end loop over MCParticleCol
 }//end of getTrackStateFromMcParticle
+
+bool TruthTrackerAlg::getTrackStateFirstHit(
+        DataHandle<edm4hep::SimTrackerHitCollection>& dcSimTrackerHitCol,
+        float charge,edm4hep::TrackState& trackState)
+{
+    debug()<<"TruthTrackerAlg::getTrackStateFirstHit"<<endmsg;
+
+    const edm4hep::SimTrackerHitCollection* col=nullptr;
+    col=dcSimTrackerHitCol.get();
+    float minHitTime=1e9;
+    if(nullptr!=col||0==col->size()){
+        edm4hep::SimTrackerHit firstHit;
+        for(auto dcSimTrackerHit:*col){
+            if(dcSimTrackerHit.getTime()<minHitTime) firstHit=dcSimTrackerHit;
+            debug()<<"simTrackerHit pos "<<dcSimTrackerHit.getPosition()
+                <<" mom "<<dcSimTrackerHit.getMomentum()<<endmsg;
+        }
+        const edm4hep::Vector3d pos=firstHit.getPosition();
+        const edm4hep::Vector3f mom=firstHit.getMomentum();
+        debug()<<"first Hit pos "<<pos<<" mom "<<mom<<endmsg;
+        float pos_t[3]={(float)pos[0],(float)pos[1],(float)pos[2]};
+        float mom_t[3]={(float)mom[0],(float)mom[1],(float)mom[2]};
+        ///Converted to Helix
+        double B[3]={1e9,1e9,1e9};
+        m_dd4hepField.magneticField({0.,0.,0.},B);
+        HelixClass helix;
+        helix.Initialize_VP(pos_t,mom_t,charge,B[2]/dd4hep::tesla);
+
+        ///new Track
+        trackState.D0=helix.getD0();
+        trackState.phi=helix.getPhi0();
+        trackState.omega=helix.getOmega();
+        trackState.Z0=helix.getZ0();
+        trackState.tanLambda=helix.getTanLambda();
+        trackState.referencePoint=helix.getReferencePoint();
+        std::array<float,15> covMatrix;
+        for(int i=0;i<15;i++){covMatrix[i]=100.;}//FIXME
+        trackState.covMatrix=covMatrix;
+        debug()<<"first hit trackState "<<trackState<<endmsg;
+        return true;
+    }
+    return false;
+}
 
 void TruthTrackerAlg::debugEvent()
 {
