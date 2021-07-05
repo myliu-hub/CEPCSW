@@ -416,6 +416,7 @@ bool TruthTrackerAlg::getTrackStateFirstHit(
 
     const edm4hep::SimTrackerHitCollection* col=nullptr;
     col=dcSimTrackerHitCol.get();
+    debug()<<"simTrackerHitCol size "<<col->size()<<endmsg;
     float minHitTime=1e9;
     if(nullptr!=col||0==col->size()){
         edm4hep::SimTrackerHit firstHit;
