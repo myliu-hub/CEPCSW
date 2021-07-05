@@ -65,6 +65,7 @@ protected:
   NTuple::Array<float> m_hit_dE_dx ;
   NTuple::Array<float> m_SMdca ;
   NTuple::Array<float> m_Distance ;
+  NTuple::Array<float> m_hit0mom;
 
   clock_t m_start,m_end;
 

@@ -176,6 +176,14 @@ StatusCode TruthTrackerAlg::execute()
                 <<dcSimHitCol->size()<<endmsg;
             m_nSimTrackerHitDC=dcSimHitCol->size();
         }
+        for( int i = 0; i < dcSimHitCol->size(); i++ ) {
+            edm4hep::SimTrackerHit SimHit = dcSimHitCol->at(i);
+            std::cout << " TrackerAlg hit mom"
+                << " mom x = " << SimHit.getMomentum()[0]
+                << " mom y = " << SimHit.getMomentum()[1]
+                << " mom z = " << SimHit.getMomentum()[2]
+                << std::endl;
+        }
         digiDCHitsCol=m_DCDigiCol.get();
         if(nullptr==digiDCHitsCol){
             debug()<<"TrackerHitCollection not found"<<endmsg;
