@@ -67,9 +67,13 @@ StatusCode DCHDigiSMAlg::initialize()
   }
   if(m_tuple){
       StatusCode sc;
+      sc=m_tuple->addItem ("nEvt", m_nEvt);
       sc=m_tuple->addItem ("ntrk",      m_nTracks, 0, 500000 );
       sc=m_tuple->addItem ("ntrkhit",      m_nTrackHits, 0, 500000 );
       sc=m_tuple->addItem("nDCDigi",m_nDCDigi,0,50000);
+      sc=m_tuple->addItem ("chamber",m_nDCDigi, m_chamber);
+      sc=m_tuple->addItem ("layer",m_nDCDigi, m_layer);
+      sc=m_tuple->addItem ("cellID",m_nDCDigi, m_cellID);
       sc=m_tuple->addItem("dcHitTime",m_nDCDigi,m_dcHitTime);
       sc=m_tuple->addItem("dcHitTime",m_nDCDigi,m_dcHitTime);
       sc=m_tuple->addItem("dcHitDoca",m_nDCDigi,m_dcHitDoca);
@@ -107,6 +111,7 @@ StatusCode DCHDigiSMAlg::execute()
 {
     info() << "Processing " << _nEvt << " events " << endmsg;
     StatusCode sc;
+    m_nEvt = _nEvt;
 
     const edm4hep::TrackCollection* dcTrackCol=nullptr;
     if(m_dcTrackCol.exist()) dcTrackCol=m_dcTrackCol.get();
@@ -157,7 +162,13 @@ StatusCode DCHDigiSMAlg::execute()
             m_dcHitDoca[iDCDigi]=dcDigi.getTime()*40./1000.; //mm
 
             unsigned long long wcellid = dcDigi.getCellID();
+            int chamber = m_decoder->get(wcellid, "chamber");
+            int layer   = m_decoder->get(wcellid, "layer"  );
+            int cellID  = m_decoder->get(wcellid, "cellID" );
 
+            m_chamber  [iDCDigi] = chamber;
+            m_layer    [iDCDigi] = layer  ;
+            m_cellID   [iDCDigi] = cellID;
 
             TVector3 Wstart_digi(0,0,0);
             TVector3 Wend_digi  (0,0,0);

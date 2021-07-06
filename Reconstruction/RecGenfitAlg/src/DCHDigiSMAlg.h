@@ -56,9 +56,13 @@ class DCHDigiSMAlg : public GaudiAlgorithm
         dd4hep::OverlayedField m_dd4hepField;
 
         NTuple::Tuple*  m_tuple;
+        NTuple::Item<long> m_nEvt;
         NTuple::Item<long>   m_nTracks;
         NTuple::Item<long>   m_nTrackHits;
         NTuple::Item<int> m_nDCDigi;
+        NTuple::Array<int> m_chamber;
+        NTuple::Array<int> m_layer;
+        NTuple::Array<int> m_cellID;
         NTuple::Array<double> m_dcHitTime;
         NTuple::Array<double> m_dcHitDoca;
         NTuple::Array<float> m_trackhitx;

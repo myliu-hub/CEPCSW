@@ -159,26 +159,11 @@ StatusCode DCHDigiAlg::execute()
     float distance =0;
     TVector3 hitPosition(0,0,0);
 
-     m_hit0mom[0] = iter->second.at(0).getMomentum()[0];
-     m_hit0mom[1] = iter->second.at(0).getMomentum()[1];
-     m_hit0mom[2] = iter->second.at(0).getMomentum()[2];
-     std::cout << " hit0 mom "
-               << " mom x= " << iter->second.at(0).getMomentum()[0]
-               << " mom y= " << iter->second.at(0).getMomentum()[1]
-               << " mom z= " << iter->second.at(0).getMomentum()[2]
-               << std::endl;
-
     for(unsigned int i=0; i< simhit_size; i++)
     {
         float sim_hit_mom = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] + iter->second.at(i).getMomentum()[2]*iter->second.at(i).getMomentum()[2] );//GeV
         float sim_hit_pt = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] );//GeV
         TVector3  pos(iter->second.at(i).getPosition()[0]*dd4hep_mm, iter->second.at(i).getPosition()[1]*dd4hep_mm, iter->second.at(i).getPosition()[2]*dd4hep_mm);
-        std::cout << " hit mom "
-                  << " mom x= " << iter->second.at(i).getMomentum()[0]
-                  << " mom y= " << iter->second.at(i).getMomentum()[1]
-                  << " mom z= " << iter->second.at(i).getMomentum()[2]
-                  << std::endl;
-
 
 //        TVector3  numerator = denominator.Cross(Wstart-pos) ;
 //        float tmp_distance = numerator.Mag()/denominator.Mag() ;
