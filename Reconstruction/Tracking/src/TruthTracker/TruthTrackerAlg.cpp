@@ -288,10 +288,10 @@ StatusCode TruthTrackerAlg::execute()
 
         edm4hep::TrackState trackStateFirstDCHit;
         float charge=trackStateMc.omega/fabs(trackStateMc.omega);
-        if(!getTrackStateFirstHit(m_DCSimTrackerHitCol,charge,trackStateFirstDCHit)){
-            dcTrack.addToTrackStates(trackStateMc);
-        }else{
+        if(m_useFirstHitForDC&&getTrackStateFirstHit(m_DCSimTrackerHitCol,charge,trackStateFirstDCHit)){
             dcTrack.addToTrackStates(trackStateFirstDCHit);
+        }else{
+            dcTrack.addToTrackStates(trackStateMc);
         }
 
         ///Add other track properties
@@ -412,15 +412,17 @@ bool TruthTrackerAlg::getTrackStateFirstHit(
         DataHandle<edm4hep::SimTrackerHitCollection>& dcSimTrackerHitCol,
         float charge,edm4hep::TrackState& trackState)
 {
-    debug()<<"TruthTrackerAlg::getTrackStateFirstHit"<<endmsg;
 
     const edm4hep::SimTrackerHitCollection* col=nullptr;
     col=dcSimTrackerHitCol.get();
+    debug()<<"TruthTrackerAlg::getTrackStateFirstHit"<<endmsg;
     debug()<<"simTrackerHitCol size "<<col->size()<<endmsg;
     float minHitTime=1e9;
     if(nullptr!=col||0==col->size()){
         edm4hep::SimTrackerHit firstHit;
         for(auto dcSimTrackerHit:*col){
+            const edm4hep::Vector3f mom=dcSimTrackerHit.getMomentum();
+            if(abs(sqrt(mom[0]*mom[0]+mom[1]*mom[1]))<0.5)continue;//yzhang TEMP skip hits with momentum <0.5GeV/c
             if(dcSimTrackerHit.getTime()<minHitTime) firstHit=dcSimTrackerHit;
             debug()<<"simTrackerHit pos "<<dcSimTrackerHit.getPosition()
                 <<" mom "<<dcSimTrackerHit.getMomentum()<<endmsg;
@@ -450,7 +452,7 @@ bool TruthTrackerAlg::getTrackStateFirstHit(
         return true;
     }
     return false;
-}
+}//end of getTrackStateFirstHit
 
 void TruthTrackerAlg::debugEvent()
 {

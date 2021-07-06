@@ -15,14 +15,19 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     double Z0=trackState.Z0;
     double tanLambda=trackState.tanLambda;
 
-    HelixClass helixClass;
-    helixClass.Initialize_Canonical(phi,D0,Z0,omega,tanLambda,Bz);
+    ::edm4hep::Vector3f referencePoint=trackState.referencePoint;
+    charge=omega/fabs(omega);
+    const double FCT = 2.99792458E-4;
+    double radius = 1./fabs(omega);
+    double pxy = FCT*Bz*radius;
     for(int i=0;i<3;i++){
-        pos[i]=helixClass.getReferencePoint()[i];
-        mom[i]=helixClass.getMomentum()[i];
+        pos[i]=referencePoint[i];
     }
-
-    charge = helixClass.getCharge();
+    mom[0]=pxy*cos(phi);
+    mom[1]=pxy*sin(phi);
+    mom[2]=pxy*tanLambda;
+    std::cout<<"TrackerHelper pos "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
+    std::cout<<"TrackerHelper mom "<<mom[0]<<" "<<mom[1]<<" "<<mom[2]<<std::endl;
     TMatrixDSym covMatrix_5(5);
     ///< lower triangular covariance matrix of the track parameters.
     ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).
@@ -38,7 +43,6 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     //V(Y)=S * V(X) * ST , mS = S , mVy = V(Y) , helix.covariance() = V(X)
     TMatrix mS(covMatrix_6.GetNrows(),covMatrix_5.GetNrows());
     mS.Zero();
-    double FCT = 2.99792458E-4;
     mS[0][0]=-sin(phi);
     mS[0][1]=-1*D0*cos(phi);
     mS[1][0]=cos(phi);

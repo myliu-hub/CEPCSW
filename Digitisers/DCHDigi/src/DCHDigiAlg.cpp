@@ -28,15 +28,15 @@ DCHDigiAlg::DCHDigiAlg(const std::string& name, ISvcLocator* svcLoc)
   : GaudiAlgorithm(name, svcLoc),
     _nEvt(0)
 {
-
+  
   // Input collections
   declareProperty("SimDCHitCollection", r_SimDCHCol, "Handle of the Input SimHit collection");
-
+  
   // Output collections
   declareProperty("DigiDCHitCollection", w_DigiDCHCol, "Handle of Digi DCHit collection");
-
+  
   declareProperty("AssociationCollection", w_AssociationCol, "Handle of Association collection");
-
+   
 }
 
 StatusCode DCHDigiAlg::initialize()
@@ -54,6 +54,7 @@ StatusCode DCHDigiAlg::initialize()
   }
 
   if(m_WriteAna){
+
       NTuplePtr nt( ntupleSvc(), "MyTuples/DCH_digi_evt" );
       if ( nt ) m_tuple = nt;
       else {
@@ -74,9 +75,11 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "hit_x"    , m_n_digi,m_hit_x     ).ignore();
             m_tuple->addItem( "hit_y"    , m_n_digi,m_hit_y     ).ignore();
             m_tuple->addItem( "hit_z"    , m_n_digi,m_hit_z     ).ignore();
-            m_tuple->addItem( "dca"      , m_n_digi,m_dca       ).ignore();
+            m_tuple->addItem( "dca"      , m_n_digi, m_dca       ).ignore();
             m_tuple->addItem( "hit_dE"   , m_n_digi,m_hit_dE    ).ignore();
             m_tuple->addItem( "hit_dE_dx", m_n_digi,m_hit_dE_dx ).ignore();
+            m_tuple->addItem( "SM_dca", m_n_digi, m_SMdca ).ignore();
+            m_tuple->addItem( "distance", m_n_digi, m_Distance ).ignore();
           } else { // did not manage to book the N tuple....
             info() << "    Cannot book N-tuple:" << long( m_tuple ) << endmsg;
           }
@@ -104,8 +107,8 @@ StatusCode DCHDigiAlg::execute()
       unsigned long long id = SimHit.getCellID();
       float sim_hit_mom = sqrt( SimHit.getMomentum()[0]*SimHit.getMomentum()[0] + SimHit.getMomentum()[1]*SimHit.getMomentum()[1] + SimHit.getMomentum()[2]*SimHit.getMomentum()[2] );//GeV
       if(sim_hit_mom < m_mom_threshold) continue; 
-      if(SimHit.getEDep() <= 0) continue;
-
+      if(SimHit.getEDep() <= 0) continue; 
+      
       if ( id_hits_map.find(id) != id_hits_map.end()) id_hits_map[id].push_back(SimHit);
       else 
       {
@@ -147,8 +150,12 @@ StatusCode DCHDigiAlg::execute()
 
     TVector3  denominator = (Wend-Wstart) ;
     float min_distance = 999 ;
-    float min_line_distance = 999 ;
+    float min_SM_distance = 999 ;
+    float min_D_distance = 999 ;
     float tmp_distance =0;
+    float SMdca = 0;
+    float distance =0;
+    TVector3 hitPosition(0,0,0);
     for(unsigned int i=0; i< simhit_size; i++)
     {
         float sim_hit_mom = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] + iter->second.at(i).getMomentum()[2]*iter->second.at(i).getMomentum()[2] );//GeV
@@ -170,6 +177,8 @@ StatusCode DCHDigiAlg::execute()
             tmp_distance = tmp_distance/dd4hep_mm; //mm
         }
 
+        SMdca = sqrt(((pos.x()- Wstart.x())*(pos.x()- Wstart.x()))+((pos.y() - Wstart.y())*(pos.y()- Wstart.y())));
+        distance = m_segmentation->Distance(wcellid,pos_start,pos_end,hitPosition);
 
        // std::cout << " Steplength= " << Steplength << std::endl;
        // std::cout<<"tmp_distance="<<tmp_distance<<",x="<<pos.x()<<",y="<<pos.y()<<",z="<<pos.z()<<",mom="<<sim_hit_mom<<",pt="<<sim_hit_pt<<std::endl;
@@ -179,6 +188,12 @@ StatusCode DCHDigiAlg::execute()
             pos_x = pos.x();
             pos_y = pos.y();
             pos_z = pos.z();
+        }
+        if(SMdca < min_SM_distance){
+            min_SM_distance = SMdca;
+        }
+        if(distance < min_D_distance){
+            min_D_distance = distance;
         }
         tot_length += iter->second.at(i).getPathLength();//mm
         auto asso = AssoVec->create();
@@ -190,6 +205,9 @@ StatusCode DCHDigiAlg::execute()
             m_simhit_x[m_n_sim] = pos.x();
             m_simhit_y[m_n_sim] = pos.y();
             m_simhit_z[m_n_sim] = pos.z();
+//            m_dca[m_n_sim] = min_distance;
+//            m_Distance[m_n_sim] = distance/dd4hep_mm;
+//            m_SMdca[m_n_sim] = SMdca/dd4hep_mm;
             m_n_sim ++ ;
         }
     }
@@ -212,6 +230,8 @@ StatusCode DCHDigiAlg::execute()
         m_dca      [m_n_digi] = min_distance;
         m_hit_dE   [m_n_digi] = trkHit.getEDep();
         m_hit_dE_dx[m_n_digi] = trkHit.getEdx() ;
+        m_SMdca [m_n_digi] = min_SM_distance/dd4hep_mm;
+        m_Distance [m_n_digi] = min_D_distance/dd4hep_mm;
         m_n_digi ++ ;
     }
   }

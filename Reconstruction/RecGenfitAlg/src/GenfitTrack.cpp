@@ -316,32 +316,48 @@ bool GenfitTrack::addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit,
 
 /// Add a 3d SpacepointMeasurement with MC truth position smeared by sigma
 bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
-        double sigma, int detID, int hitID, bool smear)
+        std::vector<float> sigma, int detID, int hitID, bool smear)
 {
-    double sigma_t=sigma*dd4hep::mm;
     /// Convert from CEPCSW unit to genfit unit, cm
     TVectorD pos_t(3);
     pos_t(0)=pos(0)*dd4hep::mm;
     pos_t(1)=pos(1)*dd4hep::mm;
     pos_t(2)=pos(2)*dd4hep::mm;
 
-    /// smear hit position with same weight
     TVectorD pos_smeared(3);
-    for (int i=0;i<3;i++){
-        pos_smeared[i]=pos_t(i);
-        if(smear) pos_smeared[i]+=gRandom->Gaus(0,sigma_t);
+    for(int i=0;i<3;i++) pos_smeared[i]=pos_t(i);
+
+    TMatrixDSym hitCov(3);
+    //smear 3d track position
+    int detTypeID=getDetTypeID(detID);
+    if(7==detTypeID){
+        //drift chamber, sigma[0]
+        float sigmaX=sigma[0]*dd4hep::mm/(2*pos_t(0)*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1)));
+        float sigmaY=sigma[0]*dd4hep::mm/(2*pos_t(1)*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1)));
+        if(smear){
+            pos_smeared[0]+=gRandom->Gaus(0,sigmaX);
+            pos_smeared[1]+=gRandom->Gaus(0,sigmaY);
+            pos_smeared[2]+=0;//use truth Z ? FIXME
+        }
+        hitCov(0,0)=sigmaX*sigmaX;
+        hitCov(1,1)=sigmaY*sigmaY;
+        hitCov(2,2)=1e9;
+    }else if(detTypeID==lcio::ILDDetID::VXD){
+        //TODO, get smear parameter from job option
+    }else if(detTypeID==lcio::ILDDetID::SIT){
+        //TODO, get smear parameter from job option
+    }else if(detTypeID==lcio::ILDDetID::SET){
+        //TODO, get smear parameter from job option
+    }else if(detTypeID==lcio::ILDDetID::FTD){
+        //TODO, get smear parameter from job option
     }
 
     /// New a SpacepointMeasurement
-    TMatrixDSym hitCov(3);
-    hitCov(0,0)=sigma_t*sigma_t;
-    hitCov(1,1)=sigma_t*sigma_t;
-    hitCov(2,2)=sigma_t*sigma_t;
-
     if(m_debug>=2)std::cout<<m_name<<" addSpacePointMeasurement detID "
         <<detID<<" hitId "<<hitID<<" " <<pos_t[0]<<" "<<pos_t[1]<<" "<<pos_t[2]
             <<" cm smeared "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "
-            <<pos_smeared[2]<<" sigma_t "<<sigma_t<<" cm"<<std::endl;
+            <<pos_smeared[2]<<" hitCov "<<hitCov(0,0)<<" "<<hitCov(1,1)<<" "
+            <<hitCov(2,2)<<" mm"<<std::endl;
 
     genfit::SpacepointMeasurement* sMeas =
         new genfit::SpacepointMeasurement(pos_smeared,hitCov,detID,hitID,nullptr);
@@ -486,7 +502,7 @@ void GenfitTrack::addWireMeasurement(double driftDistance,
 }//end of addWireMeasurement
 
 //Add wire measurement on wire, unit conversion here
-bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma,
+bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,float sigma,
         bool smear)
 {
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
@@ -506,7 +522,7 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma,
         endPointEnd.SetY(endPointEnd.y()*dd4hep::cm);
         endPointEnd.SetZ(endPointEnd.z()*dd4hep::cm);
         if(smear) driftDistance+=gRandom->Gaus(0,sigma);
-        addWireMeasurement(driftDistance,sigma,endPointStart,
+        addWireMeasurement(driftDistance,sigma*dd4hep::cm,endPointStart,
                 endPointEnd,lrAmbig,hit.getCellID(),iHit);
         if(m_debug>=2){
             std::cout<<m_name<<" wire pos " <<endPointStart.X()
@@ -516,7 +532,7 @@ bool GenfitTrack::addWireMeasurementOnTrack(edm4hep::Track& track,double sigma,
                 <<" driftVelocity " <<driftVelocity
                 <<" driftDistance "<<driftDistance<<" dd4hep::cm "
                 <<dd4hep::cm<<" dd4hep::mm "<<dd4hep::mm
-                <<" sigma "<<sigma*dd4hep::cm<<std::endl;
+                <<" sigma[0] "<<sigma*dd4hep::mm<<std::endl;
         }
     }
     return true;
@@ -843,7 +859,8 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 ///Add space point measurement from edm4hep::Track to genfit track
 int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear, bool fitSiliconOnly, bool isUseFixedSiHitError){
+        std::vector<float> sigma,bool smear, bool fitSiliconOnly,
+        bool isUseFixedSiHitError){
 
     //A TrakerHit collection
     std::vector<edm4hep::ConstSimTrackerHit> sortedDCTrackHitCol;
@@ -869,7 +886,8 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         bool hitIsPlanar=UTIL::BitSet32(hit.getType())[ \
                          UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL];
         if(m_debug>2){
-            std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<hitIsSpapcePoint<<std::endl;
+            std::cout<<detTypeID<<" COMPOSITE_SPACEPOINT "<<hitIsSpapcePoint
+                <<std::endl;
             std::cout<<detTypeID<<" ONE_DIMENSIONAL "<<hitIsPlanar<<std::endl;
         }
 

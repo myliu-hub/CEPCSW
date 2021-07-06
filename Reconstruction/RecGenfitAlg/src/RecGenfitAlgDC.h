@@ -42,6 +42,7 @@ namespace edm4hep{
     class MCParticleCollection;
     class SimTrackerHitCollection;
     class TrackCollection;
+    class Track;
     class TrackerHitCollection;
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticle;
@@ -62,6 +63,8 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         const GenfitField* m_genfitField;//The pointer to a GenfitField
 
         void debugTrack(int pidType,const GenfitTrack* genfitTrack);
+        void debugInitTrack(int pidType, const edm4hep::Track& track,
+                const GenfitTrack* genfitTrack);
         void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
                 const edm4hep::TrackCollection* sdtRecTrackCol,
                 double eventStartTime);
@@ -100,7 +103,8 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",false};
         Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
-        Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.011};//cm
+        Gaudi::Property<std::vector<float> > m_sigmaHit{this,"sigmaHit",{0.11,0.003,0.003,0.003,0.003}};//0:DC,...TODO
+        Gaudi::Property<float> m_sigmaDrift{this,"sigmaDrift",0.11};//mm
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
@@ -206,6 +210,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Item<int> m_nHitKalInput;
         NTuple::Array<double> m_dcHitTime;
         NTuple::Array<double> m_dcHitDoca;
+        NTuple::Array<double> m_dcHitDocaExt;
         NTuple::Array<double> m_dcHitWireX;
         NTuple::Array<double> m_dcHitWireY;
         NTuple::Array<double> m_dcHitDriftT;

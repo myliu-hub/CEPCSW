@@ -267,6 +267,54 @@ TVector3 GridDriftChamber::IntersectionTrackWire(const CellID& cID, const TVecto
   return intersect;
 }
 
+double GridDriftChamber::Distance(const CellID& cID, const TVector3& pointIn, const TVector3& pointOut, TVector3& hitPosition) const {
+
+ //For two lines r=r1+t1.v1 & r=r2+t2.v2
+  //the closest approach is d=|(r2-r1).(v1 x v2)|/|v1 x v2|
+  //the point where closest approach are
+  //t1=(v1 x v2).[(r2-r1) x v2]/[(v1 x v2).(v1 x v2)]
+  //t2=(v1 x v2).[(r2-r1) x v1]/[(v1 x v2).(v1 x v2)]
+  //if v1 x v2=0 means two lines are parallel
+  //d=|(r2-r1) x v1|/|v1|
+
+  double t1,distance,dInOut,dHitIn,dHitOut;
+  //Get wirepoint @ endplate
+   TVector3 west = {0,0,0};
+   TVector3 east = {0,0,0};
+   cellposition(cID,west,east);
+   TVector3 wireLine=east - west;
+   TVector3 hitLine=pointOut - pointIn;
+
+  TVector3 hitXwire=hitLine.Cross(wireLine);
+  TVector3 wire2hit=east-pointOut;
+  //Hitposition is the position on hit line where closest approach
+  //of two lines, but it may out the area from pointIn to pointOut
+  if(hitXwire.Mag()==0){
+    distance=wireLine.Cross(wire2hit).Mag()/wireLine.Mag();
+    hitPosition=pointIn;
+  }else{
+    t1=hitXwire.Dot(wire2hit.Cross(wireLine))/hitXwire.Mag2();
+    hitPosition=pointOut+t1*hitLine;
+
+    dInOut=(pointOut-pointIn).Mag();
+    dHitIn=(hitPosition-pointIn).Mag();
+    dHitOut=(hitPosition-pointOut).Mag();
+    if(dHitIn<=dInOut && dHitOut<=dInOut){ //Between point in & out
+      distance=fabs(wire2hit.Dot(hitXwire)/hitXwire.Mag());
+    }else if(dHitOut>dHitIn){ // out pointIn
+      distance=wireLine.Cross(pointIn-east).Mag()/wireLine.Mag();
+      hitPosition=pointIn;
+    }else{ // out pointOut
+      distance=wireLine.Cross(pointOut-east).Mag()/wireLine.Mag();
+      hitPosition=pointOut;
+    }
+  }
+
+  return distance;
+}
+
+
+
 
 }
 }

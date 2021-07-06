@@ -309,8 +309,8 @@ StatusCode RecGenfitAlgSDT::execute()
                 }
             }
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
-                    dcHitAssociationCol,m_sigmaHit.value(),
-                    m_smearHit.value(),m_fitSiliconOnly.value()
+                    dcHitAssociationCol,m_sigmaHit,
+                    m_smearHit,m_fitSiliconOnly.value()
                     ,m_isUseFixedSiHitError.value());
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
@@ -583,7 +583,7 @@ void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol
 
     m_nSdtRecTrack=sdtRecTrackCol->size();
     for(auto sdtTrack: *sdtRecTrackCol){
-        for(int i=0; i<sdtTrack.trackStates_size(); i++) {
+        for(unsigned int i=0; i<sdtTrack.trackStates_size(); i++) {
 
             edm4hep::TrackState trackStat=sdtTrack.getTrackStates(i);
 

@@ -103,7 +103,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
         Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
-        Gaudi::Property<float> m_sigmaHit{this,"sigmaHit",0.11};//mm
+        Gaudi::Property<std::vector<float> > m_sigmaHit{this,"sigmaHit",{0.11,0.003,0.003,0.003,0.003}};//mm, 0:DC,...TODO
         Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
