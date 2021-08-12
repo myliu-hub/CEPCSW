@@ -102,6 +102,17 @@ void GridDriftChamber::cellposition(const CellID& cID, TVector3& Wstart,
   Wend = returnWirePosition(phi_end, 1);
 }
 
+void GridDriftChamber::cellposition2(int chamber,int layer, int cell,
+                                    TVector3& Wstart, TVector3& Wend) const {
+     updateParams(chamber,layer);
+     double phi_start = binToPosition(cell, _currentLayerphi, m_offset);
+     double phi_mid = phi_start + _currentLayerphi/2.;
+     double phi_end = phi_mid + returnAlpha();
+
+     Wstart = returnWirePosition(phi_mid, -1);
+     Wend = returnWirePosition(phi_end, 1);
+}
+
 TVector3 GridDriftChamber::LineLineIntersect(TVector3& p1, TVector3& p2, TVector3& p3, TVector3& p4) const {
 
   TVector3 p13, p43, p21;

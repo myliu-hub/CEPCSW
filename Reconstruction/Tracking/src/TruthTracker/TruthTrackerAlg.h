@@ -71,8 +71,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackCollection>
             m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
-            "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
+//        DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
+//            "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
             "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_FTDSpacePointCol{
@@ -146,11 +146,11 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nTrackerHitErrSIT;
         NTuple::Item<int> m_nTrackerHitErrSET;
         NTuple::Item<int> m_nTrackerHitErrFTD;
-        NTuple::Item<int> m_nSpacePointSIT;
+//        NTuple::Item<int> m_nSpacePointSIT;
         NTuple::Item<int> m_nSpacePointSET;
         NTuple::Item<int> m_nSpacePointFTD;
         NTuple::Item<int> m_nSpacePointErrVXD;
-        NTuple::Item<int> m_nSpacePointErrSIT;
+//        NTuple::Item<int> m_nSpacePointErrSIT;
         NTuple::Item<int> m_nSpacePointErrSET;
         NTuple::Item<int> m_nSpacePointErrFTD;
         NTuple::Item<int> m_nHitOnSiTkVXD;

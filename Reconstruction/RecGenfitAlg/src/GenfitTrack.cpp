@@ -332,8 +332,8 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
     int detTypeID=getDetTypeID(detID);
     if(7==detTypeID){
         //drift chamber, sigma[0]
-        float sigmaX=sigma[0]*dd4hep::mm/(2*pos_t(0)*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1)));
-        float sigmaY=sigma[0]*dd4hep::mm/(2*pos_t(1)*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1)));
+        float sigmaX=sigma[0]*dd4hep::mm*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1))/(sqrt(2)*pos_t(0));
+        float sigmaY=sigma[0]*dd4hep::mm*sqrt(pos_t(0)*pos_t(0)+pos_t(1)*pos_t(1))/(sqrt(2)*pos_t(1));
         if(smear){
             pos_smeared[0]+=gRandom->Gaus(0,sigmaX);
             pos_smeared[1]+=gRandom->Gaus(0,sigmaY);
@@ -343,12 +343,103 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
         hitCov(1,1)=sigmaY*sigmaY;
         hitCov(2,2)=1e9;
     }else if(detTypeID==lcio::ILDDetID::VXD){
+        if(0==lcio::ILDCellID0::layer) {
+            float sigma_VXD_X = sigma[1]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Y = sigma[1]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Z = sigma[2]*dd4hep::mm;
+
+            if(smear){
+                pos_smeared[0]+=gRandom->Gaus(0,sigma_VXD_X);
+                pos_smeared[1]+=gRandom->Gaus(0,sigma_VXD_Y);
+                pos_smeared[2]+=gRandom->Gaus(0,sigma_VXD_Z);;//use truth Z ? FIXME
+            }
+            hitCov(0,0)=sigma_VXD_X*sigma_VXD_X;
+            hitCov(1,1)=sigma_VXD_Y*sigma_VXD_Y;
+            hitCov(2,2)=sigma_VXD_Z*sigma_VXD_Z;
+        } else if(1==lcio::ILDCellID0::layer) {
+            float sigma_VXD_X = sigma[3]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Y = sigma[3]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Z = sigma[4]*dd4hep::mm;
+
+            if(smear){
+                pos_smeared[0]+=gRandom->Gaus(0,sigma_VXD_X);
+                pos_smeared[1]+=gRandom->Gaus(0,sigma_VXD_Y);
+                pos_smeared[2]+=gRandom->Gaus(0,sigma_VXD_Z);;//use truth Z ? FIXME
+            }
+            hitCov(0,0)=sigma_VXD_X*sigma_VXD_X;
+            hitCov(1,1)=sigma_VXD_Y*sigma_VXD_Y;
+            hitCov(2,2)=sigma_VXD_Z*sigma_VXD_Z;
+        } else {
+            float sigma_VXD_X = sigma[5]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Y = sigma[5]*dd4hep::mm*sqrt(2);
+            float sigma_VXD_Z = sigma[6]*dd4hep::mm;
+
+            if(smear){
+                pos_smeared[0]+=gRandom->Gaus(0,sigma_VXD_X);
+                pos_smeared[1]+=gRandom->Gaus(0,sigma_VXD_Y);
+                pos_smeared[2]+=gRandom->Gaus(0,sigma_VXD_Z);;//use truth Z ? FIXME
+            }
+            hitCov(0,0)=sigma_VXD_X*sigma_VXD_X;
+            hitCov(1,1)=sigma_VXD_Y*sigma_VXD_Y;
+            hitCov(2,2)=sigma_VXD_Z*sigma_VXD_Z;
+        }
         //TODO, get smear parameter from job option
     }else if(detTypeID==lcio::ILDDetID::SIT){
+        float sigma_SIT_X = sigma[13]*dd4hep::mm*sqrt(2);
+        float sigma_SIT_Y = sigma[13]*dd4hep::mm*sqrt(2);
+        float sigma_SIT_Z = sigma[14]*dd4hep::mm;
+
+        if(smear){
+            pos_smeared[0]+=gRandom->Gaus(0,sigma_SIT_X);
+            pos_smeared[1]+=gRandom->Gaus(0,sigma_SIT_Y);
+            pos_smeared[2]+=gRandom->Gaus(0,sigma_SIT_Z);
+        }
+        hitCov(0,0)= sigma_SIT_X*sigma_SIT_X;
+        hitCov(1,1)= sigma_SIT_Y*sigma_SIT_Y;
+        hitCov(2,2)= sigma_SIT_Z*sigma_SIT_Z;
         //TODO, get smear parameter from job option
     }else if(detTypeID==lcio::ILDDetID::SET){
-        //TODO, get smear parameter from job option
+        float sigma_SET_X = sigma[15]*dd4hep::mm*sqrt(2);
+        float sigma_SET_Y = sigma[15]*dd4hep::mm*sqrt(2);
+        float sigma_SET_Z = sigma[16]*dd4hep::mm;
+
+        if(smear){
+            pos_smeared[0]+=gRandom->Gaus(0,sigma_SET_X);
+            pos_smeared[1]+=gRandom->Gaus(0,sigma_SET_Y);
+            pos_smeared[2]+=gRandom->Gaus(0,sigma_SET_Z);
+        }
+        hitCov(0,0)= sigma_SET_X*sigma_SET_X;
+        hitCov(1,1)= sigma_SET_Y*sigma_SET_Y;
+        hitCov(2,2)= sigma_SET_Z*sigma_SET_Z;
+       //TODO, get smear parameter from job option
     }else if(detTypeID==lcio::ILDDetID::FTD){
+        if(0==lcio::ILDCellID0::layer || 1==lcio::ILDCellID0::layer) {
+            float sigma_FTD_X = sigma[17]*dd4hep::mm*sqrt(2);
+            float sigma_FTD_Y = sigma[17]*dd4hep::mm*sqrt(2);
+            float sigma_FTD_Z = sigma[18]*dd4hep::mm;
+
+            if(smear){
+                pos_smeared[0]+=gRandom->Gaus(0,sigma_FTD_X);
+                pos_smeared[1]+=gRandom->Gaus(0,sigma_FTD_Y);
+                pos_smeared[2]+=gRandom->Gaus(0,sigma_FTD_Z);;//use truth Z ? FIXME
+            }
+            hitCov(0,0)=sigma_FTD_X*sigma_FTD_X;
+            hitCov(1,1)=sigma_FTD_Y*sigma_FTD_Y;
+            hitCov(2,2)=sigma_FTD_Z*sigma_FTD_Z;
+        } else {
+            float sigma_FTD_X = sigma[17]*dd4hep::mm*sqrt(2);
+            float sigma_FTD_Y = sigma[17]*dd4hep::mm*sqrt(2);
+            float sigma_FTD_Z = sigma[18]*dd4hep::mm;
+
+            if(smear){
+                pos_smeared[0]+=gRandom->Gaus(0,sigma_FTD_X);
+                pos_smeared[1]+=gRandom->Gaus(0,sigma_FTD_Y);
+                pos_smeared[2]+=gRandom->Gaus(0,sigma_FTD_Z);;//use truth Z ? FIXME
+            }
+            hitCov(0,0)=sigma_FTD_X*sigma_FTD_X;
+            hitCov(1,1)=sigma_FTD_Y*sigma_FTD_Y;
+            hitCov(2,2)=sigma_FTD_Z*sigma_FTD_Z;
+        }
         //TODO, get smear parameter from job option
     }
 
@@ -383,24 +474,26 @@ GenfitTrack::getISurface(edm4hep::ConstTrackerHit hit){
     }else if(detTypeID==lcio::ILDDetID::FTD){
         detectorName="FTD";
     }else{
+        std::cout << "getISurface  iSurface = NULL_myliu" << std::endl;
         return nullptr;
     }
-    std::cout<<__FILE__<<" detectorName  "<<detectorName<<" cellId "<<hit.getCellID()<<std::endl;
+//    std::cout<<__FILE__<<" detectorName  "<<detectorName<<" cellId "<<hit.getCellID()<<std::endl;
     const dd4hep::rec::SurfaceMap* surfaceMap= surfaceManager.map(detectorName);
     auto iter=surfaceMap->find(hit.getCellID());
     dd4hep::rec::ISurface* iSurface=nullptr;
     if(iter!=surfaceMap->end()){iSurface=(*iter).second;}
 
-    std::cout << "map size = " << surfaceMap->size() << std::endl;
+//    std::cout << "map size = " << surfaceMap->size() << std::endl;
     std::multimap< unsigned long, dd4hep::rec::ISurface*>::const_iterator it,itend;
     it=surfaceMap->begin();
     itend= surfaceMap->end();
     for(; it!=itend; it++){
         dd4hep::rec::ISurface* surf = it->second;
-        std::cout<<__FILE__<<" surf cell id  "<<it->first<<std::endl;
+//        std::cout<<__FILE__<<" surf cell id  "<<it->first<<std::endl;
         dd4hep::rec::Vector3D origin = surf->origin();
-        std::cout <<"surf id "<< surf->id() << " origin xyz " << origin.x() << " " << origin.y() << " " << origin.z() << std::endl;
+//        std::cout <<"surf id "<< surf->id() << " origin xyz " << origin.x() << " " << origin.y() << " " << origin.z() << std::endl;
     }
+    std::cout << "getISurface  iSurface =(myliu) " << iSurface << std::endl;
     return iSurface;
 }
 
@@ -422,9 +515,9 @@ GenfitTrack::addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit,int hitID)
         dd4hep::rec::Vector3D v=iSurface->v();
         double length_along_u=iSurface->length_along_u();
         double length_along_v=iSurface->length_along_v();
-        std::cout<<__FILE__<<"   "<<__LINE__<<" u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
-        std::cout<<__FILE__<<"   "<<__LINE__<<" v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
-        std::cout<<__FILE__<<"   "<<__LINE__<<" length_along_u "<<length_along_u<<" length_along_v "<<length_along_v<<std::endl;
+//        std::cout<<__FILE__<<"   "<<__LINE__<<" u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
+//        std::cout<<__FILE__<<"   "<<__LINE__<<" v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
+//        std::cout<<__FILE__<<"   "<<__LINE__<<" length_along_u "<<length_along_u<<" length_along_v "<<length_along_v<<std::endl;
 
     }else{
         std::cout<<__FILE__<<" iSurface is null "<<std::endl;
@@ -892,51 +985,13 @@ int GenfitTrack::addHitsOnEdm4HepTrack(const edm4hep::Track& track,
         }
 
         bool isDriftChamberHit(false);
-        if(7==detTypeID){
-            isDriftChamberHit=true;
-        }else{
-            addPlanarHitFromTrakerHit(hit,hitID);//yzhang DEBUG FIXME
-        }
-        //bool isSpacePoint(true);
-        //    isDriftChamberHit=true;
-        //bool isPlanarHit(false);
-        //if(detTypeID==lcio::ILDDetID::VXD){
-        //    isSpacePoint=true;
-        //}else if(detTypeID==lcio::ILDDetID::SIT
-        //        || detTypeID==lcio::ILDDetID::SET
-        //        || detTypeID==lcio::ILDDetID::FTD){
-        //    isSpacePoint=hitIsSpapcePoint;
-        //    isPlanarHit=hitIsPlanar;
-        //}else if(7==detTypeID){
-        //    isDriftChamberHit=true;
-        //}
-        ///hit from SimTrackerHit
-        //bool isSimTrackerHit=hit.getType()<0 ? true:false;//FIXME
-        //if(isSimTrackerHit) isSpacePoint=true;//FIXME
-
-        ///Add hit
-        //if(isSpacePoint){
-        //    if(addSpacePointFromTrakerHit(hit,hitID,isUseFixedSiHitError)){
-        //        hitID++;
-        //    }
-        //}else if(isPlanarHit){
-        //    if(addPlanarHitFromTrakerHit(hit,hitID)){
-        //        hitID++;
-        //    }
-        //}
-
+        if(7==detTypeID){ isDriftChamberHit=true; }
         if(!isDriftChamberHit){
+            //silicon
             if(addSpacePointFromTrakerHit(hit,hitID,isUseFixedSiHitError)){
                 hitID++;
             }
         }else if(isDriftChamberHit){
-            //if(addSpacePointMeasurement(p,sigma,hit.getCellID(),hitID)){
-            //    if(m_debug>=2)std::cout<<"add DC space point"<<std::endl;
-            //    hitID++;
-            //}else{
-            //    if(m_debug>=2)std::cout<<"addSpacePointMeasurement"
-            //        <<detTypeID<<" faieled" <<std::endl;
-            //}
             float minTime=FLT_MAX;
             edm4hep::ConstSimTrackerHit minTimeSimHit;
             //Select the SimTrakerHit with least time

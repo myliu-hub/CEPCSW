@@ -280,7 +280,8 @@ StatusCode RecGenfitAlgSDT::execute()
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
     m_firstTuple=true;
-    debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
+    //debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
+    std::cout << "SDTTrackCol size="<<sdtTrackCol->size() << std::endl;
     for(auto sdtTrack: *sdtTrackCol){
         ///Loop over 5 particle hypothesis(0-4): e,mu,pi,K,p
         ///-1 for chargedgeantino
@@ -295,23 +296,29 @@ StatusCode RecGenfitAlgSDT::execute()
             genfitTrack->setDebug(m_debug.value());
             if(m_useTruthTrack){
                 //single track only FIXME
+                std::cout << __LINE__ << std::endl;
                 if(!genfitTrack->createGenfitTrackFromMCParticle(pidType,
                             *(mcParticleCol->begin()), eventStartTime)){
+                    std::cout << __LINE__ << std::endl;
                     debug()<<"createGenfitTrackFromMCParticle failed!"<<endmsg;
                     return StatusCode::SUCCESS;
                 }
             }else{
+                std::cout << __LINE__ << std::endl;
                 if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,
                             sdtTrack, eventStartTime,m_isUseCovTrack)){
                     debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track\
                         failed!"<<endmsg;
+                    std::cout << __LINE__ << std::endl;
                     return StatusCode::SUCCESS;
                 }
             }
+            std::cout << __LINE__ << std::endl;
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
                     dcHitAssociationCol,m_sigmaHit,
                     m_smearHit,m_fitSiliconOnly.value()
                     ,m_isUseFixedSiHitError.value());
+            std::cout << __LINE__ << std::endl;
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;

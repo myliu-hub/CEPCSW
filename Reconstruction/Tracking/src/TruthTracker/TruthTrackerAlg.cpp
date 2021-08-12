@@ -36,7 +36,7 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of association collection");
     declareProperty("DCTrackCollection", m_DCTrackCol,
             "Handle of DC track collection");
-    declareProperty("SiSubsetTrackCollection", m_siSubsetTrackCol,
+    declareProperty("SubsetTracks", m_siSubsetTrackCol,
             "Handle of silicon subset track collection");
     declareProperty("SDTTrackCollection", m_SDTTrackCol,
             "Handle of SDT track collection");
@@ -48,8 +48,8 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of input SET tracker hit collection");
     declareProperty("FTDTrackerHits", m_FTDTrackerHits,
             "Handle of input FTD tracker hit collection");
-    declareProperty("SITSpacePoints", m_SITSpacePointCol,
-            "Handle of input SIT hit collection");
+//    declareProperty("SITSpacePoints", m_SITSpacePointCol,
+//            "Handle of input SIT hit collection");
     declareProperty("SETSpacePoints", m_SETSpacePointCol,
             "Handle of input SET hit collection");
     declareProperty("FTDSpacePoints", m_FTDSpacePointCol,
@@ -125,7 +125,7 @@ StatusCode TruthTrackerAlg::initialize()
             sc=m_tuple->addItem("nTrackerHitSET",m_nTrackerHitSET);
             sc=m_tuple->addItem("nTrackerHitFTD",m_nTrackerHitFTD);
             sc=m_tuple->addItem("nTrackerHitDC",m_nTrackerHitDC);
-            sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
+//            sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
             sc=m_tuple->addItem("nSpacePointSET",m_nSpacePointSET);
             sc=m_tuple->addItem("nSpacePointFTD",m_nSpacePointFTD);
             sc=m_tuple->addItem("nHitOnSiTkXVD",m_nHitOnSiTkVXD);
@@ -263,16 +263,17 @@ StatusCode TruthTrackerAlg::execute()
             ///Add reconstructed hit or digi
             debug()<<"Add VXD TrackerHit"<<endmsg;
             nVXDHit=addHitsToTk(m_VXDTrackerHits,sdtTk,"VXD digi",nVXDHit);
+            nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
             if(m_useSiSpacePoint.value()){
                 ///Add silicon SpacePoint
                 debug()<<"Add silicon SpacePoint"<<endmsg;
-                nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+//                nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
                 nSETHit=addHitsToTk(m_SETSpacePointCol,sdtTk,"SET sp",nSETHit);
                 nFTDHit=addHitsToTk(m_FTDSpacePointCol,sdtTk,"FTD sp",nFTDHit);
             }else{
                 ///Add silicon TrackerHit
                 debug()<<"Add silicon TrackerHit"<<endmsg;
-                nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
+//                nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
                 nSETHit=addHitsToTk(m_SETTrackerHits,sdtTk,"SET digi",nSETHit);
                 nFTDHit=addHitsToTk(m_FTDTrackerHits,sdtTk,"FTD digi",nFTDHit);
             }//end of use space point
@@ -499,7 +500,7 @@ void TruthTrackerAlg::debugEvent()
             m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
 
             //SpacePoints
-            m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+//            m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
             m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
             m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
         }

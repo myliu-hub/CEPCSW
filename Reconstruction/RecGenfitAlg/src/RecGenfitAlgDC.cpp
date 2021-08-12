@@ -413,19 +413,19 @@ void RecGenfitAlgDC::debugInitTrack(int pidType,
         pos.SetXYZ(pos.X()/10.,pos.Y()/10.,pos.Z()/10.);
         genfitTrack->extrapolateToHit(poca,pocaDir,pocaOnWire,doca,pos,mom,
                 endPointStart,endPointEnd,m_debug.value(),0,true,true);
-        std::cout<<" ext pos "; pos.Print();
-        std::cout<<" mom "; mom.Print();
-        std::cout<<" poca ";
-        poca.Print();
-        std::cout<<" pocaDir ";
-        pocaDir.Print();
-        std::cout<<" pocaOnWire ";
-        pocaOnWire.Print();
-        std::cout<<" doca "<<doca<<std::endl;
-        std::cout<<" pos "<<std::endl;
-        pos.Print();
-        std::cout<<" mom "<<std::endl;
-        mom.Print();
+//        std::cout<<" ext pos "; pos.Print();
+//        std::cout<<" mom "; mom.Print();
+//        std::cout<<" poca ";
+//        poca.Print();
+//        std::cout<<" pocaDir ";
+//        pocaDir.Print();
+//        std::cout<<" pocaOnWire ";
+//        pocaOnWire.Print();
+//        std::cout<<" doca "<<doca<<std::endl;
+//        std::cout<<" pos "<<std::endl;
+//        pos.Print();
+//        std::cout<<" mom "<<std::endl;
+//        mom.Print();
         m_dcHitDocaExt[iDCDigi]=doca;
         iDCDigi++;
     }
