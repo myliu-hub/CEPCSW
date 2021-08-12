@@ -58,6 +58,8 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
                 bool varField = true) override;
 
         // ClassDef(GenfitMaterialInterface, 1);
+        void setMinSafetyDistanceCut(double safeDistCut=1e-4)
+        {m_safeDistCut=safeDistCut;}
 
     private:
         static GenfitMaterialInterface* m_instance;
@@ -70,6 +72,7 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
         bool isSameLocation(double posX, double posY, double posZ,
                 bool change=false);
         void setCurrentDirection(double nx, double ny, double nz);
+        double m_safeDistCut;
 
 };
 

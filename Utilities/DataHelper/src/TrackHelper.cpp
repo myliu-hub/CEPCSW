@@ -26,8 +26,8 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     mom[0]=pxy*cos(phi);
     mom[1]=pxy*sin(phi);
     mom[2]=pxy*tanLambda;
-    std::cout<<"TrackerHelper pos "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
-    std::cout<<"TrackerHelper mom "<<mom[0]<<" "<<mom[1]<<" "<<mom[2]<<std::endl;
+    //std::cout<<"TrackerHelper pos "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
+    //std::cout<<"TrackerHelper mom "<<mom[0]<<" "<<mom[1]<<" "<<mom[2]<<std::endl;
     TMatrixDSym covMatrix_5(5);
     ///< lower triangular covariance matrix of the track parameters.
     ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).

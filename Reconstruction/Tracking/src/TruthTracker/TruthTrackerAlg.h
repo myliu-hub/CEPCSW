@@ -71,8 +71,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackCollection>
             m_siSubsetTrackCol{ "SubsetTracks",
                 Gaudi::DataHandle::Reader, this};
-//        DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
-//            "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
+            "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
             "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_FTDSpacePointCol{
@@ -110,7 +110,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
         Gaudi::Property<bool> m_skipSecondaryHit{this,"skipSecondaryHit",true};
         Gaudi::Property<bool> m_useFirstHitForDC{this,"useFirstHitForDC",false};
-        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",true};
+        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
@@ -146,7 +146,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nTrackerHitErrSIT;
         NTuple::Item<int> m_nTrackerHitErrSET;
         NTuple::Item<int> m_nTrackerHitErrFTD;
-//        NTuple::Item<int> m_nSpacePointSIT;
+        NTuple::Item<int> m_nSpacePointSIT;
         NTuple::Item<int> m_nSpacePointSET;
         NTuple::Item<int> m_nSpacePointFTD;
         NTuple::Item<int> m_nSpacePointErrVXD;

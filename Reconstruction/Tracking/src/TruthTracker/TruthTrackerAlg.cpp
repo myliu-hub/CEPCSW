@@ -48,8 +48,8 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of input SET tracker hit collection");
     declareProperty("FTDTrackerHits", m_FTDTrackerHits,
             "Handle of input FTD tracker hit collection");
-//    declareProperty("SITSpacePoints", m_SITSpacePointCol,
-//            "Handle of input SIT hit collection");
+    declareProperty("SITSpacePoints", m_SITSpacePointCol,
+            "Handle of input SIT hit collection");
     declareProperty("SETSpacePoints", m_SETSpacePointCol,
             "Handle of input SET hit collection");
     declareProperty("FTDSpacePoints", m_FTDSpacePointCol,
@@ -125,7 +125,7 @@ StatusCode TruthTrackerAlg::initialize()
             sc=m_tuple->addItem("nTrackerHitSET",m_nTrackerHitSET);
             sc=m_tuple->addItem("nTrackerHitFTD",m_nTrackerHitFTD);
             sc=m_tuple->addItem("nTrackerHitDC",m_nTrackerHitDC);
-//            sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
+            sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
             sc=m_tuple->addItem("nSpacePointSET",m_nSpacePointSET);
             sc=m_tuple->addItem("nSpacePointFTD",m_nSpacePointFTD);
             sc=m_tuple->addItem("nHitOnSiTkXVD",m_nHitOnSiTkVXD);
@@ -267,7 +267,9 @@ StatusCode TruthTrackerAlg::execute()
             if(m_useSiSpacePoint.value()){
                 ///Add silicon SpacePoint
                 debug()<<"Add silicon SpacePoint"<<endmsg;
-//                nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+                if(m_useSiSpacePoint){
+                    nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+                }
                 nSETHit=addHitsToTk(m_SETSpacePointCol,sdtTk,"SET sp",nSETHit);
                 nFTDHit=addHitsToTk(m_FTDSpacePointCol,sdtTk,"FTD sp",nFTDHit);
             }else{
@@ -500,7 +502,9 @@ void TruthTrackerAlg::debugEvent()
             m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
 
             //SpacePoints
-//            m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+            if(m_useSiSpacePoint){
+                m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+            }
             m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
             m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
         }
@@ -514,6 +518,7 @@ int TruthTrackerAlg::addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
     int nHit=0;
     const edm4hep::TrackerHitCollection* col=colHandle.get();
     debug()<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<endmsg;
+    //sort,FIXME
     for(auto hit:*col){
         track.addToTrackerHits(hit);
         ++nHit;
@@ -589,11 +594,13 @@ int TruthTrackerAlg::addHotsToTk(edm4hep::Track& sourceTrack,
         encoder.setValue(hit.getCellID());
         if(encoder[lcio::ILDCellID0::subdet]==hitType){
             targetTrack.addToTrackerHits(hit);
-            debug()<<endmsg<<" add siHit "<<iHit<<" "<<hit<<endmsg;//got error
+            debug()<<endmsg<<" add siHit "<<msg<<" "<<iHit<<" "<<hit
+                <<" pos "<<hit.getPosition().x<<" "<<hit.getPosition().y<<" "
+                <<hit.getPosition().z<<" " <<endmsg;
             ++nHit;
         }
     }
-    debug()<<endmsg<<" add "<<nHit<<" "<<msg<<" hit on track"<<endmsg;//got error
+    debug()<<endmsg<<" "<<nHit<<" "<<msg<<" hits add on track"<<endmsg;
     return nHit;
 }
 
