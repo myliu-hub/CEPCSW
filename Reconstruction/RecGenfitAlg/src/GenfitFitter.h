@@ -47,14 +47,14 @@ class GenfitFitter{
         /// please SET before use !!!!
         void setField(const GenfitField* field);
         /// please SET before use !!!!
-        void setGeoMaterial(const dd4hep::Detector* dd4hepGeo);
+        void setGeoMaterial(const dd4hep::Detector* dd4hepGeo,double extDistCut=1e-4);
 
         /// Main fitting function
-        int processTrack(GenfitTrack* track, bool resort=false);
+        int processTrack(GenfitTrack* track, bool resort=true);
 
         /// fitting with rep
         int processTrackWithRep(GenfitTrack* track,int repID=0,
-                bool resort=false);
+                bool resort=true);
 
         /// setters of fitter properties
         void setFitterType(const char* val);

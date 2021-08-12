@@ -110,7 +110,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useSiTruthHit{this,"useSiTruthHit",false};
         Gaudi::Property<bool> m_skipSecondaryHit{this,"skipSecondaryHit",true};
         Gaudi::Property<bool> m_useFirstHitForDC{this,"useFirstHitForDC",false};
-        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",true};
+        Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian

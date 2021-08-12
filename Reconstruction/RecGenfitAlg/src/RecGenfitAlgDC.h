@@ -102,6 +102,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<std::string> m_readout_name{this,
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",false};
+        Gaudi::Property<bool> m_useMcParticleSeed{this,"useMcParticleSeed",false};
         Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
         Gaudi::Property<std::vector<float> > m_sigmaHit{this,"sigmaHit",{0.11,0.003,0.003,0.003,0.003}};//0:DC,...TODO
         Gaudi::Property<float> m_sigmaDrift{this,"sigmaDrift",0.11};//mm
@@ -109,6 +110,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
         Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
         Gaudi::Property<bool> m_isUseCovTrack{this,"isUseCovTrack",false};
+        Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};
         Gaudi::Property<std::vector<float> > m_hitError{this,"hitError",
             {0.007,0.007,0.03}};
         //Fitter type default is DAFRef.
@@ -132,6 +134,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<std::string> m_genfitHistRootName{this,
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};
+        Gaudi::Property<double> m_extMinDistCut{this,"extMinDistCut",1e-4};
         int m_fitSuccess[5];
         int m_nDCTrack;
         //bool m_useRecLRAmbig;
@@ -151,6 +154,9 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Item<int> m_seedMomQ;
         NTuple::Array<double> m_seedMom;
         NTuple::Array<double> m_seedPos;
+        NTuple::Item<double> m_seedCenterX;
+        NTuple::Item<double> m_seedCenterY;
+        NTuple::Item<double> m_seedR;
 
         NTuple::Matrix<double> m_truthPocaMc;//2 dim matched particle and 3 pos.
         NTuple::Matrix<double> m_pocaPosMc;//2 dim matched particle and 3 pos.
@@ -195,6 +201,7 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
 
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
         NTuple::Matrix<double> m_pocaMomKal;//5 hyposis and 3 mom.
+        NTuple::Array<double> m_pocaMomKalPFirst;//5 hyposis and p
         NTuple::Array<double> m_pocaMomKalP;//5 hyposis and p
         NTuple::Array<double> m_pocaMomKalPt;//5 hyposis and pt
         NTuple::Array<int> m_chargeKal;
@@ -205,14 +212,29 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Array<int> m_isFitted;
         NTuple::Item<int> m_nDigi;
         NTuple::Item<int> m_nHitMc;
+
         NTuple::Item<int> m_nSimDCHit;
         NTuple::Array<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
-        NTuple::Array<double> m_dcHitTime;
-        NTuple::Array<double> m_dcHitDoca;
-        NTuple::Array<double> m_dcHitDocaExt;
-        NTuple::Array<double> m_dcHitWireX;
-        NTuple::Array<double> m_dcHitWireY;
+        NTuple::Array<double> m_dcDigiChamber;
+        NTuple::Array<double> m_dcDigiLayer;
+        NTuple::Array<double> m_dcDigiCell;
+        NTuple::Array<double> m_dcDigiTime;
+        NTuple::Array<double> m_dcDigiDoca;
+        NTuple::Array<double> m_dcDigiDocaExt;
+        NTuple::Array<double> m_dcDigiWireStartX;
+        NTuple::Array<double> m_dcDigiWireStartY;
+        NTuple::Array<double> m_dcDigiWireStartZ;
+        NTuple::Array<double> m_dcDigiWireEndX;
+        NTuple::Array<double> m_dcDigiWireEndY;
+        NTuple::Array<double> m_dcDigiWireEndZ;
+        NTuple::Array<double> m_dcDigiMcPosX;
+        NTuple::Array<double> m_dcDigiMcPosY;
+        NTuple::Array<double> m_dcDigiMcPosZ;
+        NTuple::Array<double> m_dcDigiMcMomX;
+        NTuple::Array<double> m_dcDigiMcMomY;
+        NTuple::Array<double> m_dcDigiMcMomZ;
+
         NTuple::Array<double> m_dcHitDriftT;
         NTuple::Array<double> m_dcHitDriftDl;
         NTuple::Array<double> m_dcHitDriftDr;
@@ -241,6 +263,18 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         NTuple::Array<double> m_dcHitExpMcPocaWireX;
         NTuple::Array<double> m_dcHitExpMcPocaWireY;
         NTuple::Array<double> m_dcHitExpMcPocaWireZ;
+
+        //fit
+        NTuple::Item<int> m_genfitTrackNumPoint;
+        NTuple::Item<int> m_genfitTrackNumPointsWithMeas;
+        NTuple::Item<int> m_genfitNHit;
+        NTuple::Array<int> m_genfitHitLayer;
+        NTuple::Array<int> m_genfitHitCell;
+        NTuple::Array<double> m_genfitHitDrift;
+        NTuple::Array<double> m_genfitHitDriftErr;
+        NTuple::Array<double> m_genfitTrackPos;
+        NTuple::Array<double> m_genfitTrackMom;
+        NTuple::Item<double> m_genfitTimeSeed;
 
 };
 #endif

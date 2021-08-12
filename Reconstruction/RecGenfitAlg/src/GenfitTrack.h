@@ -49,6 +49,7 @@ namespace edm4hep{
     class Track;
     class TrackCollection;
     class ConstTrackerHit;
+    class ConstSimTrackerHit;
     class Vector3d;
     class Vector3f;
 }
@@ -63,10 +64,10 @@ namespace dd4hep {
 
 class GenfitTrack {
     friend int GenfitFitter::processTrack(
-            GenfitTrack* track, bool resort);
+            GenfitTrack* track, bool resort=true);
 
     friend int GenfitFitter::processTrackWithRep(
-            GenfitTrack* track, int repID, bool resort);
+            GenfitTrack* track, int repID, bool resort=true);
 
     public:
     GenfitTrack(const GenfitField* field,
@@ -104,12 +105,14 @@ class GenfitTrack {
     /// Add a WireMeasurement with MC truth position smeared by sigma
     virtual void addWireMeasurement(double driftDistance,
             double driftDistanceError, const TVector3& endPoint1,
-            const TVector3& endPoint2, int lrAmbig, int detID, int hitID);
+            const TVector3& endPoint2, int lrAmbig, int detID, int hitID,
+        edm4hep::ConstSimTrackerHit simTrackerHitAsso);
+
 
     /// Add a WireMeasurement with DC digi
-    virtual bool addWireMeasurementOnTrack(edm4hep::Track& track,
-           // const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-            float sigma,bool smear);
+    virtual bool addWireMeasurementOnTrack(edm4hep::Track& track,float sigma,
+        bool smear,const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        int sortMethod=0,bool truthAmbig=true);
 
     ///Add space point from edm4hep::track
     int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
@@ -140,15 +143,15 @@ class GenfitTrack {
             TVector3 end1,//the orhter end of the hit wire
             int debug,
             int repID,
-            bool stopAtBoundary,
-            bool calcJacobianNoise) const;
+            bool stopAtBoundary=false,
+            bool calcJacobianNoise=true) const;
     /// Extrapolate the track to the point
     /// Output: pos and mom of POCA point to point
     /// Input: genfitTrack,point,repID,stopAtBoundary and calcAverageState
     /// repID same with pidType
     double extrapolateToPoint(TVector3& pos, TVector3& mom,
             const TVector3& point, int repID=0, bool stopAtBoundary = false,
-            bool calcJacobianNoise = false) const;
+            bool calcJacobianNoise = true) const;
 
     double extrapolateToPoint(TVector3& pos, TVector3& mom, TMatrixDSym& cov,
             const TVector3& point, int repID=0,
@@ -161,7 +164,7 @@ class GenfitTrack {
     double extrapolateToCylinder(TVector3& pos, TVector3& mom,
             double radius, const TVector3 linePoint,
             const TVector3 lineDirection, int hitID =0, int repID=0,
-            bool stopAtBoundary=false, bool calcJacobianNoise=false);
+            bool stopAtBoundary=false, bool calcJacobianNoise=true);
 
 
     bool getPosMomCovMOP(int hitID, TLorentzVector& pos, TVector3& mom,
@@ -218,6 +221,10 @@ class GenfitTrack {
     bool getMOP(int hitID, genfit::MeasuredStateOnPlane& mop,
             genfit::AbsTrackRep* trackRep=nullptr) const;
     const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit hit);
+    void getAssoSimTrackerHit(
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        edm4hep::ConstTrackerHit trackerHit,
+        edm4hep::ConstSimTrackerHit& simTrackerHit) const;
 
     genfit::Track* m_track;/// track
     std::vector<genfit::AbsTrackRep*> m_reps;/// track repesentations

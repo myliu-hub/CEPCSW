@@ -85,7 +85,7 @@ StatusCode RecGenfitAlgSDT::initialize()
     m_genfitFitter=new GenfitFitter(m_fitterType.toString().c_str());
     m_genfitField=new GenfitField(m_dd4hepField);
     m_genfitFitter->setField(m_genfitField);
-    m_genfitFitter->setGeoMaterial(m_geomSvc->lcdd());
+    m_genfitFitter->setGeoMaterial(m_geomSvc->lcdd(),m_extMinDistCut);
     m_genfitFitter->setEnergyLossBrems(m_correctBremsstrahlung);
     m_genfitFitter->setNoiseBrems(m_correctBremsstrahlung);
     if(m_debug>10) m_genfitFitter->setDebug(m_debug-10);

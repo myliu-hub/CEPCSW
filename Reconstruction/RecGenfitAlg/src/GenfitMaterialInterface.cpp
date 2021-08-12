@@ -130,6 +130,8 @@ GenfitMaterialInterface::findNextBoundary(const genfit::RKTrackRep* rep,
     findNextBoundary(fabs(sMax) - s);
     double safety = getSafeDistance(); // >= 0
     double slDist = getStep();
+    if (debugLvl_ > 0)
+        std::cout << "   slDist=getStep()= " << slDist<< "; safety=getSafeDistance()=" << safety<< "\n";
 
     // this should not happen, but it happens sometimes.
     // The reason are probably overlaps in the geometry.
@@ -320,12 +322,20 @@ MeanExcEnergy_get(TGeoMaterial* mat) {
 
 double GenfitMaterialInterface::getSafeDistance()
 {
-    return getGeoManager()->GetSafeDistance();
+    if(getGeoManager()->GetSafeDistance()<m_safeDistCut){
+        return m_safeDistCut;
+    }else{
+        return getGeoManager()->GetSafeDistance();//yzhang debug FIXME
+    }
 }
 
 double GenfitMaterialInterface::getStep()
 {
-    return getGeoManager()->GetSafeDistance();
+    if(getGeoManager()->GetSafeDistance()<m_safeDistCut){
+        return m_safeDistCut;
+    }else{
+        return getGeoManager()->GetSafeDistance();//yzhang debug FIXME
+    }
 }
 
 TGeoNode* GenfitMaterialInterface::findNextBoundary(double stepmax,

@@ -266,7 +266,9 @@ StatusCode TruthTrackerAlg::execute()
             if(m_useSiSpacePoint.value()){
                 ///Add silicon SpacePoint
                 debug()<<"Add silicon SpacePoint"<<endmsg;
-                nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+                if(m_useSiSpacePoint){
+                    nSITHit=addHitsToTk(m_SITSpacePointCol,sdtTk,"SIT sp",nSITHit);
+                }
                 nSETHit=addHitsToTk(m_SETSpacePointCol,sdtTk,"SET sp",nSETHit);
                 nFTDHit=addHitsToTk(m_FTDSpacePointCol,sdtTk,"FTD sp",nFTDHit);
             }else{
@@ -499,7 +501,9 @@ void TruthTrackerAlg::debugEvent()
             m_nTrackerHitDC=trackerHitColSize(m_DCDigiCol);
 
             //SpacePoints
-            m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+            if(m_useSiSpacePoint){
+                m_nSpacePointSIT=trackerHitColSize(m_SITSpacePointCol);
+            }
             m_nSpacePointSET=trackerHitColSize(m_SETSpacePointCol);
             m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
         }
@@ -513,6 +517,7 @@ int TruthTrackerAlg::addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
     int nHit=0;
     const edm4hep::TrackerHitCollection* col=colHandle.get();
     debug()<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<endmsg;
+    //sort,FIXME
     for(auto hit:*col){
         track.addToTrackerHits(hit);
         ++nHit;
@@ -588,11 +593,13 @@ int TruthTrackerAlg::addHotsToTk(edm4hep::Track& sourceTrack,
         encoder.setValue(hit.getCellID());
         if(encoder[lcio::ILDCellID0::subdet]==hitType){
             targetTrack.addToTrackerHits(hit);
-            debug()<<endmsg<<" add siHit "<<iHit<<" "<<hit<<endmsg;//got error
+            debug()<<endmsg<<" add siHit "<<msg<<" "<<iHit<<" "<<hit
+                <<" pos "<<hit.getPosition().x<<" "<<hit.getPosition().y<<" "
+                <<hit.getPosition().z<<" " <<endmsg;
             ++nHit;
         }
     }
-    debug()<<endmsg<<" add "<<nHit<<" "<<msg<<" hit on track"<<endmsg;//got error
+    debug()<<endmsg<<" "<<nHit<<" "<<msg<<" hits add on track"<<endmsg;
     return nHit;
 }
 

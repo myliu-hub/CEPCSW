@@ -79,11 +79,13 @@ void GenfitFitter::setField(const GenfitField* field)
 }
 
 /// Set geometry for material, use geometry from IOADatabase
-void GenfitFitter::setGeoMaterial(const dd4hep::Detector* dd4hepGeo)
+void GenfitFitter::setGeoMaterial(const dd4hep::Detector* dd4hepGeo,
+        double extDistCut)
 {
     if(nullptr==m_geoMaterial){
         m_geoMaterial=GenfitMaterialInterface::getInstance(dd4hepGeo);
     }
+    m_geoMaterial->setMinSafetyDistanceCut(extDistCut);
 }
 
 /// initialize genfit fitter

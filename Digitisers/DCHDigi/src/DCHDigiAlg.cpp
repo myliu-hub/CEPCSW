@@ -95,7 +95,7 @@ StatusCode DCHDigiAlg::execute()
   m_start = clock();
 
   info() << "Processing " << _nEvt << " events " << endmsg;
-  m_evt = _nEvt;
+  if(m_WriteAna&&(nullptr!=m_tuple)) m_evt = _nEvt;
   std::map<unsigned long long, std::vector<edm4hep::SimTrackerHit> > id_hits_map;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
@@ -248,7 +248,7 @@ StatusCode DCHDigiAlg::execute()
       }
   }
   m_end = clock();
-  m_time = (m_end - m_start);
+  if(m_WriteAna&&(nullptr!=m_tuple)) m_time = (m_end - m_start);
 
   return StatusCode::SUCCESS;
 }
