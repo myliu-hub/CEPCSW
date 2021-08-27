@@ -150,7 +150,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nSpacePointSET;
         NTuple::Item<int> m_nSpacePointFTD;
         NTuple::Item<int> m_nSpacePointErrVXD;
-//        NTuple::Item<int> m_nSpacePointErrSIT;
+        NTuple::Item<int> m_nSpacePointErrSIT;
         NTuple::Item<int> m_nSpacePointErrSET;
         NTuple::Item<int> m_nSpacePointErrFTD;
         NTuple::Item<int> m_nHitOnSiTkVXD;

@@ -23,8 +23,8 @@
 DECLARE_COMPONENT(TruthTrackerAlg)
 
 TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
-: GaudiAlgorithm(name, svcLoc),m_dd4hep(nullptr),m_gridDriftChamber(nullptr),
-    m_decoder(nullptr)
+: GaudiAlgorithm(name, svcLoc),m_dd4hep(nullptr)//,m_gridDriftChamber(nullptr),
+//    m_decoder(nullptr)
 {
     declareProperty("MCParticle", m_mcParticleCol,
             "Handle of the input MCParticle collection");
@@ -275,7 +275,7 @@ StatusCode TruthTrackerAlg::execute()
             }else{
                 ///Add silicon TrackerHit
                 debug()<<"Add silicon TrackerHit"<<endmsg;
-//                nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
+                nSITHit=addHitsToTk(m_SITTrackerHits,sdtTk,"SIT digi",nSITHit);
                 nSETHit=addHitsToTk(m_SETTrackerHits,sdtTk,"SET digi",nSETHit);
                 nFTDHit=addHitsToTk(m_FTDTrackerHits,sdtTk,"FTD digi",nFTDHit);
             }//end of use space point

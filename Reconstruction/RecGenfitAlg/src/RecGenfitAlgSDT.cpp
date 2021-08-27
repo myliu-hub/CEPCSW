@@ -296,29 +296,23 @@ StatusCode RecGenfitAlgSDT::execute()
             genfitTrack->setDebug(m_debug.value());
             if(m_useTruthTrack){
                 //single track only FIXME
-                std::cout << __LINE__ << std::endl;
                 if(!genfitTrack->createGenfitTrackFromMCParticle(pidType,
                             *(mcParticleCol->begin()), eventStartTime)){
-                    std::cout << __LINE__ << std::endl;
                     debug()<<"createGenfitTrackFromMCParticle failed!"<<endmsg;
                     return StatusCode::SUCCESS;
                 }
             }else{
-                std::cout << __LINE__ << std::endl;
                 if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,
                             sdtTrack, eventStartTime,m_isUseCovTrack)){
                     debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track\
                         failed!"<<endmsg;
-                    std::cout << __LINE__ << std::endl;
                     return StatusCode::SUCCESS;
                 }
             }
-            std::cout << __LINE__ << std::endl;
             int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
                     dcHitAssociationCol,m_sigmaHit,
                     m_smearHit,m_fitSiliconOnly.value()
                     ,m_isUseFixedSiHitError.value());
-            std::cout << __LINE__ << std::endl;
             if(0==nHitAdded){
                 debug()<<"No simTrackerHit on track added"<<endmsg;
                 return StatusCode::SUCCESS;
