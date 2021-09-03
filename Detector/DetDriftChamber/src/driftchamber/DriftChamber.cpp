@@ -38,6 +38,9 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     xml_coll_t c(x_det,_U(chamber));
     xml_comp_t x_chamber = c;
 
+    xml_coll_t cc(x_det,_U(side));
+    xml_comp_t x_side = cc;
+
     std::string det_name = x_det.nameStr();
     std::string det_type = x_det.typeStr();
 
@@ -75,8 +78,10 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     if( theDetector.buildType() == BUILD_ENVELOPE ) return sdet ;
 
 
-    dd4hep::Material det_mat(theDetector.material("Air"));
-    dd4hep::Material chamber_mat(theDetector.material("GasHe_90Isob_10"));
+//    dd4hep::Material det_mat(theDetector.material("Air"));
+    dd4hep::Material det_mat(theDetector.material(x_det.materialStr()));
+//    dd4hep::Material chamber_mat(theDetector.material("GasHe_90Isob_10"));
+    dd4hep::Material chamber_mat = theDetector.material(x_chamber.materialStr());
 
     // - global
     Assembly det_vol( det_name+"_assembly" ) ;
@@ -91,7 +96,8 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     double chamber_outer_wall_rmin = theDetector.constant<double>("SDT_chamber_outer_wall_radius_min");
     double chamber_outer_wall_rmax = theDetector.constant<double>("SDT_chamber_outer_wall_radius_max");
 
-    dd4hep::Material wall_mat(theDetector.material("CarbonFiber"));
+//    dd4hep::Material wall_mat(theDetector.material("CarbonFiber"));
+    dd4hep::Material wall_mat(theDetector.material(x_side.materialStr()));
 
     double wall_rmin[2] = {chamber_inner_wall_rmin, chamber_outer_wall_rmin};
     double wall_rmax[2] = {chamber_inner_wall_rmax, chamber_outer_wall_rmax};
