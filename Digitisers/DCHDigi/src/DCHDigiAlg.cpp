@@ -92,7 +92,7 @@ StatusCode DCHDigiAlg::execute()
   m_start = clock();
 
   info() << "Processing " << _nEvt << " events " << endmsg;
-  m_evt = _nEvt;
+  if(m_WriteAna) m_evt = _nEvt;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
   const edm4hep::SimTrackerHitCollection* SimHitCol =  r_SimDCHCol.get();
@@ -235,7 +235,9 @@ StatusCode DCHDigiAlg::execute()
       }
   }
   m_end = clock();
-  m_time = (m_end - m_start);
+  if(m_WriteAna){
+      m_time = (m_end - m_start);
+  }
 
   return StatusCode::SUCCESS;
 }
