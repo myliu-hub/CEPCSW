@@ -5,7 +5,6 @@ Find all the dependencies here, so in each package user don't need to find the p
 - CLHEP
 - DD4hep
 - EDM4hep
-- Garfiel++/Garfieldpp
 - Gaudi
 - Geant4
 - GEAR
@@ -22,8 +21,6 @@ Find all the dependencies here, so in each package user don't need to find the p
 find_package(CLHEP REQUIRED;CONFIG)
 find_package(DD4hep COMPONENTS DDCore DDG4 DDParsers DDRec REQUIRED)
 find_package(EDM4HEP REQUIRED)
-#find_package(Garfield REQUIRED)
-find_package(Garfield)
 find_package(Geant4 REQUIRED ui_all vis_all)
 find_package(GEAR REQUIRED)
 find_package(GSL REQUIRED)
@@ -33,5 +30,5 @@ find_package(LCContent REQUIRED)
 find_package(LCIO REQUIRED)
 find_package(PandoraSDK REQUIRED)
 find_package(podio REQUIRED)
-find_package(ROOT COMPONENTS EG Graf Graf3d Gpad MathCore Net RIO Tree TreePlayer REQUIRED)
+find_package(ROOT COMPONENTS EG Graf Graf3d Gpad MathCore Net RIO Tree TreePlayer Minuit REQUIRED)
 find_package(GenFit)

@@ -105,12 +105,14 @@ StatusCode DCHDigiAlg::execute()
   std::map<unsigned long long, std::vector<decltype(SimHit0)> > id_hits_map;
   //std::map<unsigned long long, std::vector<edm4hep::ConstSimTrackerhit> > id_hits_map;
 
+
   for( int i = 0; i < SimHitCol->size(); i++ ) 
   {
       auto SimHit = SimHitCol->at(i);
       unsigned long long id = SimHit.getCellID();
       float sim_hit_mom = sqrt( SimHit.getMomentum()[0]*SimHit.getMomentum()[0] + SimHit.getMomentum()[1]*SimHit.getMomentum()[1] + SimHit.getMomentum()[2]*SimHit.getMomentum()[2] );//GeV
       if(sim_hit_mom < m_mom_threshold) continue; 
+      if(sim_hit_mom > m_mom_threshold_high) continue; 
       if(SimHit.getEDep() <= 0) continue;
 
       if ( id_hits_map.find(id) != id_hits_map.end()) id_hits_map[id].push_back(SimHit);
