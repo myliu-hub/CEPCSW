@@ -274,7 +274,6 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
     TVectorD pos_smeared(3);
     for(int i=0;i<3;i++) pos_smeared[i]=pos(i)*dd4hep::mm;
 
-    std::cout<<__FILE__<<" "<<__LINE__<<" addSpacePointMeasurement pos "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "<<pos_smeared[2]<<std::endl;
     /// New a SpacepointMeasurement
     /// space point error matrix and smear, unit cm
     bool smear=(sigmaU[0]>0);
@@ -310,7 +309,6 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
         hitCov(0,0)=sigma_VXD_X*sigma_VXD_X;
         hitCov(1,1)=sigma_VXD_Y*sigma_VXD_Y;
         hitCov(2,2)=sigma_VXD_Z*sigma_VXD_Z;
-        hitCov.Print();
 
     }else if(detTypeID==lcio::ILDDetID::SIT){
         float sigma_SIT_X = sigmaU[8]*dd4hep::mm;
@@ -1038,8 +1036,6 @@ int GenfitTrack::addSpacePointsSi(const edm4hep::Track& track,
         p[0]=pos.x;
         p[1]=pos.y;
         p[2]=pos.z;
-
-        std::cout<<__FILE__<<" "<<__LINE__<<" hit.getPosition "<<pos<<std::endl;
         unsigned long long cellID = hit.getCellID();
         if(addSpacePointMeasurement(p,sigmaU,sigmaV,cellID,nHitAdd)){
             if(m_debug>=2)std::cout<<"add silicon space point"<<std::endl;

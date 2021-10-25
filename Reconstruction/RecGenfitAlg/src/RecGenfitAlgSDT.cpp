@@ -371,7 +371,7 @@ StatusCode RecGenfitAlgSDT::execute()
     if(m_tuple) {
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
-        info() << "Elapsed time: " << elapsed.count() << " s"<<endmsg;
+        debug() << "Elapsed time: " << elapsed.count() << " s"<<endmsg;
         m_exeTime=elapsed.count();
         debugEvent(sdtTrackCol,sdtRecTrackCol,eventStartTime);
     }
@@ -420,11 +420,17 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
         m_nHitKalInput=genfitTrack->getNumPoints();
         debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
         //FIXME read from config file
-        int detIDs[5]={1,2,3,5,7};//VXD=1,SIT=2,SET=5;FTD=3,
+        if(m_debug) {
+            debug()<<"detType nHot: ";
+        }
+        int detIDs[5]={1,2,3,4,5};//VXD=1,SIT=2,SET=5;FTD=3,
         for(int i=0;i<5;i++){
             m_nHitDetType[detIDs[i]]=genfitTrack->getNumPointsDet(detIDs[i]);
-            debug()<<"hot detTypeID "<<detIDs[i]<<" "<<m_nHitDetType[detIDs[i]]<<endmsg;
+            if(m_debug){
+                debug()<<" "<<detIDs[i]<<"="<<m_nHitDetType[detIDs[i]]<<", ";
+            }
         }
+        if(m_debug) { debug()<<endmsg; }
         m_firstTuple=false;
     }
     m_chargeKal[pidType]= charge;
@@ -448,28 +454,28 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
 
-    if(m_debug>0){
-        m_evt=m_eventNo;
-        /// Get fit status
-        debug()<<"evt "<<m_evt<<" fit result: get status OK? pidType "
+    m_evt=m_eventNo;
+    /// Get fit status
+    if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
+        debug()<<"evt "<<m_evt<<" fit FAILED !!"
             <<pidType<<" fittedState "<<fittedState<<" isFitted "
             <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
-            <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
-            <<" ndf "<<m_nDofKal[pidType]
-            <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
-        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
-            debug()<<"evt "<<m_evt<<" fit failed"<<endmsg;
-        }else{
-            debug()<<"evt "<<m_evt<<" fit result: Pos("<<
-                fittedPos.X()<<" "<<
-                fittedPos.Y()<<" "<<
-                fittedPos.Z()<<") mom("<<
-                fittedMom.X()<<" "<<
-                fittedMom.Y()<<" "<<
-                fittedMom.Z()<<") p_tot "<<
-                fittedMom.Mag()<<" pt "<<
-                fittedMom.Perp()<<endmsg;
-        }
+            <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]<<endmsg;
+    }else{
+        debug()<<"evt "<<m_evt<<" pidType "<<pidType<<" pos("<<
+            fittedPos.X()<<" "<<
+            fittedPos.Y()<<" "<<
+            fittedPos.Z()<<") mom("<<
+            fittedMom.X()<<" "<<
+            fittedMom.Y()<<" "<<
+            fittedMom.Z()<<") p_tot "<<
+            fittedMom.Mag()<<" pt "<<
+            fittedMom.Perp()
+        <<" fittedState "<<fittedState<<" isFitted "
+        <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
+        <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
+        <<" ndf "<<m_nDofKal[pidType]
+        <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
     }
 }
 
@@ -507,13 +513,13 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         CEPC::getPosMomFromTrackState(trackStat,m_genfitField->getBzTesla({0.,0.,0.}),
                 pos,mom,charge,cov);
         m_seedMomQ=charge;
-        debug()<<" sdtTrack charge "<<charge<<" seed mom "<<momInit.X()<<" "<<
-            momInit.Y()<<" "<<momInit.Z()<<endmsg;
-        if(m_debug>0){
-            pos.Print();
-            mom.Print();
-            cov.Print();
-        }
+        //debug()<<"evt "<<m_eventNo<<" sdtTrack charge "<<charge<<" seed mom "<<momInit.X()<<" "<<
+        //    momInit.Y()<<" "<<momInit.Z()<<endmsg;
+        //if(m_debug>0){
+        //    pos.Print();
+        //    mom.Print();
+        //    cov.Print();
+        //}
     }
 
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
@@ -530,8 +536,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 
         double mcPos[3]={(mcPocaPos.x),(mcPocaPos.y),(mcPocaPos.z)};
         double mcMom[3]={(mcPocaMom.x),(mcPocaMom.y),(mcPocaMom.z)};
-        for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
-        for(int i=0;i<3;i++){debug()<<"mcMom "<<mcMom[i]<<endmsg;}
+        //for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
+        //for(int i=0;i<3;i++){debug()<<"mcMom "<<mcMom[i]<<endmsg;}
         float mcCharge = mcParticle.getCharge();
         helix_mcP.Initialize_VP(mcPos,mcMom,mcCharge,
                 m_genfitField->getBzTesla(mcPos));
@@ -542,7 +548,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         mcP_Z0 = helix_mcP.getZ0();
         mcP_tanLambda = helix_mcP.getTanLambda();
 
-        debug()<< " debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
+        debug()<< "debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
             << " mc d0= " << mcP_D0
             << " phi0= " << mcP_phi
             << " omega= " << mcP_omega
@@ -552,7 +558,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float px=mcPocaMom.x;
         float py=mcPocaMom.y;
         float pz=mcPocaMom.z;
-        debug()<<"mc pxyz   "<<px<<" "<<py<<" "<<pz<<endmsg;
+        debug()<<"mc pos("<<mcPos[0]<<","<<mcPos[1]<<","<<mcPos[2]
+            <<") pxyz("<<px<<","<<py<<","<<pz<<")"<<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
         m_pocaMomMcPt[iMcParticle]=sqrt(px*px+py*py);
         m_pocaMomMc[iMcParticle][0]=px;
@@ -588,7 +595,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
             errorCov = trackStat.covMatrix;
             for(int j=0; j<15; j++) {
                 m_ErrorcovMatrix[j] = errorCov[j];
-                debug()<<"debugEvent2 errorCov "<<j<<" "<<errorCov[j]<<endmsg;
+                if(m_debug)debug()<<"errorCov "<<j<<" "<<errorCov[j]<<endmsg;
             }
             m_D0 = trackStat.D0;
             m_phi = trackStat.phi;
