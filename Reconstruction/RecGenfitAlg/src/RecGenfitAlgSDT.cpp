@@ -317,7 +317,8 @@ StatusCode RecGenfitAlgSDT::execute()
                 nHitAdded+=genfitTrack->addSpacePointsSi(sdtTrack,
                         m_sigmaHitU,m_sigmaHitV);
             }else if(1==m_measurementTypeSi){
-                nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack);
+                nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack,
+                        m_sigmaHitU,m_sigmaHitV);
             }
 
             //add DC hits
@@ -332,7 +333,7 @@ StatusCode RecGenfitAlgSDT::execute()
 
             // skip events w.o hits
             if(0==nHitAdded){
-                debug()<<"No simTrackerHit on track added"<<endmsg;
+                debug()<<m_eventNo<<" No hit added to track!"<<endmsg;
                 return StatusCode::SUCCESS;
             }
             if(m_debug) genfitTrack->printSeed();
@@ -355,7 +356,6 @@ StatusCode RecGenfitAlgSDT::execute()
             }else{
                 ++m_fitSuccess[pidType];
             }
-            if(m_debug) genfitTrack->printSeed();
 
             if(m_tuple) debugTrack(pidType,genfitTrack);
             if(m_showDisplay) {

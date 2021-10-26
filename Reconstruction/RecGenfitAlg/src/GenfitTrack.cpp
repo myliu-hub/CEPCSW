@@ -28,25 +28,26 @@
 #include "DetSegmentation/GridDriftChamber.h"
 
 //genfit
-#include "Track.h"
-#include "MeasuredStateOnPlane.h"
-#include "RKTrackRep.h"
-#include "TrackPoint.h"
-#include "StateOnPlane.h"
-#include "KalmanFitterInfo.h"
-#include "KalmanFittedStateOnPlane.h"
+#include "AbsMeasurement.h"
 #include "AbsTrackRep.h"
 #include "FitStatus.h"
+#include "KalmanFitterInfo.h"
+#include "KalmanFittedStateOnPlane.h"
+#include "RKTrackRep.h"
+#include "PlanarMeasurement.h"
 #include "SpacepointMeasurement.h"
-#include "WireMeasurementNew.h"
-#include "AbsMeasurement.h"
+#include "StateOnPlane.h"
+#include "RectangularFinitePlane.h"
+#include "Track.h"
 #include "TrackPoint.h"
+#include "MeasuredStateOnPlane.h"
+#include "WireMeasurementNew.h"
 
 //ROOT
 #include "TRandom.h"
-#include "TVector3.h"
 #include "TLorentzVector.h"
 #include "TMatrixDSym.h"
+#include "TVector3.h"
 
 //cpp
 #include <cfloat>
@@ -381,9 +382,15 @@ GenfitTrack::getISurface(edm4hep::ConstTrackerHit hit){
     dd4hep::rec::SurfaceManager surfaceManager(*m_geomSvc->lcdd());
 
     std::string detectorName;
+    unsigned long long cellID=hit.getCellID();
     int detTypeID=getDetTypeID(hit.getCellID());
     if(detTypeID==lcio::ILDDetID::VXD){
         detectorName="VXD";
+        if(hit.getPosition().z>0){
+            cellID+=0x1FFFFFFFF;
+        }else{
+            cellID+=0x3FFFFFFFF;
+        }
     }else if(detTypeID==lcio::ILDDetID::SIT){
         detectorName="SIT";
     }else if(detTypeID==lcio::ILDDetID::SET){
@@ -391,97 +398,121 @@ GenfitTrack::getISurface(edm4hep::ConstTrackerHit hit){
     }else if(detTypeID==lcio::ILDDetID::FTD){
         detectorName="FTD";
     }else{
-        std::cout << "getISurface  iSurface = NULL_myliu" << std::endl;
+        std::cout << "ERROR:getISurface  iSurface = NULL!" << std::endl;
         return nullptr;
     }
-    std::cout<<__FILE__<<" detectorName  "<<detectorName<<" cellId "<<hit.getCellID()<<" detTypeID "<<detTypeID<<std::endl;
-    const dd4hep::rec::SurfaceMap* surfaceMap= surfaceManager.map(detectorName);
-    auto iter=surfaceMap->find(hit.getCellID());
+    if(m_debug>2) std::cout<<m_name<<" detectorName  "<<detectorName
+        <<" hit position "<<hit.getPosition()<<" cellID "<<hit.getCellID()
+        <<" cellId+ "<<cellID<<" detTypeID "<<detTypeID<<std::endl;
+    const dd4hep::rec::SurfaceMap* surfaceMap=surfaceManager.map(detectorName);
+    auto iter=surfaceMap->find(cellID);
     dd4hep::rec::ISurface* iSurface=nullptr;
     if(iter!=surfaceMap->end()){iSurface=(*iter).second;}
 
-    //    std::cout << "map size = " << surfaceMap->size() << std::endl;
-    std::multimap< unsigned long, dd4hep::rec::ISurface*>::const_iterator it,itend;
-    it=surfaceMap->begin();
-    itend= surfaceMap->end();
-    for(; it!=itend; it++){
-        //dd4hep::rec::ISurface* surf = it->second;
-        //        std::cout<<__FILE__<<" surf cell id  "<<it->first<<std::endl;
-        //dd4hep::rec::Vector3D origin = surf->origin();
-        //        std::cout <<"surf id "<< surf->id() << " origin xyz " << origin.x() << " " << origin.y() << " " << origin.z() << std::endl;
-    }
-    std::cout << "getISurface  iSurface =(myliu) " << iSurface << std::endl;
+    //std::multimap< unsigned long, dd4hep::rec::ISurface*>::const_iterator it,itend;
+    //it=surfaceMap->begin();
+    //itend= surfaceMap->end();
+    //std::cout<<" print map "<<detectorName<<std::endl;
+    //for(; it!=itend; it++){
+    //    dd4hep::rec::ISurface* surf = it->second;
+    //    dd4hep::rec::Vector3D origin = surf->origin();
+    //    std::cout <<"surf id "<< surf->id() << " origin xyz " << origin.x()
+    //        << " " << origin.y() << " " << origin.z() << std::endl;
+    //}
     return iSurface;
 }
 
 /// Add a 1d strip or 2d pixel smeared by sigma
     bool
-GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,int hitID)
+GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
+        float sigmaU,float sigmaV,int detID,int hitID)
 {
-    if(m_debug>0)std::cout<<"addPlanarHitFromTrakerHit not implemented"<<std::endl;
-    double cov[6];
-    for(int i=0;i<6;i++) {
-        cov[i]=hit.getCovMatrix(i);
-        if(m_debug>=2)std::cout<<hitID<<" cov "<<cov[i]<<std::endl;
-    }
+    if(m_debug>0)std::cout<<"addSiliconMeasurement "<<std::endl;
 
-    /////get surface by cellID
+    ///get surface by cellID
     const dd4hep::rec::ISurface* iSurface = getISurface(hit);
-    if(nullptr!=iSurface){
-        //dd4hep::rec::Vector3D u=iSurface->u();
-        //dd4hep::rec::Vector3D v=iSurface->v();
-        //double length_along_u=iSurface->length_along_u();
-        //double length_along_v=iSurface->length_along_v();
-        //        std::cout<<__FILE__<<"   "<<__LINE__<<" u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
-        //        std::cout<<__FILE__<<"   "<<__LINE__<<" v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
-        //        std::cout<<__FILE__<<"   "<<__LINE__<<" length_along_u "<<length_along_u<<" length_along_v "<<length_along_v<<std::endl;
-
-    }else{
-        std::cout<<__FILE__<<" iSurface is null "<<std::endl;
+    if(nullptr==iSurface){
+        std::cout<<m_name<<" addSiliconMeasurement get surface ERROR!"<<std::endl;
+        return false;
     }
-    ////my cov
-    //double detectorResolution(0.001); // resolution of planar detectors
-    //TMatrixDSym hitCov(2);
-    //hitCov.UnitMatrix();
-    //hitCov *= detectorResolution*detectorResolution;
 
-    ///hit pos
-    //const edm4hep::Vector3d& pos=hit.getPosition();
+    ///Get detector plane parameter
+    double length_along_u=iSurface->length_along_u()*dd4hep::mm;
+    double length_along_v=iSurface->length_along_v()*dd4hep::mm;
+    TVector3 o(iSurface->origin().x()*dd4hep::mm,
+            iSurface->origin().y()*dd4hep::mm,iSurface->origin().z()*dd4hep::mm);
+    TVector3 u(iSurface->u().x()*dd4hep::mm,iSurface->u().y()*dd4hep::mm,
+            iSurface->u().z()*dd4hep::mm);
+    TVector3 v(iSurface->v().x()*dd4hep::mm,iSurface->v().y()*dd4hep::mm,iSurface->v().z()*dd4hep::mm);
 
-    //TVectorD hitCoords(3);
-    //hitCoords[0] = pos[0];
-    //hitCoords[1] = pos[1];
-    //hitCoords[2] = pos[2];
+    ///Get measurement and cov
+    TVectorD hitCoords(2);
+    hitCoords(0)=atan2(o.y(),o.x());
+    hitCoords(1)=o.z();
+    TMatrixDSym hitCov(2);
+    hitCov.Zero();
+    hitCov(0,0)=sigmaU*sigmaU;
+    hitCov(1,1)=sigmaV*sigmaV;
 
-    //if(m_debug>=2)std::cout<<"TrackerHit pos "<<pos<<std::endl;
-    ////TODO FIXME get from geometry
-    //TVector3 vV(cov[3],cov[4],0);
+    ///Create planer finite detector plane, measurement and TrackPoint
+    genfit::RectangularFinitePlane* pixelOrStripPlane=
+        new genfit::RectangularFinitePlane(
+                -length_along_u/2.,length_along_u/2.,
+                -length_along_v/2.,length_along_v/2.);
+    genfit::SharedPlanePtr plane(new genfit::DetPlane(o,u,v));
+    plane->setFinitePlane(pixelOrStripPlane);
+    genfit::PlanarMeasurement* planarMeasurement=new genfit::PlanarMeasurement(
+            hitCoords,hitCov,detID,hitID,nullptr);
+    planarMeasurement->setPlane(plane);
+    m_track->insertPoint(new genfit::TrackPoint(planarMeasurement,m_track));
 
-    //// add some planar hits example
-    //const double umin=-371.3;
-    //const double umax=371.3;
-    //const double vmax=10;
-    //const double vmin=0;
-    //genfit::RectangularFinitePlane* strip =
-    //    new genfit::RectangularFinitePlane(umin,umax,vmin,vmax);
-    //TVector3 U=(r,theta,phi);//?
-    //TVector3 V=(r,theta,phi);//?
-    //genfit::DetPlane* detPlan = new genfit::DetPlane(TVectorD(0,0,0),U,V,strip);
+    if(m_debug>2){
+        std::cout<<"hitID "<<hitID<<" unit cm"<<std::endl;
+        std::cout<<"u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
+        std::cout<<"v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
+        std::cout<<"o "<<o.x()<<" "<<o.y()<<" "<<o.z()<<std::endl;
+        std::cout<<"length_along_u "<<length_along_u
+            <<" length_along_v "<<length_along_v<<std::endl;
+        std::cout<<"hitCoords "<<hitCoords(0)<<" "<<hitCoords(1)<<std::endl;
+        std::cout<<"hitCov "<<hitCov(0,0)<<" "<<hitCov(1,1)<<std::endl;
+    }
 
-    //TVectorD hitCoords(2);
-    //hitCoords[0] = (umax-umin)/2.;
-    //hitCoords[1] = (vmax-vmin)/2.;
-    //genfit::PlanarMeasurement* measurement =
-    //    new genfit::PlanarMeasurement(hitCoords, hitCov, detId, ++hitId, nullptr);
-    //measurement->setPlane(genfit::SharedPlanePtr(detPlan), ++planeId);
-    //fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
     return true;
 }
 
-int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track)
+int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track,
+        std::vector<float> sigmaU,std::vector<float> sigmaV)
 {
-    std::cout<<" to be implemented !!!"<<track<<std::endl;
-    return 0;
+    dd4hep::DDSegmentation::BitFieldCoder* m_decoder
+        = m_geomSvc->getDecoder("DriftChamberHitsCollection");
+    ///Get TrackerHit on Track
+    int nHitAdd=0;
+    for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
+        int detTypeID=getDetTypeID(track.getTrackerHits(iHit).getCellID());
+        if(4==detTypeID) continue;//FIXME magic number
+        edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
+        int sigmaUID=0;
+        int sigmaVID=0;
+        if(detTypeID==lcio::ILDDetID::VXD){
+            int layer=m_decoder->get(detTypeID,"layer");//FIXME
+            sigmaUID=layer+1;
+            sigmaVID=layer+1;
+        }else if(detTypeID==lcio::ILDDetID::SIT){
+            sigmaUID=8;
+            sigmaVID=8;
+        }else if(detTypeID==lcio::ILDDetID::SET){
+            sigmaUID=9;
+            sigmaVID=9;
+        }else if(detTypeID==lcio::ILDDetID::FTD){
+            sigmaUID=10;
+            sigmaVID=10;
+        }
+
+        std::cout<<sigmaU[sigmaUID]<<" "<<sigmaV[sigmaVID]<<" "<<std::endl;
+        addSiliconMeasurement(hit,sigmaU[sigmaUID]*dd4hep::mm,
+                sigmaV[sigmaVID]*dd4hep::mm,detTypeID,nHitAdd++);
+    }
+    return nHitAdd;
 }
 
 //Add wire measurement on wire, unit conversion here
@@ -505,18 +536,23 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
 
     std::vector<std::pair<double,edm4hep::ConstTrackerHit> > sortedDCTrackerHit;
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
-        edm4hep::ConstSimTrackerHit simTrackerHitAsso;
         const edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
+        if(4!=getDetTypeID(hit.getCellID())) continue;//skip non-DC hit FIXME
+
+        edm4hep::ConstSimTrackerHit simTrackerHitAsso;
         getAssoSimTrackerHit(assoHits,hit,simTrackerHitAsso);
         //simTrackerHitAsso=
         //  CEPC::getAssoClosestSimTrackerHit(assoHits,hit,m_gridDriftChamber,0);
         double time=simTrackerHitAsso.getTime();
         if(0==sortMethod){
             //by time
-            sortedDCTrackerHit.push_back(std::make_pair(time,track.getTrackerHits(iHit)));
+            sortedDCTrackerHit.push_back(std::make_pair(
+                        time,track.getTrackerHits(iHit)));
         }else{
             //by layer
-            sortedDCTrackerHit.push_back(std::make_pair(m_decoder->get(hit.getCellID(),"layer"),track.getTrackerHits(iHit)));
+            sortedDCTrackerHit.push_back(std::make_pair(
+                        m_decoder->get(hit.getCellID(),"layer"),
+                        track.getTrackerHits(iHit)));
         }
         if(m_debug>0){
             std::cout<<"("<<std::setw(2)<<iHit<<","<<m_decoder->get(hit.getCellID(),"layer")
@@ -538,10 +574,9 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         }
     }
     if(m_debug>0){ std::cout<<"\n"; std::cout.unsetf(std::ios_base::floatfield);}
-    int iHit=0;
+    int nHitAdd=0;
     for(auto hitPair:sortedDCTrackerHit){
         edm4hep::ConstTrackerHit hit=hitPair.second;
-
         double driftVelocity=40.;//FIXME, TODO, um/ns
         double driftDistance=hit.getTime()*driftVelocity*dd4hep::um*dd4hep::cm; //cm
         double driftDistanceSmeared=driftDistance;
@@ -595,7 +630,7 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         try{
             genfit::WireMeasurementNew* wireMeas=new genfit::WireMeasurementNew(
                     driftDistanceSmeared,sigma*dd4hep::mm,endPointStart,
-                    endPointEnd,hit.getCellID(),iHit,nullptr);
+                    endPointEnd,hit.getCellID(),nHitAdd++,nullptr);
             wireMeas->setMaxDistance(0.6*1.4);//0.5*sqrt(2) cm FIXME
             wireMeas->setLeftRightResolution(lrAmbigFlag);
 
@@ -615,9 +650,7 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
             //<<mom.z<<" mom "<<mom<<std::endl;
 #endif
             ///New a TrackPoint,create connection between meas. and trackPoint
-            genfit::TrackPoint* trackPoint=new genfit::TrackPoint(wireMeas,m_track);
-            wireMeas->setTrackPoint(trackPoint);
-            m_track->insertPoint(trackPoint);
+            m_track->insertPoint(new genfit::TrackPoint(wireMeas,m_track));
         }catch(genfit::Exception& e){
             if(m_debug>=2)std::cout<<m_name
                 <<"Add wire measurement exception"<<std::endl;
@@ -625,7 +658,7 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         }
 
         if(m_debug>=2){
-            std::cout<<iHit<<"("<<m_decoder->get(hit.getCellID(),"layer")
+            std::cout<<nHitAdd<<"("<<m_decoder->get(hit.getCellID(),"layer")
                 <<","<<m_decoder->get(hit.getCellID(),"cellID")
                 <<") wire(" <<endPointStart.X()
                 <<","<<endPointStart.Y()<<"," <<endPointStart.Z()<<") ("
@@ -637,7 +670,7 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
                 <<" sigma "<<sigma*dd4hep::mm<<"cm lr "<<lrAmbigFlag<<std::endl;
         }
     }
-    return iHit;
+    return nHitAdd;
 }//end of addWireMeasurements
 
 /// Get MOP

@@ -107,10 +107,12 @@ class GenfitTrack {
             int sortMethod,bool truthAmbig,float skipCorner, float skipNear);
 
     ///Add one silicon hits
-    bool addSiliconMeasurement(edm4hep::ConstTrackerHit& hit, int hitID);
+    bool addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
+            float sigmaU,float sigmaV,int detID,int hitID);
 
     ///Add silicon measurements, return number of hits on track
-    int addSiliconMeasurements(edm4hep::Track& track);
+    int addSiliconMeasurements(edm4hep::Track& track,
+            std::vector<float> sigmaU,std::vector<float> sigmaV);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
