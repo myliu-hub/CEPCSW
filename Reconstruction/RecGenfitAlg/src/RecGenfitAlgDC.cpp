@@ -742,7 +742,7 @@ void RecGenfitAlgDC::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     int iHit=0;
     simDCHitCol=m_simDCHitCol.get();
     for(auto simDCHit: *simDCHitCol){
-        edm4hep::Vector3d pos=simDCHit.position();
+        edm4hep::Vector3d pos=simDCHit.getPosition();
         TVectorD p(3);
         p[0]=pos.x;//no unit conversion here
         p[1]=pos.y;

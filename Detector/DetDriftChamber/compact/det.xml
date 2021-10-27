@@ -19,7 +19,7 @@
 
 
   <define>
-    <constant name="world_size" value="2226*mm"/>
+    <constant name="world_size" value="2990*mm"/>
     <constant name="world_x" value="world_size"/>
     <constant name="world_y" value="world_size"/>
     <constant name="world_z" value="world_size"/>
@@ -40,8 +40,8 @@
 
     <constant name="DC_Endcap_dz" value="0.1*mm"/>
 
-    <constant name="SDT_half_length" value="2225*mm+DC_Endcap_dz"/>
-    <constant name="DC_half_length" value="2225*mm"/>
+    <constant name="SDT_half_length" value="2980*mm+DC_Endcap_dz"/>
+    <constant name="DC_half_length" value="2980*mm"/>
     <constant name="SDT_length" value="SDT_half_length*2"/>
     <constant name="DC_length" value="SDT_length-DC_Endcap_dz*2"/>
 
@@ -90,8 +90,7 @@
       <side material="CarbonFiber"/>
       <envelope vis="SeeThrough">
         <shape type="BooleanShape" operation="Union" material="Air">
-          <shape type="Tube" rmin="0*mm" rmax="SDT_radius_max" dz="SDT_half_length" />
-          <shape type="Tube" rmin="0*mm" rmax="SDT_radius_min" dz="SDT_half_length" />
+          <shape type="Tube" rmin="SDT_radius_min" rmax="SDT_radius_max" dz="SDT_half_length" />
         </shape>
       </envelope>
 

@@ -48,6 +48,7 @@ namespace edm4hep{
     class MCRecoTrackerAssociationCollection;
     class Track;
     class TrackCollection;
+    class ConstTrack;
     class ConstTrackerHit;
     class ConstSimTrackerHit;
     class Vector3d;
@@ -97,6 +98,7 @@ class GenfitTrack {
 
     /// Add a planar measurement, return number of hits on track
     bool addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
+    bool addSpacePointTrakerHit(edm4hep::ConstTrackerHit hit, int hitID);
 
     /// Add a space point measurement, return number of hits on track
     virtual bool addSpacePointMeasurement(const TVectorD&,std::vector<float> sigma,
@@ -118,6 +120,11 @@ class GenfitTrack {
     int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
             std::vector<float> sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
+
+    ///Add space point from truth to track
+    int addSimTrackerHits( edm4hep::ConstTrack track,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        float sigma,bool smear=false);// float nSigmaSelection
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,

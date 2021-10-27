@@ -15,7 +15,9 @@ gaudi_add_module(GenAlgo
                          src/SLCIORdr.cpp
                          src/HepMCRdr.cpp
                          src/GtGunTool.cpp
-
+                         # ------- Beam Background -------
+                         src/GtBeamBackgroundTool.cpp
+                         src/BeamBackgroundFileParserV0.cpp
                  LINK ${ROOT_LIBRARIES}
                       k4FWCore::k4FWCore 
                       Gaudi::GaudiAlgLib
@@ -25,6 +27,11 @@ gaudi_add_module(GenAlgo
                       ${LCIO_LIBRARIES}
                       EDM4HEP::edm4hep EDM4HEP::edm4hepDict
                       ROOT::EG
+)
+
+target_include_directories(GenAlgo
+  PUBLIC ${LCIO_INCLUDE_DIRS}
+  PUBLIC ${HEPMC_INCLUDE_DIRS}
 )
 
 install(TARGETS GenAlgo

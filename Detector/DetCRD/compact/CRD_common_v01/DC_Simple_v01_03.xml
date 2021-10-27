@@ -21,7 +21,7 @@
     <constant name="SDT_length" value="SDT_half_length*2"/>
 
     <constant name="SDT_chamber_radius_min" value="DC_chamber_layer_rbegin-DC_safe_distance"/>
-    <constant name="SDT_chamber_radius_max" value="DC_chamber_layer_rend+DC_safe_distance"/>
+    <constant name="SDT_chamber_radius_max" value="DC_chamber_layer_rend+DC_chamber_safe_distance+DC_safe_distance"/>
     <constant name="SDT_chamber_half_length" value="DC_half_length"/>
 
     <constant name="SDT_chamber_layer_width" value="10*mm"/>
