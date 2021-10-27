@@ -72,7 +72,7 @@ public:
 
 //  double phi(const CellID& cID) const;
   inline double cell_Size() const { return m_cellSize; }
-  inline double epsilon0() const { return m_epsilon0; }
+  inline double epsilon() const { return m_epsilon; }
   inline double detectorLength() const { return m_detectorLength; }
   inline double safe_distance() const { return m_safe_distance; }
   inline double layer_width() const { return m_layer_width; }
@@ -185,6 +185,15 @@ public:
     m_epsilon = Eps;
     m_offset = Offset;
  }
+   inline Vector3D returnPosWire0(double z) const {
+    double alpha = returnAlpha();
+    double t = 0.5 * (1 - 2.0 * z / m_detectorLength);
+    double x = _currentRadius * (1 + t * (std::cos(alpha) - 1));
+    double y = _currentRadius * t * std::sin(alpha);
+
+    Vector3D vec(x, y, z);
+    return vec;
+  }
 
 protected:
 
@@ -201,12 +210,12 @@ protected:
   }
 
   inline double returnAlpha() const {
-    double alpha = 2 * std::asin(m_detectorLength * std::tan(m_epsilon0)/(2 * _currentRadius));
+    double alpha = 2 * std::asin(m_detectorLength * std::tan(m_epsilon)/(2 * _currentRadius));
     return alpha;
  }
 
   double m_cellSize;
-  double m_epsilon0;
+//  double m_epsilon0;
   double m_detectorLength;
   double m_layer_width;
   double m_safe_distance;

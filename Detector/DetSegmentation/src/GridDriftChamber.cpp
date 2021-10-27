@@ -22,7 +22,7 @@ GridDriftChamber::GridDriftChamber(const BitFieldCoder* decoder) : Segmentation(
   _description = "Drift chamber segmentation in the global coordinates";
 
   registerParameter("cell_size", "cell size", m_cellSize, 1., SegmentationParameter::LengthUnit);
-  registerParameter("epsilon0", "epsilon", m_epsilon0, 0., SegmentationParameter::AngleUnit, true);
+//  registerParameter("epsilon0", "epsilon", m_epsilon0, 0., SegmentationParameter::AngleUnit, true);
   registerParameter("detector_length", "Length of the wire", m_detectorLength, 1., SegmentationParameter::LengthUnit);
   registerIdentifier("identifier_phi", "Cell ID identifier for phi", m_phiID, "cellID");
   registerIdentifier("layerID", "layer id", layer_id, "layer");
@@ -48,6 +48,10 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
 
   double posx = globalPosition.X;
   double posy = globalPosition.Y;
+  double posz = globalPosition.Z;
+  Vector3D wire0 = returnPosWire0(posz);
+  double phi_wire0 = phiFromXY(wire0);
+
   double radius = sqrt(posx*posx+posy*posy);
 
   int m_DC_layer_number = floor((m_DC_rend-m_DC_rbegin)/m_layer_width);
@@ -68,14 +72,30 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
   double offsetphi= m_offset;
   int _lphi;
 
-  if(phi_hit >= offsetphi) {
-    _lphi = (int) ((phi_hit - offsetphi)/ _currentLayerphi);
+  if(phi_hit >= (offsetphi+phi_wire0)) {
+    _lphi = (int) ((phi_hit - offsetphi - phi_wire0)/ _currentLayerphi);
   }
   else {
-    _lphi = (int) ((phi_hit - offsetphi + 2 * M_PI)/ _currentLayerphi);
+    _lphi = (int) ((phi_hit - offsetphi - phi_wire0 + 2 * M_PI)/ _currentLayerphi);
   }
 
   int lphi = _lphi;
+
+//std::cout << "#######################################: "
+//          << " posx= " << posx
+//          << " posy= " << posy
+//          << " posz= " << posz
+//          << " phi_hit: " << phi_hit
+//          << " phi_wire0: " << phi_wire0
+//          << " _lphi: " << _lphi
+//          <<  " offset : " << m_offset
+//          << " offsetphi: " << offsetphi
+//          << " layerID: " << layerid
+//          << " r: " << _currentRadius
+//          << " layerphi: " << _currentLayerphi
+//          << std::endl;
+
+
   _decoder->set(cID, layer_id, layerid);
   _decoder->set(cID, m_phiID, lphi);
 
@@ -323,8 +343,6 @@ double GridDriftChamber::Distance(const CellID& cID, const TVector3& pointIn, co
 
   return distance;
 }
-
-
 
 
 }
