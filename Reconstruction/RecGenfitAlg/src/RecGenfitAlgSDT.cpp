@@ -42,7 +42,7 @@ DECLARE_COMPONENT( RecGenfitAlgSDT )
     /////////////////////////////////////////////////////////////////////
     RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
             ISvcLocator* pSvcLocator):
-        GaudiAlgorithm(name, pSvcLocator),m_nPDG(5),m_dd4hep(nullptr),
+        GaudiAlgorithm(name, pSvcLocator),m_nPDG(5),m_dd4hepDetector(nullptr),
         m_gridDriftChamber(nullptr),m_decoder(nullptr)
 {
     declareProperty("EventHeaderCollection", m_headerCol);
@@ -77,7 +77,7 @@ StatusCode RecGenfitAlgSDT::initialize()
         return StatusCode::FAILURE;
     }
     ///Get Detector
-    m_dd4hep = m_geomSvc->lcdd();
+    m_dd4hepDetector=m_geomSvc->lcdd();
     ///Get Field
     m_dd4hepField=m_geomSvc->lcdd()->field();
 
@@ -106,7 +106,7 @@ StatusCode RecGenfitAlgSDT::initialize()
     for(int i=0;i<5;i++) m_fitSuccess[i]=0;
     m_nRecTrack=0;
     ///Get Readout
-    dd4hep::Readout readout=m_dd4hep->readout(m_readout_name);
+    dd4hep::Readout readout=m_dd4hepDetector->readout(m_readout_name);
     ///Get Segmentation
     m_gridDriftChamber=dynamic_cast<dd4hep::DDSegmentation::GridDriftChamber*>
         (readout.segmentation().segmentation());
@@ -214,7 +214,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("mcPocaWireZ",m_nSimDCHit,m_mdcHitExpMcPocaWireZ);
             debug()<< "Book tuple RecGenfitAlgSDT/recGenfitAlgSDT" << endmsg;
         }else{
-            warning()<< "Tuple RecGenfitAlgSDT/recGenfitAlgSDT not booked" << endmsg;
+            warning()<<"Tuple RecGenfitAlgSDT/recGenfitAlgSDT not booked"<<endmsg;
         }
     }//end of book tuple
 
@@ -328,7 +328,7 @@ StatusCode RecGenfitAlgSDT::execute()
             }else if(1==m_measurementTypeDC){
                 nHitAdded+=genfitTrack->addWireMeasurements(sdtTrack,
                         m_sigmaHitU[0],assoDCHitsCol,m_sortMethod,m_truthAmbig,
-                        m_skipCorner,m_skipNear);
+                        m_skipCorner,m_skipNear);//mm
             }
 
             // skip events w.o hits
@@ -350,8 +350,8 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             auto dcRecParticle=sdtRecParticleCol->create();
             auto dcRecTrack=sdtRecTrackCol->create();
-            if(!genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
-                        m_chi2Cut)){
+            if(!genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,
+                        m_ndfCut,m_chi2Cut)){
                 debug()<<"Fitting failed!"<<std::endl;
             }else{
                 ++m_fitSuccess[pidType];
@@ -462,7 +462,7 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
             <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]<<endmsg;
     }else{
-        debug()<<"evt "<<m_evt<<" pidType "<<pidType<<" pos("<<
+        debug()<<"==fit result evt "<<m_evt<<" pidType "<<pidType<<" pos("<<
             fittedPos.X()<<" "<<
             fittedPos.Y()<<" "<<
             fittedPos.Z()<<") mom("<<
@@ -510,10 +510,11 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         TVector3 pos,mom;
         TMatrixDSym cov(6);
         double charge;
-        CEPC::getPosMomFromTrackState(trackStat,m_genfitField->getBzTesla({0.,0.,0.}),
-                pos,mom,charge,cov);
+        CEPC::getPosMomFromTrackState(trackStat,
+                m_genfitField->getBzTesla({0.,0.,0.}),pos,mom,charge,cov);
         m_seedMomQ=charge;
-        //debug()<<"evt "<<m_eventNo<<" sdtTrack charge "<<charge<<" seed mom "<<momInit.X()<<" "<<
+        //debug()<<"evt "<<m_eventNo<<" sdtTrack charge "<<charge
+        //<<" seed mom "<<momInit.X()<<" "<<
         //    momInit.Y()<<" "<<momInit.Z()<<endmsg;
         //if(m_debug>0){
         //    pos.Print();
@@ -606,7 +607,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     }
 }
 
-void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol) 
+void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol)
 {
 
     m_nSdtRecTrack=sdtRecTrackCol->size();

@@ -96,7 +96,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         int m_eventNo;
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::OverlayedField m_dd4hepField;
-        dd4hep::Detector* m_dd4hep;
+        dd4hep::Detector* m_dd4hepDetector;
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         Gaudi::Property<std::string> m_readout_name{this,
@@ -108,15 +108,15 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
             "sigmaHitU",{0.11, // DC z
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
-                    0.0072, //SIT V
-                    0.0072, //SIT V
+                    0.0072, //SIT V 4 layers same resolusion
+                    0.0072, //SET V
                     0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
         Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
             "sigmaHitV",{0.2, // DC z
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
                     0.086, //SIT V
-                    0.086, //SIT V
+                    0.086, //SET V
                     0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         Gaudi::Property<int> m_measurementTypeSi{this,"measurementTypeSi",0};
         //-1: not use, 0, space point, 1, pixel or planer measurement

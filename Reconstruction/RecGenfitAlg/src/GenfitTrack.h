@@ -89,7 +89,7 @@ class GenfitTrack {
     /// ---------Add measurements---------
     ///Add one space point measurement, return number of hits on track
     virtual bool addSpacePointMeasurement(const TVectorD&,std::vector<float>
-        sigmaU,std::vector<float> sigmaV,int detID,int hitID);
+        sigmaU,std::vector<float> sigmaV,int cellID,int hitID);
 
     ///Add silicon space points from edm4hep::track
     int addSpacePointsSi(const edm4hep::Track& track,
@@ -108,7 +108,7 @@ class GenfitTrack {
 
     ///Add one silicon hits
     bool addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
-            float sigmaU,float sigmaV,int detID,int hitID);
+            float sigmaU,float sigmaV,int cellID,int hitID);
 
     ///Add silicon measurements, return number of hits on track
     int addSiliconMeasurements(edm4hep::Track& track,
@@ -169,7 +169,7 @@ class GenfitTrack {
     const TVector3 getSeedStateMom() const;
     void getSeedStateMom(TLorentzVector& pos, TVector3& mom) const;
     unsigned int getNumPoints() const;
-    unsigned int getNumPointsDet(int detID) const;
+    unsigned int getNumPointsDet(int cellID) const;
 
     /// get the fitted track status
     const genfit::FitStatus* getFitStatus(int repID=0) const;
