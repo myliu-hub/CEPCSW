@@ -3,9 +3,9 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-  <info name="CRDDimensions"
+  <info name="StandaloneDimensions"
        title="master file with includes and world dimension"
-       author="C.D.Fu, Mengyao Liu"
+       author="C.D.Fu"
        url="no"
        status="development"
        version="1.0">
@@ -147,7 +147,7 @@
     <constant name="TUBE_IPOuterBulge_end_radius" value="BeamPipe_Crotch_zmax*tan(CrossingAngle/2)+BeamPipe_Dnstream_inner_radius+BeamPipe_Cu_thickness"/>
     <!--"BeamPipe_Expanded_inner_radius+BeamPipe_Al_thickness+5*mm"/-->
 
-    <constant name="Ecal_barrel_inner_radius" value="1860*mm"/><!--1900->1860, since 1900-2180 is range for symmetry=12, but now fixed as 8 in constructor code-->
+    <constant name="Ecal_barrel_inner_radius" value="1900*mm"/>
     <constant name="Ecal_barrel_thickness"    value="280*mm"/>
     <constant name="Ecal_barrel_outer_radius" value="(Ecal_barrel_inner_radius+Ecal_barrel_thickness)/cos(pi/8)"/>
     <constant name="Ecal_barrel_half_length"  value="3350*mm"/>
@@ -182,12 +182,6 @@
     <constant name="HcalEndcap_max_z" value="Hcal_endcap_zmax"/>
     <constant name="Hcal_endcap_outer_symmetry" value="Hcal_endcap_symmetry"/>
     <constant name="Hcal_outer_radius" value="Hcal_endcap_outer_radius"/>
-
-    <!--constant name="Hcal_ring_inner_radius" value="Hcal_endcap_inner_radius"/>
-    <constant name="Hcal_ring_outer_radius" value="Solenoid_inner_radius"/>
-    <constant name="Hcal_ring_zmin" value="2600*mm"/>
-    <constant name="Hcal_ring_zmax" value="Hcal_endcap_zmin-10*mm"/>
-    <constant name="Hcal_ring_symmetry" value="8"/-->
         
     <constant name="Yoke_barrel_inner_radius" value="3660*mm"/>
     <constant name="Yoke_barrel_outer_radius" value="4260*mm"/>
@@ -203,12 +197,6 @@
     <!--obseleted constance, used by old construct, should be removed while creating new constrcut-->
     <constant name="Yoke_Z_start_endcaps" value="Yoke_endcap_zmin"/>
     
-    <!--constant name="LumiCal_zmax" value="805*mm" />
-    <constant name="LumiCal_zmin" value="700*mm"/>
-    <constant name="LumiCal_thickness" value="(LumiCal_zmax-LumiCal_zmin)/2.0"/>
-    <constant name="LumiCal_inner_radius" value="35.0*mm"/>
-    <constant name="LumiCal_outer_radius" value="100.0*mm- env_safety"/-->
-        
     <constant name="tracker_region_zmax" value="OuterTracker_half_length"/>
     <constant name="tracker_region_rmax" value="OuterTracker_outer_radius"/>
 

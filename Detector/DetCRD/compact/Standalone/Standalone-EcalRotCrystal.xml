@@ -2,23 +2,22 @@
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
-  <info name="CRD_o1_v01"
-        title="CepC reference detctor with coil inside Hcal, pixel SIT/SET"
-        author="C.D.Fu, "
+  <info name="StandaloneEcalRotCrystal"
+        title="CepC standalone calorimeter with rotated crystal"
+        author="C.D.Fu"
         url="http://cepc.ihep.ac.cn"
         status="developing"
         version="v01">
-    <comment>CepC reference detector simulation models used for detector study </comment>
+    <comment>CepC detector simulation models used for detector study </comment>
   </info>
   
   <includes>
     <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/elements.xml"/>
-    <!--gdmlFile  ref="../CRD_common_v01/materials-woIsotope.xml"/-->
     <gdmlFile  ref="../CRD_common_v01/materials.xml"/>
   </includes>
   
   <define>
-    <constant name="world_size" value="25*m"/>
+    <constant name="world_size" value="6*m"/>
     <constant name="world_x" value="world_size"/>
     <constant name="world_y" value="world_size"/>
     <constant name="world_z" value="world_size"/>
@@ -26,14 +25,9 @@
     <include ref="${DD4hepINSTALL}/DDDetectors/compact/detector_types.xml"/>
   </define>
 
-  <include ref="./CRD_Dimensions_v01_01.xml"/>
+  <include ref="./Dimensions_v01_01.xml"/>
 
-  <include ref="../CRD_common_v01/Beampipe_v01_01.xml"/>
-  <include ref="../CRD_common_v01/VXD_v01_01.xml"/>
-  <include ref="../CRD_common_v01/FTD_SkewRing_v01_01.xml"/>
-  <include ref="../CRD_common_v01/SIT_SimplePixel_v01_01.xml"/>
-  <include ref="../CRD_common_v01/DC_Simple_v01_02.xml"/>
-  <include ref="../CRD_common_v01/SET_SimplePixel_v01_01.xml"/>
+  <include ref="../CRD_common_v01/Ecal_Rotated_Crystal_v01_01.xml"/>
   
   <fields>
     <field name="InnerSolenoid" type="solenoid"
