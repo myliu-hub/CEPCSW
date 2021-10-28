@@ -18,6 +18,7 @@
 
 #include "AbsKalmanFitter.h"
 #include <string>
+#include "MaterialEffects.h"
 
 class GenfitField;
 class GenfitMaterialInterface;
@@ -29,6 +30,7 @@ namespace genfit{
     class AbsKalmanFitter;
     class KalmanFitterRefTrack;
     class DAF;
+    class MaterialEffects;
 }
 namespace dd4hep{
     class OverlayedField;
@@ -40,14 +42,15 @@ namespace dd4hep{
 class GenfitFitter{
     public:
         /// Type of fitters are :DAFRef,DAF,KalmanFitter,KalmanFitterRefTrack
-        GenfitFitter(const char* type="DAFRef",const char* name="GenfitFitter");
+        GenfitFitter(const char* type="DAFRef",int debug=0,const char* name="GenfitFitter");
         virtual ~GenfitFitter();
 
         /// Magnetic field and geometry for material effect in genfit
         /// please SET before use !!!!
         void setField(const GenfitField* field);
         /// please SET before use !!!!
-        void setGeoMaterial(const dd4hep::Detector* dd4hepGeo,double extDistCut=1e-4);
+        void setGeoMaterial(const dd4hep::Detector* dd4hepGeo,
+            double extDistCut=1e-4, bool skipWireMaterial=false);
 
         /// Main fitting function
         int processTrack(GenfitTrack* track, bool resort=true);
@@ -82,10 +85,16 @@ class GenfitFitter{
         void setMscModelName(std::string val);
         void setMaterialDebugLvl(unsigned int val);
         void setDebug(unsigned int val);
+        void setDebugGenfit(unsigned int val);
+        void setDebugLocal(unsigned int val);
         void setHist(unsigned int val);
 
         /// getters of fitter properties
         std::string getFitterType() const {return m_fitterType;}
+        GenfitMaterialInterface* getGeoMaterial() const {return m_geoMaterial;}
+        genfit::MaterialEffects* getMaterialEffects() const {
+            return genfit::MaterialEffects::getInstance();
+        }
         unsigned int getMinIterations() const { return m_minIterations; }
         unsigned int getMaxIterations() const { return m_maxIterations; }
         double getDeltaPval() const { return m_deltaPval; }
@@ -109,7 +118,10 @@ class GenfitFitter{
         {return m_ignoreBoundariesBetweenEqualMaterials;}
         std::string getMscModelName(){return m_mscModelName;}
         int  getDebug() const {return m_debug;}
+        int  getDebugGenfit() const {return m_debugGenfit;}
+        int  getDebugLocal() const {return m_debugLocal;}
         int  getHist() const {return m_hist;}
+        void SetRunEvent(int event);
 
         /// Printer
         void print(const char* name="");
@@ -166,7 +178,9 @@ class GenfitFitter{
         std::string  m_mscModelName;
 
         int          m_debug;             /// debug
-        int          m_hist;             /// hist
+        int          m_debugGenfit;       /// debug
+        int          m_debugLocal;        /// debug
+        int          m_hist;              /// hist
 };
 
 #endif

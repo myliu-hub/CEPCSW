@@ -39,16 +39,16 @@
 
 DECLARE_COMPONENT( RecGenfitAlgSDT )
 
-/////////////////////////////////////////////////////////////////////
-RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
-        ISvcLocator* pSvcLocator):
-        GaudiAlgorithm(name, pSvcLocator),m_nPDG(5),m_dd4hep(nullptr),
+    /////////////////////////////////////////////////////////////////////
+    RecGenfitAlgSDT::RecGenfitAlgSDT(const std::string& name,
+            ISvcLocator* pSvcLocator):
+        GaudiAlgorithm(name, pSvcLocator),m_nPDG(5),m_dd4hepDetector(nullptr),
         m_gridDriftChamber(nullptr),m_decoder(nullptr)
 {
     declareProperty("EventHeaderCollection", m_headerCol);
     declareProperty("MCParticleCollection", m_mcParticleCol,
             "Handle of the input MCParticle collection");
-    declareProperty("DriftChamberDigiCollection", m_DCDigiCol,
+    declareProperty("DigiDCHitCollection", m_DCDigiCol,
             "Handle of DC digi(TrakerHit) collection");
     declareProperty("DCHitAssociationCollection", m_DCHitAssociationCol,
             "Handle of simTrackerHit and TrackerHit association collection");
@@ -77,7 +77,7 @@ StatusCode RecGenfitAlgSDT::initialize()
         return StatusCode::FAILURE;
     }
     ///Get Detector
-    m_dd4hep = m_geomSvc->lcdd();
+    m_dd4hepDetector=m_geomSvc->lcdd();
     ///Get Field
     m_dd4hepField=m_geomSvc->lcdd()->field();
 
@@ -85,7 +85,8 @@ StatusCode RecGenfitAlgSDT::initialize()
     m_genfitFitter=new GenfitFitter(m_fitterType.toString().c_str());
     m_genfitField=new GenfitField(m_dd4hepField);
     m_genfitFitter->setField(m_genfitField);
-    m_genfitFitter->setGeoMaterial(m_geomSvc->lcdd(),m_extMinDistCut);
+    m_genfitFitter->setGeoMaterial(m_geomSvc->lcdd(),m_extMinDistCut,
+            m_skipWireMaterial);
     m_genfitFitter->setEnergyLossBrems(m_correctBremsstrahlung);
     m_genfitFitter->setNoiseBrems(m_correctBremsstrahlung);
     if(m_debug>10) m_genfitFitter->setDebug(m_debug-10);
@@ -105,7 +106,7 @@ StatusCode RecGenfitAlgSDT::initialize()
     for(int i=0;i<5;i++) m_fitSuccess[i]=0;
     m_nRecTrack=0;
     ///Get Readout
-    dd4hep::Readout readout=m_dd4hep->readout(m_readout_name);
+    dd4hep::Readout readout=m_dd4hepDetector->readout(m_readout_name);
     ///Get Segmentation
     m_gridDriftChamber=dynamic_cast<dd4hep::DDSegmentation::GridDriftChamber*>
         (readout.segmentation().segmentation());
@@ -120,7 +121,6 @@ StatusCode RecGenfitAlgSDT::initialize()
         return StatusCode::FAILURE;
     }
 
-    m_tuple = nullptr;
 
     ///book tuple
     NTuplePtr nt(ntupleSvc(), "RecGenfitAlgSDT/recGenfitAlgSDT");
@@ -152,9 +152,9 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("pocaPosMdc",3,m_pocaPosMdc);
             sc=m_tuple->addItem("pocaMomMdc",3,m_pocaMomMdc);
             sc=m_tuple->addItem("index",m_pidIndex, 0, 5);
-            sc=m_tuple->addItem("firstPosKalP",5,3,m_firstPosKal);
-            sc=m_tuple->addItem("firstMomKalP",5,m_firstMomKalP);
-            sc=m_tuple->addItem("firstMomKalPt",5,m_firstMomKalPt);
+            //sc=m_tuple->addItem("firstPosKalP",5,3,m_firstPosKal);
+            //sc=m_tuple->addItem("firstMomKalP",5,m_firstMomKalP);
+            //sc=m_tuple->addItem("firstMomKalPt",5,m_firstMomKalPt);
 
             sc=m_tuple->addItem("ErrorcovMatrix",15,m_ErrorcovMatrix);
             sc=m_tuple->addItem("D0",m_D0);
@@ -180,13 +180,12 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("isFitConverged",5,m_isFitConverged);
             sc=m_tuple->addItem("isFitConvergedFully",5,
                     m_isFitConvergedFully);
-
             sc=m_tuple->addItem("fittedState",5,m_fittedState);
             sc=m_tuple->addItem("nHitFailedKal",5,m_nHitFailedKal);
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
             sc=m_tuple->addItem("nDCDigi",m_nDCDigi);
             sc=m_tuple->addItem("nHitMc",m_nHitMc);
-            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,30000);
+            sc=m_tuple->addItem("nHitKalInput",m_nHitKalInput,0,300000);
             //10 is greater than # of tracking detectors
             sc=m_tuple->addItem("hitDetID",10,m_nHitDetType);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
@@ -215,7 +214,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("mcPocaWireZ",m_nSimDCHit,m_mdcHitExpMcPocaWireZ);
             debug()<< "Book tuple RecGenfitAlgSDT/recGenfitAlgSDT" << endmsg;
         }else{
-            warning()<< "Tuple RecGenfitAlgSDT/recGenfitAlgSDT not booked" << endmsg;
+            warning()<<"Tuple RecGenfitAlgSDT/recGenfitAlgSDT not booked"<<endmsg;
         }
     }//end of book tuple
 
@@ -230,7 +229,6 @@ StatusCode RecGenfitAlgSDT::initialize()
 StatusCode RecGenfitAlgSDT::execute()
 {
     info()<<"RecGenfitAlgSDT in execute()"<<endmsg;
-
 
     edm4hep::ReconstructedParticleCollection* sdtRecParticleCol=
         m_SDTRecParticleCol.createAndPut();
@@ -263,10 +261,8 @@ StatusCode RecGenfitAlgSDT::execute()
         return StatusCode::SUCCESS;
     }
 
-
-    auto dcHitAssociationCol=m_DCHitAssociationCol.get();
+    auto assoDCHitsCol=m_DCHitAssociationCol.get();
     double eventStartTime=0;
-
 
     const edm4hep::TrackCollection* dcTrackCol=nullptr;
     if(m_dcTrackCol.exist()) dcTrackCol=m_dcTrackCol.get();
@@ -274,8 +270,6 @@ StatusCode RecGenfitAlgSDT::execute()
         debug()<<"TrackCollection not found"<<endmsg;
         return StatusCode::SUCCESS;
     }
-
-
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
     mcParticleCol=m_mcParticleCol.get();//FIXME get error when call exist()
     if(nullptr==mcParticleCol){
@@ -285,11 +279,8 @@ StatusCode RecGenfitAlgSDT::execute()
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
-
-
     m_firstTuple=true;
-    //debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
-    std::cout << "SDTTrackCol size="<<sdtTrackCol->size() << std::endl;
+    debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
     for(auto sdtTrack: *sdtTrackCol){
         ///Loop over 5 particle hypothesis(0-4): e,mu,pi,K,p
         ///-1 for chargedgeantino
@@ -301,7 +292,7 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             GenfitTrack* genfitTrack=new GenfitTrack(m_genfitField,
                     m_gridDriftChamber,m_geomSvc);
-            genfitTrack->setDebug(m_debug.value());
+            genfitTrack->setDebug(m_debug);
             if(m_useTruthTrack){
                 //single track only FIXME
                 if(!genfitTrack->createGenfitTrackFromMCParticle(pidType,
@@ -312,17 +303,37 @@ StatusCode RecGenfitAlgSDT::execute()
             }else{
                 if(!genfitTrack->createGenfitTrackFromEDM4HepTrack(pidType,
                             sdtTrack, eventStartTime,m_isUseCovTrack)){
-                    debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track\
-                        failed!"<<endmsg;
+                    debug()<<"createGenfitTrackFromEDM4HepTrack from SDT track failed!"<<endmsg;
                     return StatusCode::SUCCESS;
                 }
             }
-            int nHitAdded=genfitTrack->addHitsOnEdm4HepTrack(sdtTrack,
-                    dcHitAssociationCol,m_sigmaHit,
-                    m_smearHit,m_fitSiliconOnly.value()
-                    ,m_isUseFixedSiHitError.value());
+
+            ///-----------------------------------
+            ///Add hits on track
+            ///-----------------------------------
+            int nHitAdded=0;
+            //add silicon hits
+            if(0==m_measurementTypeSi){
+                nHitAdded+=genfitTrack->addSpacePointsSi(sdtTrack,
+                        m_sigmaHitU,m_sigmaHitV);
+            }else if(1==m_measurementTypeSi){
+                nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack,
+                        m_sigmaHitU,m_sigmaHitV);
+            }
+
+            //add DC hits
+            if(0==m_measurementTypeDC){
+                nHitAdded+=genfitTrack->addSpacePointsDC(sdtTrack,
+                        assoDCHitsCol,m_sigmaHitU,m_sigmaHitV);
+            }else if(1==m_measurementTypeDC){
+                nHitAdded+=genfitTrack->addWireMeasurements(sdtTrack,
+                        m_sigmaHitU[0],assoDCHitsCol,m_sortMethod,m_truthAmbig,
+                        m_skipCorner,m_skipNear);//mm
+            }
+
+            // skip events w.o hits
             if(0==nHitAdded){
-                debug()<<"No simTrackerHit on track added"<<endmsg;
+                debug()<<m_eventNo<<" No hit added to track!"<<endmsg;
                 return StatusCode::SUCCESS;
             }
             if(m_debug) genfitTrack->printSeed();
@@ -331,6 +342,7 @@ StatusCode RecGenfitAlgSDT::execute()
             ///call genfit fitting procedure
             ///-----------------------------------
             m_genfitFitter->setDebug(m_debug);
+            m_genfitFitter->setDebugGenfit(m_debugGenfit);
             m_genfitFitter->processTrack(genfitTrack,m_resortHits.value());
 
             ///-----------------------------------
@@ -338,13 +350,12 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             auto dcRecParticle=sdtRecParticleCol->create();
             auto dcRecTrack=sdtRecTrackCol->create();
-            if(!genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,m_ndfCut,
-                        m_chi2Cut)){
+            if(!genfitTrack->storeTrack(dcRecParticle,dcRecTrack,pidType,
+                        m_ndfCut,m_chi2Cut)){
                 debug()<<"Fitting failed!"<<std::endl;
             }else{
                 ++m_fitSuccess[pidType];
             }
-            if(m_debug) genfitTrack->printSeed();
 
             if(m_tuple) debugTrack(pidType,genfitTrack);
             if(m_showDisplay) {
@@ -357,11 +368,10 @@ StatusCode RecGenfitAlgSDT::execute()
     }//end loop over a track
     m_nRecTrack++;
 
-
     if(m_tuple) {
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
-        info() << "Elapsed time: " << elapsed.count() << " s"<<endmsg;
+        debug() << "Elapsed time: " << elapsed.count() << " s"<<endmsg;
         m_exeTime=elapsed.count();
         debugEvent(sdtTrackCol,sdtRecTrackCol,eventStartTime);
     }
@@ -407,14 +417,20 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     int charge= fitState->getCharge();
 
     if(m_firstTuple){
-       // m_nHitKalInput=genfitTrack->getNumPoints();
-       // debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
+        m_nHitKalInput=genfitTrack->getNumPoints();
+        debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
         //FIXME read from config file
-        int detIDs[5]={1,2,3,5,7};//VXD=1,SIT=2,SET=5;FTD=3,
+        if(m_debug) {
+            debug()<<"detType nHot: ";
+        }
+        int detIDs[5]={1,2,3,4,5};//VXD=1,SIT=2,SET=5;FTD=3,
         for(int i=0;i<5;i++){
             m_nHitDetType[detIDs[i]]=genfitTrack->getNumPointsDet(detIDs[i]);
-            debug()<<"hot detTypeID "<<detIDs[i]<<" "<<m_nHitDetType[detIDs[i]]<<endmsg;
+            if(m_debug){
+                debug()<<" "<<detIDs[i]<<"="<<m_nHitDetType[detIDs[i]]<<", ";
+            }
         }
+        if(m_debug) { debug()<<endmsg; }
         m_firstTuple=false;
     }
     m_chargeKal[pidType]= charge;
@@ -438,28 +454,28 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     helix.Initialize_VP(pos,mom,charge,m_genfitField->getBzTesla(fittedPos.Vect()));
     m_pocaMomKalP[pidType]=fittedMom.Mag();
 
-    if(m_debug>0){
-        /// Get fit status
-        debug()<<"evt "<<m_evt<<" fit result: get status OK? pidType "
+    m_evt=m_eventNo;
+    /// Get fit status
+    if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
+        debug()<<"evt "<<m_evt<<" fit FAILED !!"
             <<pidType<<" fittedState "<<fittedState<<" isFitted "
             <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
-            <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
-            <<" ndf "<<m_nDofKal[pidType]
-            <<" chi2 "<<m_chi2Kal[pidType]
-              <<endmsg;
-        if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
-            debug()<<"evt "<<m_evt<<" fit failed"<<endmsg;
-        }else{
-            debug()<<"evt "<<m_evt<<" fit result: Pos("<<
-                fittedPos.X()<<" "<<
-                fittedPos.Y()<<" "<<
-                fittedPos.Z()<<") mom("<<
-                fittedMom.X()<<" "<<
-                fittedMom.Y()<<" "<<
-                fittedMom.Z()<<") p_tot "<<
-                fittedMom.Mag()<<" pt "<<
-                fittedMom.Perp()<<endmsg;
-        }
+            <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]<<endmsg;
+    }else{
+        debug()<<"==fit result evt "<<m_evt<<" pidType "<<pidType<<" pos("<<
+            fittedPos.X()<<" "<<
+            fittedPos.Y()<<" "<<
+            fittedPos.Z()<<") mom("<<
+            fittedMom.X()<<" "<<
+            fittedMom.Y()<<" "<<
+            fittedMom.Z()<<") p_tot "<<
+            fittedMom.Mag()<<" pt "<<
+            fittedMom.Perp()
+        <<" fittedState "<<fittedState<<" isFitted "
+        <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
+        <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
+        <<" ndf "<<m_nDofKal[pidType]
+        <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
     }
 }
 
@@ -494,16 +510,17 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         TVector3 pos,mom;
         TMatrixDSym cov(6);
         double charge;
-        CEPC::getPosMomFromTrackState(trackStat,m_genfitField->getBzTesla({0.,0.,0.}),
-                pos,mom,charge,cov);
+        CEPC::getPosMomFromTrackState(trackStat,
+                m_genfitField->getBzTesla({0.,0.,0.}),pos,mom,charge,cov);
         m_seedMomQ=charge;
-        debug()<<" sdtTrack charge "<<charge<<" seed mom "<<momInit.X()<<" "<<
-            momInit.Y()<<" "<<momInit.Z()<<endmsg;
-        if(m_debug>0){
-            pos.Print();
-            mom.Print();
-            cov.Print();
-        }
+        //debug()<<"evt "<<m_eventNo<<" sdtTrack charge "<<charge
+        //<<" seed mom "<<momInit.X()<<" "<<
+        //    momInit.Y()<<" "<<momInit.Z()<<endmsg;
+        //if(m_debug>0){
+        //    pos.Print();
+        //    mom.Print();
+        //    cov.Print();
+        //}
     }
 
     const edm4hep::MCParticleCollection* mcParticleCol = nullptr;
@@ -520,8 +537,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 
         double mcPos[3]={(mcPocaPos.x),(mcPocaPos.y),(mcPocaPos.z)};
         double mcMom[3]={(mcPocaMom.x),(mcPocaMom.y),(mcPocaMom.z)};
-        for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
-        for(int i=0;i<3;i++){debug()<<"mcMom "<<mcMom[i]<<endmsg;}
+        //for(int i=0;i<3;i++){debug()<<"mcPos "<<mcPos[i]<<endmsg;}
+        //for(int i=0;i<3;i++){debug()<<"mcMom "<<mcMom[i]<<endmsg;}
         float mcCharge = mcParticle.getCharge();
         helix_mcP.Initialize_VP(mcPos,mcMom,mcCharge,
                 m_genfitField->getBzTesla(mcPos));
@@ -532,7 +549,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         mcP_Z0 = helix_mcP.getZ0();
         mcP_tanLambda = helix_mcP.getTanLambda();
 
-        debug()<< " debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
+        debug()<< "debugEvent Bz " << m_genfitField->getBzTesla(mcPos)
             << " mc d0= " << mcP_D0
             << " phi0= " << mcP_phi
             << " omega= " << mcP_omega
@@ -542,7 +559,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float px=mcPocaMom.x;
         float py=mcPocaMom.y;
         float pz=mcPocaMom.z;
-        debug()<<"mc pxyz   "<<px<<" "<<py<<" "<<pz<<endmsg;
+        debug()<<"mc pos("<<mcPos[0]<<","<<mcPos[1]<<","<<mcPos[2]
+            <<") pxyz("<<px<<","<<py<<","<<pz<<")"<<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
         m_pocaMomMcPt[iMcParticle]=sqrt(px*px+py*py);
         m_pocaMomMc[iMcParticle][0]=px;
@@ -578,7 +596,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
             errorCov = trackStat.covMatrix;
             for(int j=0; j<15; j++) {
                 m_ErrorcovMatrix[j] = errorCov[j];
-                debug()<<"debugEvent2 errorCov "<<j<<" "<<errorCov[j]<<endmsg;
+                if(m_debug)debug()<<"errorCov "<<j<<" "<<errorCov[j]<<endmsg;
             }
             m_D0 = trackStat.D0;
             m_phi = trackStat.phi;
@@ -589,7 +607,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     }
 }
 
-void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol) 
+void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol)
 {
 
     m_nSdtRecTrack=sdtRecTrackCol->size();
@@ -606,12 +624,12 @@ void RecGenfitAlgSDT::debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol
                 m_ErrorcovMatrix[j] = errorCov[j];
             }
 
-             m_D0 = trackStat.D0;
-             m_phi = trackStat.phi;
-             m_omega = trackStat.omega;
-             m_Z0 = trackStat.Z0;
-             m_tanLambda = trackStat.tanLambda;
-         }
+            m_D0 = trackStat.D0;
+            m_phi = trackStat.phi;
+            m_omega = trackStat.omega;
+            m_Z0 = trackStat.Z0;
+            m_tanLambda = trackStat.tanLambda;
+        }
 
-     }
+    }
 }

@@ -36,13 +36,17 @@ class TruthTrackerAlg: public GaudiAlgorithm
         virtual StatusCode finalize() override;
 
     private:
-        void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
+        bool getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
                 mcParticleCol, edm4hep::TrackState& stat);
         int addSimHitsToTk(DataHandle<edm4hep::SimTrackerHitCollection>&
                 colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
                 edm4hep::Track& track, const char* msg,int nHitAdded);
         int addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
                 colHandle, edm4hep::Track& track, const char* msg,int nHitAdded);
+        int addIdealHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
+                colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
+                edm4hep::Track& track, const char* msg,int nHitAdded);
+
         int addHotsToTk(edm4hep::Track& sourceTrack,edm4hep::Track&
                 targetTrack, int hitType,const char* msg,int nHitAdded);
         int nHotsOnTrack(edm4hep::Track& track, int hitType);
@@ -57,6 +61,10 @@ class TruthTrackerAlg: public GaudiAlgorithm
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         void debugEvent();
+
+        //unit length is mm
+        void getCircleFromPosMom(double pos[3],double mom[3],
+                double Bz,double q,double& helixRadius,double& helixXC,double& helixYC);
 
         //reader
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
@@ -104,6 +112,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
+        Gaudi::Property<bool> m_hist{this,"hist",false};
         Gaudi::Property<bool> m_useDC{this,"useDC",true};
         Gaudi::Property<bool> m_useSi{this,"useSi",true};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
@@ -111,6 +120,9 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_skipSecondaryHit{this,"skipSecondaryHit",true};
         Gaudi::Property<bool> m_useFirstHitForDC{this,"useFirstHitForDC",false};
         Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
+        Gaudi::Property<bool> m_useIdealHit{this,"useIdealHit",false};
+        Gaudi::Property<float> m_momentumLowCut{this,"momentumLowCut",0.1};//momentum cut for the first hit
+        Gaudi::Property<float> m_momentumHighCut{this,"momentumHighCut",200};//momentum cut for the first hit
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
@@ -124,6 +136,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<std::vector<float> > m_resSET{this,"resSET",{0.003,0.003,0.003}};//mm
         Gaudi::Property<std::vector<float> > m_resFTDPixel{this,"resFTDPixel",{0.003,0.003,0.003}};//mm
         Gaudi::Property<std::vector<float> > m_resFTDStrip{this,"resFTDStrip",{0.003,0.003,0.003}};//mm
+        double m_helixRadius,m_helixXC,m_helixYC;
+        double m_helixRadiusFirst,m_helixXCFirst,m_helixYCFirst;
 
         NTuple::Tuple*  m_tuple;
         NTuple::Item<int> m_run;

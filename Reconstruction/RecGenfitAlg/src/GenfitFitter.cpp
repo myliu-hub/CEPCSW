@@ -1,7 +1,14 @@
+
+//#undef GENFIT_MY_DEBUG
+#define GENFIT_MY_DEBUG 1
 #include "GenfitFitter.h"
 #include "GenfitTrack.h"
 #include "GenfitField.h"
 #include "GenfitMaterialInterface.h"
+
+#ifdef GENFIT_MY_DEBUG
+#include "GenfitHist.h"
+#endif
 
 //Gaudi
 #include "GaudiKernel/StatusCode.h"
@@ -33,13 +40,15 @@
 //STL
 #include <iostream>
 #include <string>
+#include <string.h>
 
+//#define GENFIT_MY_DEBUG 1
 
 GenfitFitter::~GenfitFitter(){
     delete m_absKalman;
 }
 
-GenfitFitter::GenfitFitter(const char* type, const char* name):
+GenfitFitter::GenfitFitter(const char* type,int debug,const char* name):
     m_absKalman(nullptr)
     ,m_genfitField(nullptr)
     ,m_geoMaterial(nullptr)
@@ -49,7 +58,7 @@ GenfitFitter::GenfitFitter(const char* type, const char* name):
     ,m_maxIterations(10)
     ,m_deltaPval(1e-3)
     ,m_relChi2Change(0.2)
-    ,m_blowUpFactor(1e3)
+    ,m_blowUpFactor(500)
     ,m_resetOffDiagonals(true)
     ,m_blowUpMaxVal(1.e6)
     ,m_multipleMeasurementHandling(genfit::unweightedClosestToPredictionWire)
@@ -66,9 +75,10 @@ GenfitFitter::GenfitFitter(const char* type, const char* name):
     ,m_noiseBrems(false)
     ,m_ignoreBoundariesBetweenEqualMaterials(true)
     ,m_mscModelName("GEANE")
-    ,m_debug(0)
+    //,m_debug(0)
     ,m_hist(0)
 {
+    m_debug=debug;
     /// Initialize genfit fitter
     init();
 }
@@ -78,17 +88,20 @@ void GenfitFitter::setField(const GenfitField* field)
     if(nullptr==m_genfitField) m_genfitField=field;
 }
 
+
 /// Set geometry for material, use geometry from IOADatabase
 void GenfitFitter::setGeoMaterial(const dd4hep::Detector* dd4hepGeo,
-        double extDistCut)
+        double extDistCut, bool skipWireMaterial)
 {
     if(nullptr==m_geoMaterial){
         m_geoMaterial=GenfitMaterialInterface::getInstance(dd4hepGeo);
     }
     m_geoMaterial->setMinSafetyDistanceCut(extDistCut);
+    m_geoMaterial->setSkipWireMaterial(skipWireMaterial);
+    m_geoMaterial->setDebugLvl(m_debug);
 }
 
-/// initialize genfit fitter
+/// initialize genfit fitter, old fitter will be deleted
 int GenfitFitter::init(bool deleteOldFitter)
 {
     if(deleteOldFitter && m_absKalman) delete m_absKalman;
@@ -97,17 +110,21 @@ int GenfitFitter::init(bool deleteOldFitter)
         <<m_fitterType<<std::endl;
 
     if (m_fitterType=="DAFRef") {
+        if(m_debug>=2)std::cout<<" m_fitterType==DAFRef "<<std::endl;
         m_absKalman = new genfit::DAF(true,getDeltaPval(),
                 getConvergenceDeltaWeight());
     }
     else if (m_fitterType=="DAF") {
+        if(m_debug>=2)std::cout<<" m_fitterType==DAF"<<std::endl;
         m_absKalman = new genfit::DAF(false,getDeltaPval(),
                 getConvergenceDeltaWeight());
     }
     else if (m_fitterType=="KalmanFitter") {
+        if(m_debug>=2)std::cout<<" m_fitterType==KalmanFitter"<<std::endl;
         m_absKalman = new genfit::KalmanFitter(getMaxIterations());
     }
     else if (m_fitterType=="KalmanFitterRefTrack") {
+        if(m_debug>=2)std::cout<<" m_fitterType==KalmanFitterRefTrack"<<std::endl;
         m_absKalman = new genfit::KalmanFitterRefTrack(getMaxIterations());
     }
     else {
@@ -118,6 +135,9 @@ int GenfitFitter::init(bool deleteOldFitter)
     }
     if(m_debug>=2)std::cout<<"Fitter type is "<<m_fitterType<<std::endl;
     m_absKalman->setDebugLvl(m_debug);
+#ifdef GENFIT_MY_DEBUG
+    //m_absKalman->setDebugLvlLocal(m_debugLocal);
+#endif
 
     return 0;
 }
@@ -127,6 +147,10 @@ int GenfitFitter::processTrackWithRep(GenfitTrack* track,int repID,bool resort)
 {
     if(m_debug>=2)std::cout<< "In ProcessTrackWithRep rep "<<repID<<std::endl;
     if(getDebug()>2) print("");
+    if(track->getNumPoints()<=0){
+        if(m_debug>=2)std::cout<<"skip track w.o. hit"<<std::endl;
+        return false;
+    }
 
     if(getDebug()>0){
         if(m_debug>=2)std::cout<<"Print track seed "<<std::endl;
@@ -149,6 +173,10 @@ int GenfitFitter::processTrackWithRep(GenfitTrack* track,int repID,bool resort)
 int GenfitFitter::processTrack(GenfitTrack* track, bool resort)
 {
     if(m_debug>=2)std::cout<<"In ProcessTrack"<<std::endl;
+    if(track->getNumPoints()<=0){
+        if(m_debug>=2)std::cout<<"skip track w.o. hit"<<std::endl;
+        return false;
+    }
     if(getDebug()>2) print("");
 
     /// Do the fitting
@@ -236,7 +264,7 @@ void GenfitFitter::print(const char* name)
         <<" m_noiseBrems          = " << m_noiseBrems<<std::endl;
     if(m_debug>=2)std::cout<<name
         <<" m_ignoreBoundariesBetweenEqualMaterials= "
-        << m_ignoreBoundariesBetweenEqualMaterials<<std::endl;
+            << m_ignoreBoundariesBetweenEqualMaterials<<std::endl;
     if(m_debug>=2)std::cout<<name
         <<" m_mscModelName        = " << m_mscModelName<<std::endl;
     if(m_debug>=2)std::cout<<name
@@ -324,18 +352,27 @@ void GenfitFitter::setBlowUpFactor(double val)
 {
     m_absKalman->setBlowUpFactor(val);
     m_blowUpFactor = val;
+    if (m_fitterType=="DAFRef" || m_fitterType=="DAF") {
+        getDAF()->getKalman()->setBlowUpFactor(m_blowUpFactor);
+    }
 }
 
 void GenfitFitter::setResetOffDiagonals(bool val)
 {
     m_absKalman->setResetOffDiagonals(val);
     m_resetOffDiagonals = val;
+    if (m_fitterType=="DAFRef" || m_fitterType=="DAF") {
+        getDAF()->getKalman()->setResetOffDiagonals(m_resetOffDiagonals);
+    }
 }
 
 void GenfitFitter::setBlowUpMaxVal(double val)
 {
     m_absKalman->setBlowUpMaxVal(val);
     m_blowUpMaxVal = val;
+    if (m_fitterType=="DAFRef" || m_fitterType=="DAF") {
+        getDAF()->getKalman()->setBlowUpMaxVal(m_blowUpMaxVal);
+    }
 }
 
 void GenfitFitter::setMultipleMeasurementHandling(
@@ -424,14 +461,31 @@ void GenfitFitter::setMaterialDebugLvl(unsigned int val)
     genfit::MaterialEffects::getInstance()->setDebugLvl(val);
 }
 
-///Set GenfitFitter parameters
 void GenfitFitter::setDebug(unsigned int val)
 {
-    if(m_debug>=2)std::cout<<"set fitter debugLvl "<<val<<std::endl;
-    m_absKalman->setDebugLvl(val);
-    if(nullptr!=getDAF()) getDAF()->setDebugLvl(val);
-    if(val>10) genfit::MaterialEffects::getInstance()->setDebugLvl(val);
     m_debug = val;
+}
+
+void GenfitFitter::setDebugGenfit(unsigned int val)
+{
+    //std::cout<<"set fitter debugGenfit "<<val<<std::endl;
+    m_debugGenfit=val;
+    m_absKalman->setDebugLvl(val);
+}
+
+void GenfitFitter::setDebugLocal(unsigned int val)
+{
+    //std::cout<<"set fitter debugLvlLocal "<<val<<std::endl;
+    m_debugLocal=val;
+#ifdef GENFIT_MY_DEBUG
+    ////std::cout<<" GenfitFitter::setDebugLvlLocal "<<val<<std::endl;
+    //m_absKalman->setDebugLvlLocal(val);
+    //if(0==strncmp(m_fitterType.c_str(),"DAF",3)){
+    //std::cout<<" GenfitFitter::setDebugLvlLocal DAF "<<val<<std::endl;
+    //    getDAF()->setDebugLvlLocal(val+1);
+    //}
+    //getDAF()->setDebugLvlLocal();
+#endif
 }
 
 void GenfitFitter::setHist(unsigned int val) {m_hist = val;}
@@ -457,21 +511,33 @@ genfit::KalmanFitterRefTrack* GenfitFitter::getKalRef()
     }catch(...){
         if(m_debug>=3)std::cout
             << "dynamic_cast m_rom AbsFitter to KalmanFitterRefTrack m_ailed!"
-            <<std::endl;
+                <<std::endl;
     }
     return ref;
 }
 
 void GenfitFitter::initHist(std::string name)
 {
-    if(m_debug>=2)std::cout<<"GenfitFitter::initHist "<<name<<std::endl;
-    //getDAF()->initHist(name);
+    if(m_debug)std::cout<<"GenfitFitter::initHist "<<name<<std::endl;
+#ifdef GENFIT_MY_DEBUG
+    genfit::GenfitHist::instance()->initHist(name);
+#endif
 }
 
 void GenfitFitter::writeHist()
 {
-    if(m_debug>=2)std::cout<<"GenfitFitter::writeHist "<<std::endl;
-    //getDAF()->writeHist();
+    if(m_debug)std::cout<<"GenfitFitter::writeHist "<<std::endl;
+#ifdef GENFIT_MY_DEBUG
+    if(genfit::GenfitHist::instance()->initialized()){
+        genfit::GenfitHist::instance()->writeHist();
+    }
+#endif
 }
 
+
+void GenfitFitter::SetRunEvent(int event){
+#ifdef GENFIT_MY_DEBUG
+    m_absKalman->SetRunEvent(event);
+#endif
+}
 

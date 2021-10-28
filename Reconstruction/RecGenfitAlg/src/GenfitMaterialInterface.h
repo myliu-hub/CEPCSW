@@ -58,8 +58,11 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
                 bool varField = true) override;
 
         // ClassDef(GenfitMaterialInterface, 1);
-        void setMinSafetyDistanceCut(double safeDistCut=1e-4)
+        void setMinSafetyDistanceCut(double safeDistCut=1e-7)
         {m_safeDistCut=safeDistCut;}
+        void setSkipWireMaterial(bool skipWireMateria)
+        {m_skipWireMaterial=skipWireMateria;}
+        virtual void setDebugLvl(unsigned int lvl = 1) {debugLvl_ = lvl;}
 
     private:
         static GenfitMaterialInterface* m_instance;
@@ -73,6 +76,7 @@ class GenfitMaterialInterface : public genfit::AbsMaterialInterface{
                 bool change=false);
         void setCurrentDirection(double nx, double ny, double nz);
         double m_safeDistCut;
+        bool m_skipWireMaterial;
 
 };
 

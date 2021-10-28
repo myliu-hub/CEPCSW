@@ -96,18 +96,40 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         int m_eventNo;
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::OverlayedField m_dd4hepField;
-        dd4hep::Detector* m_dd4hep;
+        dd4hep::Detector* m_dd4hepDetector;
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         Gaudi::Property<std::string> m_readout_name{this,
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
+        Gaudi::Property<int> m_debugGenfit{this,"debugGenfit",0};
+        Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
         Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
-        Gaudi::Property<std::vector<float> > m_sigmaHit{this,"sigmaHit",{0.11,0.0028,0.0028,0.006,0.006,0.004,0.004,0.004,0.004,0.004,0.004,0.004,0.004,0.0072,0.086,0.0072,0.000,0.003,0.003,0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072,0.0072,0.0072,0.0072,0.0072,0.0072}};//mm, 0:DC,1:12:VXD(U,V),13:14:SIT(U,V),15:16:SET(U,V),17:30:FTD(U,V)...TODO
-        Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
-        Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
-        Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
-        Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
+        Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
+            "sigmaHitU",{0.11, // DC z
+                0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
+                    0.0072, //SIT V 4 layers same resolusion
+                    0.0072, //SET V
+                    0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
+        //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
+        Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
+            "sigmaHitV",{0.2, // DC z
+                0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
+                    0.086, //SIT V
+                    0.086, //SET V
+                    0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
+        Gaudi::Property<int> m_measurementTypeSi{this,"measurementTypeSi",0};
+        //-1: not use, 0, space point, 1, pixel or planer measurement
+        Gaudi::Property<int> m_measurementTypeDC{this,"measurementTypeDC",0};
+        //-1: not use, 0, space point, 1, wire measurement
+        //Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
+        //Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
+        Gaudi::Property<int> m_sortMethod{this,"sortMethod",0};
+        Gaudi::Property<bool> m_truthAmbig{this,"truthAmbig",true};
+        Gaudi::Property<float> m_skipCorner{this,"skipCorner",999.};
+        Gaudi::Property<float> m_skipNear{this,"skipNear",0.};
+        //Gaudi::Property<double> m_initCovResPos{this,"initCovResPos",1};
+        //Gaudi::Property<double> m_initCovResMom{this,"initCovResMom",0.1};
         Gaudi::Property<bool> m_isUseCovTrack{this,"isUseCovTrack",false};
         //Fitter type default is DAFRef.
         //Candidates are DAF,DAFRef,KalmanFitter and KalmanFitterRefTrack.
@@ -116,6 +138,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "correctBremsstrahlung",false};
         Gaudi::Property<bool> m_noMaterialEffects{this,
             "noMaterialEffects",false};
+        Gaudi::Property<bool> m_skipWireMaterial{this,
+            "skipWireMaterial",false};
         Gaudi::Property<int> m_maxIteration{this,"maxIteration",20};
         Gaudi::Property<int> m_resortHits{this,"resortHits",true};
         Gaudi::Property<double> m_bStart{this,"bStart",100};
@@ -124,9 +148,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<double> m_ndfCut{this,"ndfCut",1e9};
         Gaudi::Property<double> m_chi2Cut{this,"chi2Cut",1e9};
         //-1,chargedGeantino;0,1,2,3,4:e,mu,pi,K,proton
-        Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
         Gaudi::Property<bool> m_useTruthTrack{this,"useTruthTrack",false};
-        Gaudi::Property<bool> m_useTruthHit{this,"useTruthHit",true};
         Gaudi::Property<std::string> m_genfitHistRootName{this,
             "genfitHistRootName",""};
         Gaudi::Property<bool> m_showDisplay{this,"showDisplay",false};

@@ -95,8 +95,7 @@ StatusCode DCHDigiAlg::execute()
   m_start = clock();
 
   info() << "Processing " << _nEvt << " events " << endmsg;
-  if(m_WriteAna&&(nullptr!=m_tuple)) m_evt = _nEvt;
-  std::map<unsigned long long, std::vector<edm4hep::SimTrackerHit> > id_hits_map;
+  if(m_WriteAna) m_evt = _nEvt;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
   const edm4hep::SimTrackerHitCollection* SimHitCol =  r_SimDCHCol.get();
@@ -107,15 +106,16 @@ StatusCode DCHDigiAlg::execute()
 
   auto SimHit0 = SimHitCol->at(0);
 
+
   for( int i = 0; i < SimHitCol->size(); i++ ) 
   {
       auto SimHit = SimHitCol->at(i);
       unsigned long long id = SimHit.getCellID();
       float sim_hit_mom = sqrt( SimHit.getMomentum()[0]*SimHit.getMomentum()[0] + SimHit.getMomentum()[1]*SimHit.getMomentum()[1] + SimHit.getMomentum()[2]*SimHit.getMomentum()[2] );//GeV
       if(sim_hit_mom < m_mom_threshold) continue; 
-      debug()<<" SimHit.getEDep() "<<SimHit.getEDep()<<endmsg;
-      if(SimHit.getEDep() <= m_eDep_threshold) continue; 
-      
+      if(sim_hit_mom > m_mom_threshold_high) continue; 
+      if(SimHit.getEDep() <= 0) continue;
+
       if ( id_hits_map.find(id) != id_hits_map.end()) id_hits_map[id].push_back(SimHit);
       else 
       {
@@ -256,7 +256,9 @@ StatusCode DCHDigiAlg::execute()
       }
   }
   m_end = clock();
-  if(m_WriteAna&&(nullptr!=m_tuple)) m_time = (m_end - m_start);
+  if(m_WriteAna){
+      m_time = (m_end - m_start);
+  }
 
   return StatusCode::SUCCESS;
 }

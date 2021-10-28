@@ -79,7 +79,7 @@ protected:
   Gaudi::Property<float> m_res_z     { this, "res_z", 1   };//mm
   Gaudi::Property<float> m_velocity  { this, "drift_velocity", 40};// um/ns
   Gaudi::Property<float> m_mom_threshold { this, "mom_threshold", 0};// GeV
-  Gaudi::Property<float> m_eDep_threshold{ this, "eDep_threshold", 0};// GeV
+  Gaudi::Property<float> m_mom_threshold_high { this, "mom_threshold_high", 1e9};// GeV
   Gaudi::Property<bool>  m_WriteAna { this, "WriteAna", false};
   Gaudi::Property<bool>  m_Doca { this, "Doca", false};//1:line dca 0:point dca
   Gaudi::Property<bool>  m_debug{ this, "debug", false};

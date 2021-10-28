@@ -34,7 +34,8 @@ dsvc = k4DataSvc("EventDataSvc")
 ##############################################################################
 
 # geometry_option = "CepC_v4-onlyTracker.xml"
-geometry_option = "det.xml"
+geometry_option = "det_inclined_wire.xml"
+# geometry_option = "det.xml"
 
 if not os.getenv("DETDRIFTCHAMBERROOT"):
     print("Can't find the geometry. Please setup envvar DETDRIFTCHAMBERROOT." )
@@ -71,11 +72,11 @@ gun.Particles = ["e-"]
 # gun.PositionZs = [0.] # mm
 
 
-gun.EnergyMins = [1.] # GeV
-gun.EnergyMaxs = [1.] # GeV
+gun.EnergyMins = [100.] # GeV
+gun.EnergyMaxs = [100.] # GeV
 
-gun.ThetaMins = [90] # rad; 45deg
-gun.ThetaMaxs = [90.] # rad; 45deg
+gun.ThetaMins = [0] # rad; 45deg
+gun.ThetaMaxs = [360.] # rad; 45deg
 
 gun.PhiMins = [0] # rad; 0deg
 gun.PhiMaxs = [360.] # rad; 360deg
@@ -174,6 +175,6 @@ out.outputCommands = ["keep *"]
 from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [genalg, detsimalg, out],
                 EvtSel = 'NONE',
-                EvtMax = 10,
+                EvtMax = 20,
                 ExtSvc = [rndmengine, rndmgensvc, dsvc, geosvc],
 )

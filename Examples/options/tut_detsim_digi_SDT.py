@@ -35,7 +35,7 @@ dsvc = k4DataSvc("EventDataSvc")
 ##############################################################################
 
 # geometry_option = "CepC_v4-onlyTracker.xml"
-geometry_option = "det.xml"
+geometry_option = "det_inclined_wire.xml"
 
 if not os.getenv("DETDRIFTCHAMBERROOT"):
     print("Can't find the geometry. Please setup envvar DETCEPCV4ROOT." )
@@ -65,21 +65,21 @@ gun = GtGunTool("GtGunTool")
 # gun.EnergyMins = [100.] # GeV
 # gun.EnergyMaxs = [100.] # GeV
 
-gun.Particles = ["e-"]
+gun.Particles = ["mu-"]
 
 # gun.PositionXs = [100.] # mm
 # gun.PositionYs = [100.] # mm
 # gun.PositionZs = [0.] # mm
 
 
-gun.EnergyMins = [10.] # GeV
-gun.EnergyMaxs = [10.] # GeV
+gun.EnergyMins = [100.] # GeV
+gun.EnergyMaxs = [100.] # GeV
 
-gun.ThetaMins = [90] # rad; 45deg
-gun.ThetaMaxs = [90] # rad; 45deg
+gun.ThetaMins = [0] # rad; 45deg
+gun.ThetaMaxs = [360] # rad; 45deg
 
-gun.PhiMins = [90] # rad; 0deg
-gun.PhiMaxs = [90] # rad; 360deg
+gun.PhiMins = [85] # rad; 0deg
+gun.PhiMaxs = [85] # rad; 360deg
 #gun.PhiMins = [0] # rad; 0deg
 #gun.PhiMaxs = [360] # rad; 360deg
 
@@ -169,6 +169,7 @@ dCHDigiAlg.SimDCHitCollection = "DriftChamberHitsCollection"
 dCHDigiAlg.DigiDCHitCollection = "DigiDCHitsCollection"
 dCHDigiAlg.AssociationCollection = "DCHAssociationCollectio"
 dCHDigiAlg.WriteAna  = True
+#dCHDigiAlg.debug  = True
 
 ##############################################################################
 # POD I/O
@@ -185,7 +186,7 @@ out.outputCommands = ["keep *"]
 from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [genalg, detsimalg, dCHDigiAlg, out],
                 EvtSel = 'NONE',
-                EvtMax = 10,
+                EvtMax = 10000,
                 ExtSvc = [rndmengine, rndmgensvc, dsvc, geosvc],
                 HistogramPersistency = "ROOT",
                 OutputLevel=INFO

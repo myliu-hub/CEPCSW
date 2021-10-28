@@ -4,11 +4,12 @@ if (GenFit_FOUND)
 gaudi_add_module(RecGenfitAlg
         SOURCES src/RecGenfitAlgDC.cpp
                 src/RecGenfitAlgSDT.cpp
-                src/DCHDigiSMAlg.cpp
+                #src/DCHDigiSMAlg.cpp
                 src/GenfitTrack.cpp
                 src/GenfitField.cpp
                 src/GenfitFitter.cpp
                 src/GenfitMaterialInterface.cpp
+                src/LSFitting.cpp
         LINK GearSvc
              Gaudi::GaudiAlgLib
              Gaudi::GaudiKernel
@@ -21,13 +22,14 @@ gaudi_add_module(RecGenfitAlg
              EDM4HEP::edm4hep
              EDM4HEP::edm4hepDict
              GenFit::genfit2
-             k4FWCore::k4FWCore
 )
 
 target_include_directories(RecGenfitAlg PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/include
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+target_compile_definitions(RecGenfitAlg PRIVATE GENFIT_MY_DEBUG)
 
 install(TARGETS RecGenfitAlg
             EXPORT CEPCSWTargets

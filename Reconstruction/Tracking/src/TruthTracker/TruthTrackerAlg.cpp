@@ -101,43 +101,45 @@ StatusCode TruthTrackerAlg::initialize()
 
     m_tuple=nullptr;
     ///book tuple
-    NTuplePtr nt(ntupleSvc(), "TruthTrackerAlg/truthTrackerAlg");
-    if(nt){
-        m_tuple=nt;
-    }else{
-        m_tuple=ntupleSvc()->book("TruthTrackerAlg/truthTrackerAlg",
-                CLID_ColumnWiseTuple,"TruthTrackerAlg");
-        if(m_tuple){
-            StatusCode sc;
-            sc=m_tuple->addItem("run",m_run);
-            sc=m_tuple->addItem("evt",m_evt);
-            sc=m_tuple->addItem("siMom",3,m_siMom);
-            sc=m_tuple->addItem("siPos",3,m_siPos);
-            sc=m_tuple->addItem("mcMom",3,m_mcMom);
-            sc=m_tuple->addItem("mcPos",3,m_mcPos);
-            sc=m_tuple->addItem("nSimTrackerHitVXD",m_nSimTrackerHitVXD);
-            sc=m_tuple->addItem("nSimTrackerHitSIT",m_nSimTrackerHitSIT);
-            sc=m_tuple->addItem("nSimTrackerHitSET",m_nSimTrackerHitSET);
-            sc=m_tuple->addItem("nSimTrackerHitFTD",m_nSimTrackerHitFTD);
-            sc=m_tuple->addItem("nSimTrackerHitDC",m_nSimTrackerHitDC);
-            sc=m_tuple->addItem("nTrackerHitVXD",m_nTrackerHitVXD);
-            sc=m_tuple->addItem("nTrackerHitSIT",m_nTrackerHitSIT);
-            sc=m_tuple->addItem("nTrackerHitSET",m_nTrackerHitSET);
-            sc=m_tuple->addItem("nTrackerHitFTD",m_nTrackerHitFTD);
-            sc=m_tuple->addItem("nTrackerHitDC",m_nTrackerHitDC);
-            sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
-            sc=m_tuple->addItem("nSpacePointSET",m_nSpacePointSET);
-            sc=m_tuple->addItem("nSpacePointFTD",m_nSpacePointFTD);
-            sc=m_tuple->addItem("nHitOnSiTkXVD",m_nHitOnSiTkVXD);
-            sc=m_tuple->addItem("nHitOnSiTkSIT",m_nHitOnSiTkSIT);
-            sc=m_tuple->addItem("nHitOnSiTkSET",m_nHitOnSiTkSET);
-            sc=m_tuple->addItem("nHitOnSiTkFTD",m_nHitOnSiTkFTD);
-            sc=m_tuple->addItem("nHitOnSdtTkVXD",m_nHitOnSdtTkVXD);
-            sc=m_tuple->addItem("nHitOnSdtTkSIT",m_nHitOnSdtTkSIT);
-            sc=m_tuple->addItem("nHitOnSdtTkSET",m_nHitOnSdtTkSET);
-            sc=m_tuple->addItem("nHitOnSdtTkFTD",m_nHitOnSdtTkFTD);
-            sc=m_tuple->addItem("nHitOnSdtTkDC",m_nHitOnSdtTkDC);
-            sc=m_tuple->addItem("nHitSdt",m_nHitOnSdtTk);
+    if(m_hist){
+        NTuplePtr nt(ntupleSvc(), "TruthTrackerAlg/truthTrackerAlg");
+        if(nt){
+            m_tuple=nt;
+        }else{
+            m_tuple=ntupleSvc()->book("TruthTrackerAlg/truthTrackerAlg",
+                    CLID_ColumnWiseTuple,"TruthTrackerAlg");
+            if(m_tuple){
+                StatusCode sc;
+                sc=m_tuple->addItem("run",m_run);
+                sc=m_tuple->addItem("evt",m_evt);
+                sc=m_tuple->addItem("siMom",3,m_siMom);
+                sc=m_tuple->addItem("siPos",3,m_siPos);
+                sc=m_tuple->addItem("mcMom",3,m_mcMom);
+                sc=m_tuple->addItem("mcPos",3,m_mcPos);
+                sc=m_tuple->addItem("nSimTrackerHitVXD",m_nSimTrackerHitVXD);
+                sc=m_tuple->addItem("nSimTrackerHitSIT",m_nSimTrackerHitSIT);
+                sc=m_tuple->addItem("nSimTrackerHitSET",m_nSimTrackerHitSET);
+                sc=m_tuple->addItem("nSimTrackerHitFTD",m_nSimTrackerHitFTD);
+                sc=m_tuple->addItem("nSimTrackerHitDC",m_nSimTrackerHitDC);
+                sc=m_tuple->addItem("nTrackerHitVXD",m_nTrackerHitVXD);
+                sc=m_tuple->addItem("nTrackerHitSIT",m_nTrackerHitSIT);
+                sc=m_tuple->addItem("nTrackerHitSET",m_nTrackerHitSET);
+                sc=m_tuple->addItem("nTrackerHitFTD",m_nTrackerHitFTD);
+                sc=m_tuple->addItem("nTrackerHitDC",m_nTrackerHitDC);
+                sc=m_tuple->addItem("nSpacePointSIT",m_nSpacePointSIT);
+                sc=m_tuple->addItem("nSpacePointSET",m_nSpacePointSET);
+                sc=m_tuple->addItem("nSpacePointFTD",m_nSpacePointFTD);
+                sc=m_tuple->addItem("nHitOnSiTkXVD",m_nHitOnSiTkVXD);
+                sc=m_tuple->addItem("nHitOnSiTkSIT",m_nHitOnSiTkSIT);
+                sc=m_tuple->addItem("nHitOnSiTkSET",m_nHitOnSiTkSET);
+                sc=m_tuple->addItem("nHitOnSiTkFTD",m_nHitOnSiTkFTD);
+                sc=m_tuple->addItem("nHitOnSdtTkVXD",m_nHitOnSdtTkVXD);
+                sc=m_tuple->addItem("nHitOnSdtTkSIT",m_nHitOnSdtTkSIT);
+                sc=m_tuple->addItem("nHitOnSdtTkSET",m_nHitOnSdtTkSET);
+                sc=m_tuple->addItem("nHitOnSdtTkFTD",m_nHitOnSdtTkFTD);
+                sc=m_tuple->addItem("nHitOnSdtTkDC",m_nHitOnSdtTkDC);
+                sc=m_tuple->addItem("nHitSdt",m_nHitOnSdtTk);
+            }
         }
     }
     return GaudiAlgorithm::initialize();
@@ -174,7 +176,7 @@ StatusCode TruthTrackerAlg::execute()
         }else{
             debug()<<"DriftChamberHitsCollection size "
                 <<dcSimHitCol->size()<<endmsg;
-            m_nSimTrackerHitDC=dcSimHitCol->size();
+            if(m_tuple)m_nSimTrackerHitDC=dcSimHitCol->size();
         }
         digiDCHitsCol=m_DCDigiCol.get();
         if(nullptr==digiDCHitsCol){
@@ -211,7 +213,7 @@ StatusCode TruthTrackerAlg::execute()
 
     ///Create track with mcParticle
     edm4hep::TrackState trackStateMc;
-    getTrackStateFromMcParticle(mcParticleCol,trackStateMc);
+    if(!getTrackStateFromMcParticle(mcParticleCol,trackStateMc)) return StatusCode::SUCCESS;
     if(m_useTruthTrack.value()||!m_useSi){sdtTk.addToTrackStates(trackStateMc);}
 
     if(m_useSi){
@@ -285,21 +287,31 @@ StatusCode TruthTrackerAlg::execute()
     if(m_useDC){
         ///Create DC Track
         edm4hep::Track dcTrack=dcTrackCol->create();
-        ///Add DC hits to tracks
-        nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
-        if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
 
+        //Create TrackState
         edm4hep::TrackState trackStateFirstDCHit;
         float charge=trackStateMc.omega/fabs(trackStateMc.omega);
-        if(m_useFirstHitForDC&&getTrackStateFirstHit(m_DCSimTrackerHitCol,charge,trackStateFirstDCHit)){
+        if(m_useFirstHitForDC&&getTrackStateFirstHit(m_DCSimTrackerHitCol,
+                    charge,trackStateFirstDCHit)){
             dcTrack.addToTrackStates(trackStateFirstDCHit);
+            dcTrack.addToTrackStates(trackStateMc);
         }else{
             dcTrack.addToTrackStates(trackStateMc);
+            dcTrack.addToTrackStates(trackStateFirstDCHit);
         }
 
         ///Add other track properties
-        dcTrack.addToTrackStates(trackStateMc);
         dcTrack.setNdf(dcTrack.trackerHits_size()-5);
+
+        ///Add DC hits to tracks after track state set
+        if(m_useIdealHit){
+            nDCHitDCTk=addIdealHitsToTk(m_DCDigiCol,truthTrackerHitCol,dcTrack,
+                    "DC digi",nDCHitDCTk);
+        }else{
+            nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
+        }
+        if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
+
         //track.setType();//TODO
         //track.setChi2(gauss(digiDCHitsCol->size-5(),1));//FIXME
         //track.setDEdx();//TODO
@@ -337,13 +349,14 @@ StatusCode TruthTrackerAlg::finalize()
     return GaudiAlgorithm::finalize();
 }
 
-void TruthTrackerAlg::getTrackStateFromMcParticle(
+bool TruthTrackerAlg::getTrackStateFromMcParticle(
         const edm4hep::MCParticleCollection* mcParticleCol,
         edm4hep::TrackState& trackState)
 {
     ///Convert MCParticle to DC Track and ReconstructedParticle
     debug()<<"MCParticleCol size="<<mcParticleCol->size()<<endmsg;
     for(auto mcParticle : *mcParticleCol){
+        if(mcParticle.isDecayedInTracker()) return false;
         /// skip mcParticleVertex do not have enough associated hits TODO
         ///Vertex
         const edm4hep::Vector3d mcParticleVertex=mcParticle.getVertex();//mm
@@ -355,7 +368,7 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
         mcParticleVertexSmeared.z=
             CLHEP::RandGauss::shoot(mcParticleVertex.z,m_resVertexZ);
         ///Momentum
-        edm4hep::Vector3f mcParticleMom=mcParticle.getMomentum();//GeV
+        const edm4hep::Vector3f mcParticleMom=mcParticle.getMomentum();//GeV
         double mcParticlePt=sqrt(mcParticleMom.x*mcParticleMom.x+
                 mcParticleMom.y*mcParticleMom.y);
         //double mcParticlePtSmeared=
@@ -377,15 +390,13 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
         //float mom[3]={mcParticleMomSmeared.x,mcParticleMomSmeared.y,
         //    mcParticleMomSmeared.z};
         ////FIXME DEBUG
-        float pos[3]={(float)mcParticleVertex.x,
-            (float)mcParticleVertex.y,(float)mcParticleVertex.z};
-        float mom[3]={(float)mcParticleMom.x,(float)mcParticleMom.y,
-            (float)mcParticleMom.z};
+        double pos[3]={mcParticleVertex.x,mcParticleVertex.y,mcParticleVertex.z};//mm
+        double mom[3]={mcParticleMom.x,mcParticleMom.y,mcParticleMom.z};//mm
         helix.Initialize_VP(pos,mom,mcParticle.getCharge(),B[2]/dd4hep::tesla);
         if(m_tuple) {
             for(int ii=0;ii<3;ii++) {
-                m_mcMom[ii]=mom[ii];
-                m_mcPos[ii]=pos[ii];
+                m_mcMom[ii]=mom[ii];//GeV
+                m_mcPos[ii]=pos[ii];//mm
             }
         }
 
@@ -397,10 +408,19 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
         trackState.tanLambda=helix.getTanLambda();
         trackState.referencePoint=helix.getReferencePoint();
         std::array<float,15> covMatrix;
-        for(int i=0;i<15;i++){covMatrix[i]=100.;}//FIXME
+        for(int i=0;i<15;i++){covMatrix[i]=1.;}//FIXME
         trackState.covMatrix=covMatrix;
 
+        getCircleFromPosMom(pos,mom,B[2]/dd4hep::tesla,mcParticle.getCharge(),m_helixRadius,m_helixXC,m_helixYC);
+
+        debug()<<"dd4hep::mm "<<dd4hep::mm<<" dd4hep::cm "<<dd4hep::cm<<endmsg;
         debug()<<"mcParticle "<<mcParticle
+            <<" helix radius "<<helix.getRadius()<<" "<<helix.getXC()<<" "
+            <<helix.getYC()<<" mm "
+            <<" myhelix radius "<<m_helixRadius<<" "<<m_helixXC<<" "
+            <<m_helixYC<<" mm "
+            <<" momMC "<<mom[0]<<" "<<mom[1]<<" "<<mom[2]<<"GeV"
+            <<" posMC "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<"mm"
             <<" momPhi "<<mcParticleMomPhi
             <<" mcParticleVertex("<<mcParticleVertex<<")mm "
             <<" mcParticleVertexSmeared("<<mcParticleVertexSmeared<<")mm "
@@ -409,6 +429,7 @@ void TruthTrackerAlg::getTrackStateFromMcParticle(
             <<" Bxyz "<<B[0]/dd4hep::tesla<<" "<<B[1]/dd4hep::tesla
             <<" "<<B[2]/dd4hep::tesla<<" tesla"<<endmsg;
     }//end loop over MCParticleCol
+    return true;
 }//end of getTrackStateFromMcParticle
 
 bool TruthTrackerAlg::getTrackStateFirstHit(
@@ -425,14 +446,19 @@ bool TruthTrackerAlg::getTrackStateFirstHit(
         edm4hep::SimTrackerHit firstHit;
         for(auto dcSimTrackerHit:*col){
             const edm4hep::Vector3f mom=dcSimTrackerHit.getMomentum();
-            if(abs(sqrt(mom[0]*mom[0]+mom[1]*mom[1]))<0.5)continue;//yzhang TEMP skip hits with momentum <0.5GeV/c
-            if(dcSimTrackerHit.getTime()<minHitTime) firstHit=dcSimTrackerHit;
-            debug()<<"simTrackerHit pos "<<dcSimTrackerHit.getPosition()
-                <<" mom "<<dcSimTrackerHit.getMomentum()<<endmsg;
+            if(sqrt(mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2])>m_momentumHighCut)continue;
+            if(abs(sqrt(mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2]))<m_momentumLowCut)continue;//yzhang TEMP skip hits with momentum <0.5GeV/c
+            if(dcSimTrackerHit.getTime()<minHitTime) {
+                minHitTime=dcSimTrackerHit.getTime();
+                firstHit=dcSimTrackerHit;
+            }
+            //debug()<<"simTrackerHit time "<<dcSimTrackerHit.getTime()
+            //    <<" pos "<<dcSimTrackerHit.getPosition()
+            //    <<" mom "<<dcSimTrackerHit.getMomentum()<<endmsg;
         }
         const edm4hep::Vector3d pos=firstHit.getPosition();
         const edm4hep::Vector3f mom=firstHit.getMomentum();
-        debug()<<"first Hit pos "<<pos<<" mom "<<mom<<endmsg;
+        debug()<<"first Hit pos "<<pos<<" mom "<<mom<<" time "<<minHitTime<<endmsg;
         float pos_t[3]={(float)pos[0],(float)pos[1],(float)pos[2]};
         float mom_t[3]={(float)mom[0],(float)mom[1],(float)mom[2]};
         ///Converted to Helix
@@ -440,6 +466,9 @@ bool TruthTrackerAlg::getTrackStateFirstHit(
         m_dd4hepField.magneticField({0.,0.,0.},B);
         HelixClass helix;
         helix.Initialize_VP(pos_t,mom_t,charge,B[2]/dd4hep::tesla);
+        m_helixRadiusFirst=helix.getRadius();
+        m_helixXCFirst=helix.getXC();
+        m_helixYCFirst=helix.getYC();
 
         ///new Track
         trackState.D0=helix.getD0();
@@ -509,6 +538,47 @@ void TruthTrackerAlg::debugEvent()
             m_nSpacePointFTD=trackerHitColSize(m_FTDSpacePointCol);
         }
     }
+}
+
+int TruthTrackerAlg::addIdealHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
+        colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
+        edm4hep::Track& track, const char* msg,int nHitAdded)
+{
+    if(nHitAdded>0) return nHitAdded;
+    int nHit=0;
+    const edm4hep::TrackerHitCollection* col=colHandle.get();
+    debug()<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<endmsg;
+    debug()<<track<<endmsg;
+    for(auto hit:*col){
+        //get end point of this wire
+        TVector3 endPointStart(0,0,0);
+        TVector3 endPointEnd(0,0,0);
+        m_gridDriftChamber->cellposition(hit.getCellID(),endPointStart,
+                endPointEnd);//cm
+
+        //calc. doca of helix to wire
+        TVector3 wire(endPointStart.X()/dd4hep::mm,endPointStart.Y()/dd4hep::mm,0);//to mm
+        TVector3 center(m_helixXC,m_helixYC,0);//mm
+        double docaIdeal=(center-wire).Mag()-m_helixRadius;//mm
+        TVector3 centerFirst(m_helixXCFirst,m_helixYCFirst,0);//mm
+        double docaIdealFirst=(centerFirst-wire).Mag()-m_helixRadiusFirst;//mm
+
+        //add modified hit
+        auto tmpHit = truthTrackerHitCol->create();
+        tmpHit=hit;
+        tmpHit.setTime(fabs(docaIdeal)*1e3/40.);//40#um/ns, drift time in ns
+        track.addToTrackerHits(tmpHit);
+
+        long long int detID=hit.getCellID();
+        debug()<<" addIdealHitsToTk "<<m_helixRadius<<" center "<<m_helixXC
+            <<" "<<m_helixYC<<" mm wire("<<m_decoder->get(detID,"layer")<<","
+            <<m_decoder->get(detID,"cellID")<<") "<<wire.X()<<" "<<wire.Y()
+            <<"mm docaIdeal "<<docaIdeal<<" docaIdealFirst "<<docaIdealFirst<<"mm "
+            <<"hit.Time orignal "<<hit.getTime()<<" new Time "
+            <<fabs(docaIdeal)*1e3/40.<<endmsg;
+        ++nHit;
+    }
+    return nHit;
 }
 
 int TruthTrackerAlg::addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
@@ -630,4 +700,15 @@ int TruthTrackerAlg::simTrackerHitColSize(DataHandle<edm4hep::SimTrackerHitColle
     const edm4hep::SimTrackerHitCollection* c=col.get();
     if(nullptr!=c) return c->size();
     return 0;
+}
+//unit length is mm
+void TruthTrackerAlg::getCircleFromPosMom(double pos[3],double mom[3],
+        double Bz,double q,double& helixRadius,double& helixXC,double& helixYC)
+{
+    double FCT = 2.99792458E-4;//mm
+    double pxy = sqrt(mom[0]*mom[0]+mom[1]*mom[1]);
+    helixRadius = pxy / (FCT*Bz);
+    double phiMomRefPoint = atan2(mom[1],mom[0]);
+    helixXC= pos[0] + helixRadius*cos(phiMomRefPoint-M_PI*0.5*q);
+    helixYC= pos[1] + helixRadius*sin(phiMomRefPoint-M_PI*0.5*q);
 }

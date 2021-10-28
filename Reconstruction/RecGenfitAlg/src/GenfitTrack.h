@@ -48,7 +48,6 @@ namespace edm4hep{
     class MCRecoTrackerAssociationCollection;
     class Track;
     class TrackCollection;
-    class ConstTrack;
     class ConstTrackerHit;
     class ConstSimTrackerHit;
     class Vector3d;
@@ -77,11 +76,9 @@ class GenfitTrack {
             const char* name="GenfitTrack");
     virtual ~GenfitTrack();
 
-    /// Add a Genfit track
+    /// ---------Add a Genfit track-------
     virtual bool createGenfitTrack(int pdgType,int charge,TLorentzVector pos,
             TVector3 mom, TMatrixDSym covM);
-    //virtual bool createGenfitTrack(TLorentzVector posInit,TVector3 momInit,
-    //TMatrixDSym covMInit);
 
     ///Create genfit track from MCParticle
     bool createGenfitTrackFromMCParticle(int pidTyep,const edm4hep::MCParticle&
@@ -89,42 +86,33 @@ class GenfitTrack {
     bool createGenfitTrackFromEDM4HepTrack(int pidType,const edm4hep::Track& track,
             double eventStartTime,bool isUseCovTrack);
 
-    //  /// Prepare a hit list, return number of hits on track
-    //  int PrepareHits();//TODO
+    /// ---------Add measurements---------
+    ///Add one space point measurement, return number of hits on track
+    virtual bool addSpacePointMeasurement(const TVectorD&,std::vector<float>
+        sigmaU,std::vector<float> sigmaV,int cellID,int hitID);
 
-    /// Add a space point measurement, return number of hits on track
-    bool addSpacePointFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID,
-            bool isUseFixedHitError);
+    ///Add silicon space points from edm4hep::track
+    int addSpacePointsSi(const edm4hep::Track& track,
+            std::vector<float> sigmaU,std::vector<float> sigmaV);
 
-    /// Add a planar measurement, return number of hits on track
-    bool addPlanarHitFromTrakerHit(edm4hep::ConstTrackerHit& hit, int hitID);
-    bool addSpacePointTrakerHit(edm4hep::ConstTrackerHit hit, int hitID);
-
-    /// Add a space point measurement, return number of hits on track
-    virtual bool addSpacePointMeasurement(const TVectorD&,std::vector<float> sigma,
-            int detID=-1, int hitID=-1, bool smear=false);
-
-    /// Add a WireMeasurement with MC truth position smeared by sigma
-    virtual void addWireMeasurement(double driftDistance,
-            double driftDistanceError, const TVector3& endPoint1,
-            const TVector3& endPoint2, int lrAmbig, int detID, int hitID,
-        edm4hep::ConstSimTrackerHit simTrackerHitAsso);
-
-
-    /// Add a WireMeasurement with DC digi
-    virtual bool addWireMeasurementOnTrack(edm4hep::Track& track,float sigma,
-        bool smear,const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        int sortMethod=0,bool truthAmbig=true);
-
-    ///Add space point from edm4hep::track
-    int addHitsOnEdm4HepTrack(const edm4hep::Track& track,
+    ///Add drift chamber space points from edm4hep::track
+    int addSpacePointsDC(const edm4hep::Track& track,
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-            std::vector<float> sigma,bool smear,bool fitSiliconOnly,bool isUseFixedSiHitError);
+        std::vector<float> sigmaU,std::vector<float> sigmaV);
 
-    ///Add space point from truth to track
-    int addSimTrackerHits( edm4hep::ConstTrack track,
-        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        float sigma,bool smear=false);// float nSigmaSelection
+
+    ///Add WireMeasurements of hits on track
+    virtual int addWireMeasurements(edm4hep::Track& track,float sigma,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            int sortMethod,bool truthAmbig,float skipCorner, float skipNear);
+
+    ///Add one silicon hits
+    bool addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
+            float sigmaU,float sigmaV,int cellID,int hitID);
+
+    ///Add silicon measurements, return number of hits on track
+    int addSiliconMeasurements(edm4hep::Track& track,
+            std::vector<float> sigmaU,std::vector<float> sigmaV);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
@@ -148,7 +136,6 @@ class GenfitTrack {
             TVector3& pocaOnWire, double& doca, TVector3 pos, TVector3 mom,
             TVector3 end0,//one end of the hit wire
             TVector3 end1,//the orhter end of the hit wire
-            int debug,
             int repID,
             bool stopAtBoundary=false,
             bool calcJacobianNoise=true) const;
@@ -182,12 +169,12 @@ class GenfitTrack {
     const TVector3 getSeedStateMom() const;
     void getSeedStateMom(TLorentzVector& pos, TVector3& mom) const;
     unsigned int getNumPoints() const;
-    unsigned int getNumPointsDet(int detID) const;
+    unsigned int getNumPointsDet(int cellID) const;
 
     /// get the fitted track status
     const genfit::FitStatus* getFitStatus(int repID=0) const;
     int getFittedState(TLorentzVector& pos, TVector3& mom, TMatrixDSym& cov,
-            int repID=0, bool biased=true) const;
+            int trackPointId=0, int repID=0, bool biased=true) const;
     int getNumPointsWithFittedInfo(int repID=0) const;
     bool getFirstPointWithFittedInfo(int repID=0) const;
     bool fitSuccess(int repID) const;
@@ -204,7 +191,9 @@ class GenfitTrack {
     void print(TLorentzVector pos, TVector3 mom, const char* comment="") const;
 
     /// set and get debug level
-    void setDebug(int debug);
+    void setDebug(int debug){m_debug=debug;}
+    void setDebugGenfit(int debug);
+    void setDebugLocal(int debug);
     int getDebug(void) const { return m_debug;}
 
     /// get name of this object
@@ -219,23 +208,23 @@ class GenfitTrack {
 
     private:
 
-    int getDetTypeID(int cellID) const;
+    int getDetTypeID(unsigned long long cellID) const;
     const char* m_name;
 
     ///Note! private functions are using genfit unit, cm and MeV
 
-    genfit::AbsTrackRep* getRep(int id=0) const {return m_reps[id];}
+    genfit::AbsTrackRep* getRep(int id=0) const;
     bool getMOP(int hitID, genfit::MeasuredStateOnPlane& mop,
             genfit::AbsTrackRep* trackRep=nullptr) const;
     const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit hit);
     void getAssoSimTrackerHit(
-        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        edm4hep::ConstTrackerHit trackerHit,
-        edm4hep::ConstSimTrackerHit& simTrackerHit) const;
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            edm4hep::ConstTrackerHit trackerHit,
+            edm4hep::ConstSimTrackerHit& simTrackerHit) const;
 
     genfit::Track* m_track;/// track
-    std::vector<genfit::AbsTrackRep*> m_reps;/// track repesentations
     int m_debug;/// debug level
+    int m_debugLocal;/// debug level local
 
     const GenfitField* m_genfitField;//pointer to genfit field
     const dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;

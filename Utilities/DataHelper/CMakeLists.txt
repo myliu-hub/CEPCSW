@@ -16,11 +16,13 @@ gaudi_add_library(DataHelperLib
                           src/TrackExtended.cc
                           src/TrackHitPair.cc
                           src/TrackerHitHelper.cpp
-                  LINK EDM4HEP::edm4hep
-                       EDM4HEP::edm4hepDict
-                       GSL::gsl
-                       ${CLHEP_LIBRARIES}
-                       Identifier
+                          src/TrackHelper.cpp
+                          LINK EDM4HEP::edm4hep
+                          EDM4HEP::edm4hepDict
+                          ${GSL_LIBRARIES}
+                          ${CLHEP_LIBRARIES}
+                          Identifier
+                          DetSegmentation
 )
 
 install(TARGETS DataHelperLib
