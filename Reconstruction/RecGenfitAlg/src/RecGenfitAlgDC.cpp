@@ -43,8 +43,8 @@
 //stl
 #include <chrono>
 #include "time.h"
-//#undef GENFIT_MY_DEBUG
-#define GENFIT_MY_DEBUG 1
+#undef GENFIT_MY_DEBUG
+//#define GENFIT_MY_DEBUG 1
 
 DECLARE_COMPONENT( RecGenfitAlgDC )
 
