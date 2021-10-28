@@ -28,9 +28,9 @@ DumpTrackAlg::DumpTrackAlg( const std::string& name, ISvcLocator* pSvcLocator )
 StatusCode DumpTrackAlg::initialize(){
   info() << "Booking Ntuple" << endmsg;
 
-  NTuplePtr nt1(ntupleSvc(), "MyTuples/Track"+m_thisName);
+  NTuplePtr nt1(ntupleSvc(), "DumpTrackAlg/Track"+m_thisName);
   if ( !nt1 ) {
-    m_tuple = ntupleSvc()->book("MyTuples/Track"+m_thisName,CLID_ColumnWiseTuple,"Tracking result");
+    m_tuple = ntupleSvc()->book("DumpTrackAlg/Track"+m_thisName,CLID_ColumnWiseTuple,"Tracking result");
     if ( 0 != m_tuple ) {
       m_tuple->addItem ("ntrk",      m_nTracks, 0, 500 ).ignore();
       m_tuple->addIndexedItem ("x",         m_nTracks, m_x ).ignore();
@@ -39,6 +39,7 @@ StatusCode DumpTrackAlg::initialize(){
       m_tuple->addIndexedItem ("px",        m_nTracks, m_px ).ignore();
       m_tuple->addIndexedItem ("py",        m_nTracks, m_py ).ignore();
       m_tuple->addIndexedItem ("pz",        m_nTracks, m_pz ).ignore();
+      m_tuple->addIndexedItem ("p",        m_nTracks, m_p ).ignore();
       m_tuple->addIndexedItem ("d0",        m_nTracks, m_d0 ).ignore();
       m_tuple->addIndexedItem ("phi0",      m_nTracks, m_phi0 ).ignore();
       m_tuple->addIndexedItem ("omega",     m_nTracks, m_omega ).ignore();
@@ -114,6 +115,7 @@ StatusCode DumpTrackAlg::execute(){
         m_px[m_nTracks] = helix_fit.getMomentum()[0];
         m_py[m_nTracks] = helix_fit.getMomentum()[1];
         m_pz[m_nTracks] = helix_fit.getMomentum()[2];
+        m_p[m_nTracks] = sqrt(m_px[m_nTracks]*m_px[m_nTracks]+m_py[m_nTracks]*m_py[m_nTracks]+m_pz[m_nTracks]*m_pz[m_nTracks]);
 	//info() << "size = " << track.subDetectorHitNumbers_size() << endmsg;
 	//for(int ii=0;ii<track.subDetectorHitNumbers_size();ii++){
 	//  std::cout << track.getSubDetectorHitNumbers(ii) << " ";

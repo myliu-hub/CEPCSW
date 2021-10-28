@@ -120,6 +120,7 @@ StatusCode RecGenfitAlgSDT::initialize()
         return StatusCode::FAILURE;
     }
 
+    m_tuple = nullptr;
 
     ///book tuple
     NTuplePtr nt(ntupleSvc(), "RecGenfitAlgSDT/recGenfitAlgSDT");
@@ -179,6 +180,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("isFitConverged",5,m_isFitConverged);
             sc=m_tuple->addItem("isFitConvergedFully",5,
                     m_isFitConvergedFully);
+
             sc=m_tuple->addItem("fittedState",5,m_fittedState);
             sc=m_tuple->addItem("nHitFailedKal",5,m_nHitFailedKal);
             sc=m_tuple->addItem("nHitFitted",5,m_nHitFitted);
@@ -188,7 +190,7 @@ StatusCode RecGenfitAlgSDT::initialize()
             //10 is greater than # of tracking detectors
             sc=m_tuple->addItem("hitDetID",10,m_nHitDetType);
             sc=m_tuple->addItem("nHitWithFitInfo",5,m_nHitWithFitInfo);
-            sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,50000);
+            sc=m_tuple->addItem("nSimDCHit",m_nSimDCHit,0,500000);
             sc=m_tuple->addItem("mdcHitDriftT",m_nSimDCHit,m_mdcHitDriftT);
             sc=m_tuple->addItem("mdcHitDriftDl",m_nSimDCHit,m_mdcHitDriftDl);
             sc=m_tuple->addItem("mdcHitDriftDr",m_nSimDCHit,m_mdcHitDriftDr);
@@ -261,8 +263,10 @@ StatusCode RecGenfitAlgSDT::execute()
         return StatusCode::SUCCESS;
     }
 
+
     auto dcHitAssociationCol=m_DCHitAssociationCol.get();
     double eventStartTime=0;
+
 
     const edm4hep::TrackCollection* dcTrackCol=nullptr;
     if(m_dcTrackCol.exist()) dcTrackCol=m_dcTrackCol.get();
@@ -270,6 +274,8 @@ StatusCode RecGenfitAlgSDT::execute()
         debug()<<"TrackCollection not found"<<endmsg;
         return StatusCode::SUCCESS;
     }
+
+
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
     mcParticleCol=m_mcParticleCol.get();//FIXME get error when call exist()
     if(nullptr==mcParticleCol){
@@ -279,6 +285,8 @@ StatusCode RecGenfitAlgSDT::execute()
     ///----------------------------------------------------
     ///Loop over Track and do fitting for each track
     ///----------------------------------------------------
+
+
     m_firstTuple=true;
     //debug()<<"SDTTrackCol size="<<sdtTrackCol->size()<<endmsg;
     std::cout << "SDTTrackCol size="<<sdtTrackCol->size() << std::endl;
@@ -349,6 +357,7 @@ StatusCode RecGenfitAlgSDT::execute()
     }//end loop over a track
     m_nRecTrack++;
 
+
     if(m_tuple) {
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
@@ -398,8 +407,8 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
     int charge= fitState->getCharge();
 
     if(m_firstTuple){
-        m_nHitKalInput=genfitTrack->getNumPoints();
-        debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
+       // m_nHitKalInput=genfitTrack->getNumPoints();
+       // debug()<<"m_nHitKalInput "<<m_nHitKalInput<<endmsg;
         //FIXME read from config file
         int detIDs[5]={1,2,3,5,7};//VXD=1,SIT=2,SET=5;FTD=3,
         for(int i=0;i<5;i++){
@@ -436,7 +445,8 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
             <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
             <<" ndf "<<m_nDofKal[pidType]
-            <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
+            <<" chi2 "<<m_chi2Kal[pidType]
+              <<endmsg;
         if((0!=fittedState)||(!m_isFitted[pidType])||(m_nDofKal[pidType]>m_ndfCut)){
             debug()<<"evt "<<m_evt<<" fit failed"<<endmsg;
         }else{

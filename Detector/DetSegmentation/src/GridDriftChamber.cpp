@@ -62,7 +62,7 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
       layerid = floor((radius - m_DC_rbegin)/DC_layerdelta);
   } else if ( radius>= (m_DC_rmin-m_safe_distance) && radius < m_DC_rbegin) {
       layerid = 0;
-  } else if ( radius> m_DC_rend && radius <= (m_DC_rmax+m_safe_distance)) {
+  } else if ( radius> m_DC_rend ) {//&& radius <= (m_DC_rmax+m_safe_distance)) {
       layerid = m_DC_layer_number-1;
   }
 
@@ -81,19 +81,19 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
 
   int lphi = _lphi;
 
-//std::cout << "#######################################: "
-//          << " posx= " << posx
-//          << " posy= " << posy
-//          << " posz= " << posz
-//          << " phi_hit: " << phi_hit
-//          << " phi_wire0: " << phi_wire0
-//          << " _lphi: " << _lphi
-//          <<  " offset : " << m_offset
-//          << " offsetphi: " << offsetphi
-//          << " layerID: " << layerid
-//          << " r: " << _currentRadius
-//          << " layerphi: " << _currentLayerphi
-//          << std::endl;
+std::cout << "#######################################: "
+          << " posx= " << posx
+          << " posy= " << posy
+          << " posz= " << posz
+          << " phi_hit: " << phi_hit
+          << " phi_wire0: " << phi_wire0
+          << " _lphi: " << _lphi
+          <<  " offset : " << m_offset
+          << " offsetphi: " << offsetphi
+          << " layerID: " << layerid
+          << " r: " << _currentRadius
+          << " layerphi: " << _currentLayerphi
+          << std::endl;
 
 
   _decoder->set(cID, layer_id, layerid);

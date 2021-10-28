@@ -27,9 +27,9 @@ DumpMCParticleAlg::DumpMCParticleAlg( const std::string& name, ISvcLocator* pSvc
 StatusCode DumpMCParticleAlg::initialize(){
   info() << "Booking Ntuple" << endmsg;
 
-  NTuplePtr nt1(ntupleSvc(), "MyTuples/MC");
+  NTuplePtr nt1(ntupleSvc(), "DumpMCParticleAlg/MC");
   if ( !nt1 ) {
-    m_tuple = ntupleSvc()->book("MyTuples/MC",CLID_ColumnWiseTuple,"MC truth");
+    m_tuple = ntupleSvc()->book("DumpMCParticleAlg/MC",CLID_ColumnWiseTuple,"MC truth");
     if ( 0 != m_tuple ) {
       m_tuple->addItem ("nmc",        m_nParticles, 0, 1000 ).ignore();
       m_tuple->addIndexedItem ("pdg",        m_nParticles, m_pdgID ).ignore();
@@ -44,6 +44,7 @@ StatusCode DumpMCParticleAlg::initialize(){
       m_tuple->addIndexedItem ("px",         m_nParticles, m_px ).ignore();
       m_tuple->addIndexedItem ("py",         m_nParticles, m_py ).ignore();
       m_tuple->addIndexedItem ("pz",         m_nParticles, m_pz ).ignore();
+      m_tuple->addIndexedItem ("p",         m_nParticles, m_p ).ignore();
       m_tuple->addIndexedItem ("d0",         m_nParticles, m_d0 ).ignore();
       m_tuple->addIndexedItem ("phi0",       m_nParticles, m_phi0 ).ignore();
       m_tuple->addIndexedItem ("omega",      m_nParticles, m_omega ).ignore();
@@ -101,6 +102,7 @@ StatusCode DumpMCParticleAlg::execute(){
       m_px[m_nParticles] = momentum.x;
       m_py[m_nParticles] = momentum.y;
       m_pz[m_nParticles] = momentum.z;
+      m_p[m_nParticles] = sqrt(momentum.x*momentum.x+momentum.y*momentum.y+momentum.z*momentum.z);
 
       HelixClass helix;
       float posV[3] = {vertex.x,vertex.y,vertex.z};

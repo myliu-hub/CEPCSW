@@ -33,6 +33,7 @@ class DumpTrackAlg : public Algorithm {
   NTuple::Array<float> m_px;
   NTuple::Array<float> m_py;
   NTuple::Array<float> m_pz;
+  NTuple::Array<float> m_p;
   NTuple::Array<float> m_d0;
   NTuple::Array<float> m_phi0;
   NTuple::Array<float> m_omega;
