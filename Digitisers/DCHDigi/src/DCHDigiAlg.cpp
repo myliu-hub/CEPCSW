@@ -105,6 +105,7 @@ StatusCode DCHDigiAlg::execute()
   debug()<<"input sim hit size="<< SimHitCol->size() <<endmsg;
 
   auto SimHit0 = SimHitCol->at(0);
+  std::map<unsigned long long, std::vector<decltype(SimHit0)>> id_hits_map;
 
 
   for( int i = 0; i < SimHitCol->size(); i++ ) 
