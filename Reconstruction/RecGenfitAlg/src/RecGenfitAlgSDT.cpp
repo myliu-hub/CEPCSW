@@ -35,6 +35,9 @@
 //stl
 #include <chrono>
 #include "time.h"
+//#include <stdlib.h>
+#include <thread>
+#include <iostream>
 
 
 DECLARE_COMPONENT( RecGenfitAlgSDT )
@@ -219,7 +222,7 @@ StatusCode RecGenfitAlgSDT::initialize()
     }//end of book tuple
 
     //init genfit event display
-    //if(m_showDisplay) m_genfitDisplay = genfit::EventDisplay::getInstance();
+    if(m_showDisplay) m_genfitDisplay = genfit::EventDisplay::getInstance();
 
     return StatusCode::SUCCESS;
 }
@@ -311,21 +314,22 @@ StatusCode RecGenfitAlgSDT::execute()
             ///-----------------------------------
             ///Add hits on track
             ///-----------------------------------
+            if(m_debug) std::cout<<" m_measurementTypeSi "<<m_measurementTypeSi<<" "<<m_measurementTypeDC<<" "<<std::endl;
             int nHitAdded=0;
             //add silicon hits
-            if(0==m_measurementTypeSi){
+            if(0==m_measurementTypeSi.value()){
                 nHitAdded+=genfitTrack->addSpacePointsSi(sdtTrack,
                         m_sigmaHitU,m_sigmaHitV);
-            }else if(1==m_measurementTypeSi){
+            }else if(1==m_measurementTypeSi.value()){
                 nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack,
                         m_sigmaHitU,m_sigmaHitV);
             }
 
             //add DC hits
-            if(0==m_measurementTypeDC){
+            if(0==m_measurementTypeDC.value()){
                 nHitAdded+=genfitTrack->addSpacePointsDC(sdtTrack,
                         assoDCHitsCol,m_sigmaHitU,m_sigmaHitV);
-            }else if(1==m_measurementTypeDC){
+            }else if(1==m_measurementTypeDC.value()){
                 nHitAdded+=genfitTrack->addWireMeasurements(sdtTrack,
                         m_sigmaHitU[0],assoDCHitsCol,m_sortMethod,m_truthAmbig,
                         m_skipCorner,m_skipNear);//mm
@@ -359,8 +363,12 @@ StatusCode RecGenfitAlgSDT::execute()
 
             if(m_tuple) debugTrack(pidType,genfitTrack);
             if(m_showDisplay) {
-                //m_genfitDisplay->addEvent(genfitTrack->getTrack());
-                //m_genfitDisplay->open();
+                m_genfitDisplay->addEvent(genfitTrack->getTrack());
+                m_genfitDisplay->open();
+
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(1000000000ms);
+                system("pause");
             }else{
                 delete genfitTrack;
             }
@@ -471,11 +479,11 @@ void RecGenfitAlgSDT::debugTrack(int pidType,const GenfitTrack* genfitTrack)
             fittedMom.Z()<<") p_tot "<<
             fittedMom.Mag()<<" pt "<<
             fittedMom.Perp()
-        <<" fittedState "<<fittedState<<" isFitted "
-        <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
-        <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
-        <<" ndf "<<m_nDofKal[pidType]
-        <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
+            <<" fittedState "<<fittedState<<" isFitted "
+            <<m_isFitted[pidType]<<" isConverged "<<m_isFitConverged[pidType]
+            <<" isFitConvergedFully "<<m_isFitConvergedFully[pidType]
+            <<" ndf "<<m_nDofKal[pidType]
+            <<" chi2 "<<m_chi2Kal[pidType]<<endmsg;
     }
 }
 

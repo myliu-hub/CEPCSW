@@ -272,10 +272,14 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 }
 
 /// Add a 3d SpacepointMeasurement
-bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
+bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
         std::vector<float> sigmaU,std::vector<float> sigmaV,int cellID,int hitID)
 {
     TVectorD pos_smeared(3);
+    if(m_debug){
+        std::cout<<"addSpacePointMeasurement pos "<<std::endl;
+        pos.Print();
+    }
     for(int i=0;i<3;i++) pos_smeared[i]=pos(i)*dd4hep::mm;
 
     /// New a SpacepointMeasurement
@@ -313,10 +317,8 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
         if(m_debug>=0) std::cout<<m_name<<" Error: no detType!"<<std::endl;
         return false;
     }
-    float sigmaX=sigmaU[sigmaUID]*dd4hep::mm;//*cos(atan2(pos_smeared[1],pos_smeared[0]));
-std::cout << " sigmaX= " << sigmaX << std::endl;
-    float sigmaY=sigmaU[sigmaUID]*dd4hep::mm;//*sin(atan2(pos_smeared[1],pos_smeared[0]));
-std::cout << " sigmaY= " << sigmaY << std::endl;
+    float sigmaX=sigmaU[sigmaUID]*dd4hep::mm*cos(atan2(pos_smeared[1],pos_smeared[0]));
+    float sigmaY=sigmaU[sigmaUID]*dd4hep::mm*sin(atan2(pos_smeared[1],pos_smeared[0]));
     float sigmaZ=sigmaV[sigmaVID]*dd4hep::mm;
     if(smear){
         pos_smeared[0]+=gRandom->Gaus(0,sigmaX);
@@ -494,10 +496,11 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         int sortMethod, bool truthAmbig,float skipCorner,float skipNear)
 {
+    int nHitAdd=0;
     if(m_debug>2) std::cout<<"in GenfitTrack::addWireMeasurements"<<std::endl;
     if(0==track.trackerHits_size()){
-        if(m_debug>0) std::cout<<"on hit on track"<<std::endl;
-        return 0;
+        if(m_debug>0) std::cout<<"No hit on track"<<std::endl;
+        return nHitAdd;
     }
 
     dd4hep::DDSegmentation::BitFieldCoder* m_decoder
@@ -536,6 +539,10 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
                 <<","<<std::setprecision(5)<<time<<") "<<std::endl;
         }
     }
+    if(0==sortedDCTrackerHit.size()){
+        if(m_debug>0){ std::cout<<"No DC hit on track"<<std::endl;}
+        return nHitAdd;
+    }
     if(0==sortMethod){
         std::sort(sortedDCTrackerHit.begin(),sortedDCTrackerHit.end(),sortDCDigi);
         if(m_debug>0){ std::cout<<"addWireMeasurements sorted by time"<<std::endl;}
@@ -552,7 +559,6 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         }
     }
     if(m_debug>0){ std::cout<<"\n"; std::cout.unsetf(std::ios_base::floatfield);}
-    int nHitAdd=0;
     for(auto hitPair:sortedDCTrackerHit){
         edm4hep::ConstTrackerHit hit=hitPair.second;
         double driftVelocity=40.;//FIXME, TODO, um/ns
@@ -779,6 +785,7 @@ void GenfitTrack::setDebugLocal(int debug){
     }
     m_debugLocal=debug;
 #endif
+    if(m_debug)std::cout<<"GenfitTrack:setDebugLvlLocal "<<debug<<std::endl;
 }
 
 void GenfitTrack::printSeed() const
@@ -1043,7 +1050,11 @@ int GenfitTrack::addSpacePointsSi(const edm4hep::Track& track,
         if(m_geomSvc->lcdd()->constant<int>("DetID_DC")==detTypeID) continue;
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
         edm4hep::Vector3d pos=hit.getPosition();
-        TVectorD p(pos.x,pos.y,pos.z);
+
+        std::cout<<" "<<__LINE__<<" addSpacePointsSi hit "<<hit<<std::endl;
+        TVector3 p(pos.x,pos.y,pos.z);
+
+        p.Print();
         unsigned long long cellID = hit.getCellID();
         if(addSpacePointMeasurement(p,sigmaU,sigmaV,cellID,nHitAdd)){
             if(m_debug>=2)std::cout<<"add silicon space point"<<std::endl;
@@ -1096,7 +1107,9 @@ int GenfitTrack::addSpacePointsDC(const edm4hep::Track& track,
     int nHitAdd=0;
     for(auto dCTrackerHit: sortedDCTrackHitCol){
         edm4hep::Vector3d pos=dCTrackerHit.getPosition();
-        TVectorD p(pos.x,pos.y,pos.z);
+        TVector3 p(pos.x,pos.y,pos.z);
+
+        std::cout<<" "<<__LINE__<<" addSpacePointsDC hit "<<dCTrackerHit<<std::endl;
         unsigned long long cellID=dCTrackerHit.getCellID();
         if(addSpacePointMeasurement(p,sigmaU,sigmaV,dCTrackerHit.getCellID()
                     ,nHitAdd)){

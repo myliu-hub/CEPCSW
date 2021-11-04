@@ -22,6 +22,7 @@
 #include "GenfitFitter.h"
 
 //ROOT
+#include "TVector3.h"
 #include "TVectorD.h"
 #include "TMatrixDSym.h"
 
@@ -88,7 +89,7 @@ class GenfitTrack {
 
     /// ---------Add measurements---------
     ///Add one space point measurement, return number of hits on track
-    virtual bool addSpacePointMeasurement(const TVectorD&,std::vector<float>
+    virtual bool addSpacePointMeasurement(const TVector3&,std::vector<float>
         sigmaU,std::vector<float> sigmaV,int cellID,int hitID);
 
     ///Add silicon space points from edm4hep::track
