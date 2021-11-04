@@ -54,7 +54,9 @@
 
   <detectors>
     <detector id="DetID_DC" name="DriftChamber" type="DriftChamber" readout="DriftChamberHitsCollection" vis="DCVis" sensitive="true" limits="DC_limits">
-      <chamber id="0"/>
+      <material name="Air"/>
+      <chamber id="0"  material="GasHe_90Isob_10"/>
+      <side material="CarbonFiber"/>
       <envelope>
         <shape type="BooleanShape" operation="Union" material="Air">
           <shape type="Tube" rmin="SDT_radius_min" rmax="SDT_radius_max" dz="SDT_half_length" />

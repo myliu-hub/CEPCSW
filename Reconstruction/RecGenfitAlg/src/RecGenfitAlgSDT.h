@@ -113,7 +113,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                     0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
         Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
-            "sigmaHitV",{0.2, // DC z
+            "sigmaHitV",{1, // DC z
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
                     0.086, //SIT V
                     0.086, //SET V

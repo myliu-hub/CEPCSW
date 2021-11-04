@@ -313,8 +313,10 @@ bool GenfitTrack::addSpacePointMeasurement(const TVectorD& pos,
         if(m_debug>=0) std::cout<<m_name<<" Error: no detType!"<<std::endl;
         return false;
     }
-    float sigmaX=sigmaU[sigmaUID]*dd4hep::mm;
-    float sigmaY=sigmaU[sigmaUID]*dd4hep::mm;
+    float sigmaX=sigmaU[sigmaUID]*dd4hep::mm;//*cos(atan2(pos_smeared[1],pos_smeared[0]));
+std::cout << " sigmaX= " << sigmaX << std::endl;
+    float sigmaY=sigmaU[sigmaUID]*dd4hep::mm;//*sin(atan2(pos_smeared[1],pos_smeared[0]));
+std::cout << " sigmaY= " << sigmaY << std::endl;
     float sigmaZ=sigmaV[sigmaVID]*dd4hep::mm;
     if(smear){
         pos_smeared[0]+=gRandom->Gaus(0,sigmaX);
