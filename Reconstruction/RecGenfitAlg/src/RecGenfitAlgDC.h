@@ -119,8 +119,19 @@ class RecGenfitAlgDC:public GaudiAlgorithm {
         Gaudi::Property<bool> m_useFirstHitAsSeed{this,"useFirstHitAsSeed",false};
         Gaudi::Property<bool> m_smearTrack{this,"smearTrack",false};
         Gaudi::Property<bool> m_smearHit{this,"smearHit",true};
-        Gaudi::Property<std::vector<float> > m_sigmaHitU{this,"sigmaHit",{0.11,0.003,0.003,0.003,0.003}};//mm,0:DC,...TODO
-        Gaudi::Property<std::vector<float> > m_sigmaHitV{this,"sigmaHit",{10,0.003,0.003,0.003,0.003}};//mm,0:DC,...TODO
+        Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
+            "sigmaHitU",{0.11, // DC z
+                0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
+                    0.0072, //SIT V 4 layers same resolusion
+                    0.0072, //SET V
+                    0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
+        //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
+        Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
+            "sigmaHitV",{0.2, // DC z
+                0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
+                    0.086, //SIT V
+                    0.086, //SET V
+                    0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         Gaudi::Property<float> m_sigmaDrift{this,"sigmaDrift",0.11};//mm
         Gaudi::Property<float> m_nSigmaHit{this,"nSigmaHit",5};
         Gaudi::Property<int> m_sortMethod{this,"sortMethod",0};
