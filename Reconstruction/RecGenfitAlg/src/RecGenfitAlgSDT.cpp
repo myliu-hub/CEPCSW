@@ -92,6 +92,8 @@ StatusCode RecGenfitAlgSDT::initialize()
             m_skipWireMaterial);
     m_genfitFitter->setEnergyLossBrems(m_correctBremsstrahlung);
     m_genfitFitter->setNoiseBrems(m_correctBremsstrahlung);
+    //m_genfitFitter->setMultipleMeasurementHandling(
+            //genfit::eMultipleMeasurementHandling(m_multipleMeasurementHandling.value()));
     if(m_debug>10) m_genfitFitter->setDebug(m_debug-10);
     if(m_noMaterialEffects) m_genfitFitter->setNoEffects(true);
     if(-1==m_debugPid) m_genfitFitter->setNoEffects(true);

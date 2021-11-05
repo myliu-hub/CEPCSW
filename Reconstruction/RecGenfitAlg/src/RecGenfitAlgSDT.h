@@ -21,6 +21,7 @@
 #include "k4FWCore/DataHandle.h"
 #include "DD4hep/Fields.h"
 #include <string>
+#include "AbsKalmanFitter.h"
 
 class GenfitFitter;
 class GenfitField;
@@ -157,6 +158,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<std::vector<float> > m_hitError{this,"hitError",
             {0.007,0.007,0.03}};
         Gaudi::Property<double> m_extMinDistCut{this,"extMinDistCut",1e-4};
+        Gaudi::Property<int> m_multipleMeasurementHandling{this,
+            "multipleMeasurementHandling",
+            (int) genfit::eMultipleMeasurementHandling::unweightedClosestToPredictionWire};
         int m_fitSuccess[5];
         int m_nRecTrack;
         bool m_firstTuple;

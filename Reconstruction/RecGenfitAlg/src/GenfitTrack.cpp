@@ -273,10 +273,6 @@ bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
         std::vector<float> sigmaU,std::vector<float> sigmaV,int cellID,int hitID)
 {
     TVectorD pos_smeared(3);
-    if(m_debug){
-        std::cout<<"addSpacePointMeasurement pos "<<std::endl;
-        pos.Print();
-    }
     for(int i=0;i<3;i++) pos_smeared[i]=pos(i)*dd4hep::mm;
 
     /// New a SpacepointMeasurement
@@ -286,6 +282,11 @@ bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
     hitCov.Zero();
     //smear 3d track position
     int detTypeID=getDetTypeID(cellID);
+
+    if(m_debug){
+        std::cout<<"detTypeID "<<detTypeID<<"addSpacePointMeasurement pos "<<std::endl;
+        pos.Print();
+    }
 
     int sigmaUID=0;
     int sigmaVID=0;
@@ -315,9 +316,12 @@ bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
         return false;
     }
 
-    if(m_debug) std::cout<<" sigmaUID "<<sigmaUID<<" sigmaVID "<<sigmaVID<<std::endl;
-    std::cout<<" "<<__LINE__<<" pos "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "<<pos_smeared[2]<<std::endl;
-    std::cout<<" "<<__LINE__<<" angle "<<atan2(pos_smeared[1],pos_smeared[0])<<std::endl;
+    if(m_debug){
+        std::cout<<"sigmaUID "<<sigmaUID<<" sigmaVID "<<sigmaVID<<std::endl;
+        std::cout<<"pos "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "<<pos_smeared[2]<<std::endl;
+        std::cout<<"angle "<<atan2(pos_smeared[1],pos_smeared[0])<<std::endl;
+        std::cout<<"sigmaU "<<sigmaU[sigmaUID]<<" sigmaV "<<sigmaV[sigmaVID]<<std::endl;
+    }
     float sigmaX=sigmaU[sigmaUID]*dd4hep::mm*cos(atan2(pos_smeared[1],pos_smeared[0]));
     float sigmaY=sigmaU[sigmaUID]*dd4hep::mm*sin(atan2(pos_smeared[1],pos_smeared[0]));
     float sigmaZ=sigmaV[sigmaVID]*dd4hep::mm;
@@ -326,14 +330,17 @@ bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
         pos_smeared[1]+=gRandom->Gaus(0,sigmaY);
         pos_smeared[2]+=gRandom->Gaus(0,sigmaZ);
     }
-    hitCov(0,0)=sigmaX*sigmaX;//FIXME
-    hitCov(1,1)=sigmaX*sigmaX;//FIXME
-    hitCov(2,2)=sigmaX*sigmaX;//FIXME
+    //hitCov(0,0)=sigmaX*sigmaX;//FIXME
+    //hitCov(1,1)=sigmaX*sigmaX;//FIXME
+    //hitCov(2,2)=sigmaX*sigmaX;//FIXME
+    hitCov(0,0)=sigmaU[sigmaUID]*sigmaU[sigmaUID]*dd4hep::mm*dd4hep::mm;//FIXME
+    hitCov(1,1)=sigmaU[sigmaUID]*sigmaU[sigmaUID]*dd4hep::mm*dd4hep::mm;//FIXME
+    hitCov(2,2)=sigmaV[sigmaVID]*sigmaV[sigmaVID]*dd4hep::mm*dd4hep::mm;//FIXME
 
     if(m_debug>=2){
         std::cout<<m_name<<" hit "<<hitID<<" detTypeID "<<detTypeID
             <<" pos_smeared "<<pos_smeared[0]<<" "<<pos_smeared[1]
-            <<" "<<pos_smeared[2]<<" "<<" hitCov cm"<<std::endl;
+            <<" "<<pos_smeared[2]<<" "<<" hitCov (0,0) "<<hitCov(0,0)<<" cm"<<std::endl;
         hitCov.Print();
     }
 
@@ -1052,7 +1059,7 @@ int GenfitTrack::addSpacePointsSi(const edm4hep::Track& track,
         edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
         edm4hep::Vector3d pos=hit.getPosition();
 
-        std::cout<<" "<<__LINE__<<" addSpacePointsSi hit "<<hit<<std::endl;
+        if(m_debug>0)std::cout<<" addSpacePointsSi hit "<<hit<<std::endl;
         TVector3 p(pos.x,pos.y,pos.z);
 
         p.Print();
@@ -1110,7 +1117,7 @@ int GenfitTrack::addSpacePointsDC(const edm4hep::Track& track,
         edm4hep::Vector3d pos=dCTrackerHit.getPosition();
         TVector3 p(pos.x,pos.y,pos.z);
 
-        std::cout<<" "<<__LINE__<<" addSpacePointsDC hit "<<dCTrackerHit<<std::endl;
+        if(m_debug) std::cout<<"addSpacePointsDC hit "<<dCTrackerHit<<std::endl;
         unsigned long long cellID=dCTrackerHit.getCellID();
         if(addSpacePointMeasurement(p,sigmaU,sigmaV,dCTrackerHit.getCellID()
                     ,nHitAdd)){
