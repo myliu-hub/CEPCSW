@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
-       xmlns:xs="http://www.w3.org/2001/XMLSchema"
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+<lccdd>
 
   <info name="DriftChamber"
-    title="Test with Drift Chamber"
+    title="Drift Chamber"
     author="Tao Lin"
     url="http://github.com/cepc/CEPCSW"
     status="development"
-    version="v0">
-    <comment>Test with Drift Chamber</comment>
+    version="v2">
+    <comment>Drift Chamber</comment>
   </info>
 
   <includes>
     <gdmlFile  ref="elements.xml"/>
     <gdmlFile  ref="materials.xml"/>
   </includes>
-
 
   <define>
     <constant name="world_size" value="2990*mm"/>
@@ -25,7 +22,7 @@
     <constant name="world_z" value="world_size"/>
 
     <!-- SDT -->
-    <constant name="DetID_DC"  value="7"/>
+    <constant name="DetID_DC"  value="4"/>
 
     <constant name="DC_safe_distance" value="0.02*mm"/>
 
@@ -35,23 +32,28 @@
     <constant name="DC_chamber_layer_rbegin" value="800*mm"/>
     <constant name="DC_chamber_layer_rend" value="1800*mm"/>
 
+    <constant name="DC_chamber_safe_distance" value="10*mm"/>
+
+    <constant name="DC_chamber_layer_number" value="100"/>
+
     <constant name="SDT_radius_min" value="DC_chamber_layer_rbegin-SDT_inner_wall_thickness-DC_safe_distance"/>
-    <constant name="SDT_radius_max" value="DC_chamber_layer_rend+SDT_outer_wall_thickness+DC_safe_distance"/>
+    <constant name="SDT_radius_max" value="DC_chamber_layer_rend+DC_chamber_safe_distance+SDT_outer_wall_thickness+DC_safe_distance"/>
 
     <constant name="DC_Endcap_dz" value="0.1*mm"/>
 
-    <constant name="SDT_half_length" value="2980*mm+DC_Endcap_dz"/>
-    <constant name="DC_half_length" value="2980*mm"/>
+    <constant name="SDT_half_length" value="2980*mm+DC_Endcap_dz+DC_safe_distance"/>
     <constant name="SDT_length" value="SDT_half_length*2"/>
-    <constant name="DC_length" value="SDT_length-DC_Endcap_dz*2"/>
+
+    <constant name="DC_half_length" value="2980*mm"/>
+    <constant name="DC_length" value="DC_half_length*2"/>
 
     <constant name="SDT_chamber_radius_min" value="DC_chamber_layer_rbegin-DC_safe_distance"/>
-    <constant name="SDT_chamber_radius_max" value="DC_chamber_layer_rend+DC_safe_distance"/>
+    <constant name="SDT_chamber_radius_max" value="DC_chamber_layer_rend+DC_chamber_safe_distance+DC_safe_distance"/>
     <constant name="SDT_chamber_half_length" value="DC_half_length"/>
 
     <constant name="SDT_chamber_layer_width" value="10*mm"/>
     <constant name="SDT_chamber_cell_width" value="10*mm"/>
-    <constant name="Alpha" value="0*deg"/>
+    <constant name="Alpha" value="12*deg"/>
 
     <constant name="SDT_chamber_inner_wall_radius_min" value="SDT_chamber_radius_min-SDT_inner_wall_thickness"/>
     <constant name="SDT_chamber_inner_wall_radius_max" value="SDT_chamber_radius_min"/>
@@ -60,6 +62,8 @@
 
     <constant name="DC_Endcap_rmin" value="SDT_radius_min"/>
     <constant name="DC_Endcap_rmax" value="SDT_radius_max"/>
+
+    <constant name="DC_construct_wire" value="0"/>
 
   </define>
 
