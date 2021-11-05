@@ -154,7 +154,7 @@ StatusCode DCHDigiAlg::execute()
     //std::cout<<"dd4hep_mm="<<dd4hep_mm<<std::endl;
     //    Wstart =(1/dd4hep_mm)* Wstart;// from DD4HEP cm to mm
     //    Wend   =(1/dd4hep_mm)* Wend  ;
-    if(m_debug) std::cout<<"DCHDigi wcellid="<<wcellid<<",chamber="<<chamber<<",layer="<<layer<<",cellID="<<cellID<<",s_x="<<Wstart.x()<<",s_y="<<Wstart.y()<<",s_z="<<Wstart.z()<<",E_x="<<Wend.x()<<",E_y="<<Wend.y()<<",E_z="<<Wend.z()<<std::endl;
+    if(m_debug) std::cout<<"DCHDigi wcellid ="<<wcellid<< ",chamber="<<chamber<<",layer="<<layer<<",cellID="<<cellID<<",s_x="<<Wstart.x()<<",s_y="<<Wstart.y()<<",s_z="<<Wstart.z()<<",E_x="<<Wend.x()<<",E_y="<<Wend.y()<<",E_z="<<Wend.z()<<std::endl;
 
     TVector3  denominator = (Wend-Wstart) ;
     float min_distance = 999 ;
@@ -189,7 +189,6 @@ StatusCode DCHDigiAlg::execute()
         distance = m_segmentation->Distance(wcellid,pos_start,pos_end,hitPosition);
 
        // std::cout << " Steplength= " << Steplength << std::endl;
-       // std::cout<<"tmp_distance="<<tmp_distance<<",x="<<pos.x()<<",y="<<pos.y()<<",z="<<pos.z()<<",mom="<<sim_hit_mom<<",pt="<<sim_hit_pt<<std::endl;
 
         if(tmp_distance < min_distance){
             min_distance = tmp_distance;
