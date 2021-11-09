@@ -76,12 +76,9 @@ public:
   inline double cell_Size() const { return m_cellSize; }
   inline double epsilon() const { return m_epsilon; }
   inline double detectorLength() const { return m_detectorLength; }
-  inline double safe_distance() const { return m_safe_distance; }
   inline double layer_width() const { return m_layer_width; }
   inline double DC_rbegin() const { return m_DC_rbegin; }
   inline double DC_rend() const { return m_DC_rend; }
-  inline double DC_rmax() const { return m_DC_rmax; }
-  inline double DC_rmin() const { return m_DC_rmin; }
   inline const std::string& fieldNamePhi() const { return m_phiID; }
   inline const std::string& Layerid() const { return layer_id; }
 
@@ -182,11 +179,8 @@ protected:
 //  double m_epsilon0;
   double m_detectorLength;
   double m_layer_width;
-  double m_safe_distance;
   double m_DC_rbegin;
   double m_DC_rend;
-  double m_DC_rmax;
-  double m_DC_rmin;
 
   std::string m_phiID;
   std::string layer_id;

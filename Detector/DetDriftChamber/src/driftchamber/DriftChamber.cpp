@@ -48,29 +48,30 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     dd4hep::SensitiveDetector sd = sens;
 
     // - global
-    double chamber_half_length = theDetector.constant<double>("DC_half_length");
+    double chamber_half_length = theDetector.constant<double>("Gas_half_length");
     double chamber_length = chamber_half_length*2;
 
-    // - chamber
-    double chamber_radius_min = theDetector.constant<double>("SDT_chamber_radius_min");
-    double chamber_radius_max = theDetector.constant<double>("SDT_chamber_radius_max");
-    //double SDT_half_length = theDetector.constant<double>("SDT_chamber_half_length");
+    double alpha = theDetector.constant<double>("Alpha");
+
+    double safe_distance = theDetector.constant<double>("DC_safe_distance");
+
+    double DC_inner_wall_thickness = theDetector.constant<double>("DC_inner_wall_thickness");
+    double DC_outer_wall_thickness = theDetector.constant<double>("DC_outer_wall_thickness");
+
+    // - chamber gas
+    double DC_rend = theDetector.constant<double>("DC_rend");
+
+    double chamber_radius_min = theDetector.constant<double>("Gas_radius_min");
+    double chamber_radius_max = DC_rend-safe_distance-DC_outer_wall_thickness;
+    double layer_radius_max = chamber_radius_max*std::cos(alpha);
     int chamberID = x_chamber.id();
 
     // - layer
-    double chamber_layer_width  = theDetector.constant<double>("SDT_chamber_layer_width");
-    double chamber_layer_rbegin = theDetector.constant<double>("DC_chamber_layer_rbegin");
-    double chamber_layer_rend = theDetector.constant<double>("DC_chamber_layer_rend");
-    int chamber_layer_number = theDetector.constant<int>("DC_chamber_layer_number");
+    int DC_layer_number = theDetector.constant<int>("DC_layer_number");
 
-    if(chamber_layer_rbegin+(chamber_layer_number*chamber_layer_width)>chamber_layer_rend){
-        std::cout << "Error! chamber_layer_rend too small! " << std::endl;
-    }
+    double layer_width = (layer_radius_max-chamber_radius_min)/DC_layer_number;
 
-    double cell_size = theDetector.constant<double>("SDT_chamber_cell_width");
-
-    double safe_distance = theDetector.constant<double>("DC_safe_distance");
-    double alpha = theDetector.constant<double>("Alpha");
+    double cell_width = theDetector.constant<double>("DC_cell_width");
 
     int DC_construct_wire = theDetector.constant<int>("DC_construct_wire");
 
@@ -97,10 +98,10 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     dd4hep::Volume det_chamber_vol(det_name+"_chamber_vol", det_chamber_solid, chamber_mat);
 
     /// - wall
-    double chamber_inner_wall_rmin = theDetector.constant<double>("SDT_chamber_inner_wall_radius_min");
-    double chamber_inner_wall_rmax = theDetector.constant<double>("SDT_chamber_inner_wall_radius_max");
-    double chamber_outer_wall_rmin = theDetector.constant<double>("SDT_chamber_outer_wall_radius_min");
-    double chamber_outer_wall_rmax = theDetector.constant<double>("SDT_chamber_outer_wall_radius_max");
+    double chamber_inner_wall_rmin = theDetector.constant<double>("DC_inner_wall_radius_min");
+    double chamber_inner_wall_rmax = theDetector.constant<double>("DC_inner_wall_radius_max");
+    double chamber_outer_wall_rmin = chamber_radius_max+safe_distance;
+    double chamber_outer_wall_rmax = chamber_outer_wall_rmin+DC_outer_wall_thickness;
 
     dd4hep::Material wall_mat(theDetector.material(x_side.materialStr()));
 
@@ -153,13 +154,13 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
 
     /// - construct layers
     int chamber_id = 0;
-    for(int layer_id = 0; layer_id < chamber_layer_number; layer_id++) {
+    for(int layer_id = 0; layer_id < DC_layer_number; layer_id++) {
         dd4hep::Volume* current_vol_ptr = nullptr;
-        double layer_rmin = chamber_layer_rbegin+(layer_id*chamber_layer_width);
-        double layer_rmax = layer_rmin+chamber_layer_width;
+        double layer_rmin = chamber_radius_min+(layer_id*layer_width);
+        double layer_rmax = layer_rmin+layer_width;
         double rmid_zZero = (layer_rmin+layer_rmax)/2.;  // z=0
-        //double rmid_zEnd = rmid_zZero/std::cos(alpha/2);  //  z=endcap
-        int nCell = floor((2. * M_PI * rmid_zZero) / chamber_layer_width);
+        double rmid_zEnd = rmid_zZero/std::cos(alpha/2);  //  z=endcap
+        int nCell = floor((2. * M_PI * rmid_zZero) / layer_width);
         int nWire = nCell;
         if(!DC_construct_wire) nWire =0;
         double cell_phi = 2*M_PI / nCell;
@@ -174,24 +175,15 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
         double epsilon = sign_eps*std::atan(rmid_zZero * std::tan(alpha / 2.0) / chamber_half_length);
         //double alpha0 = 2*std::asin(chamber_length * std::tan(epsilon)/(2*rmid_zEnd));
 
-        segmentationDC->setGeomParams(chamber_id, layer_id, cell_phi, rmid_zZero , epsilon, offset);
+        segmentationDC->setGeomParams(chamber_id, layer_id, cell_phi, rmid_zEnd , epsilon, offset);
         segmentationDC->setWiresInLayer(chamber_id, layer_id, nCell);
-
-        std::cout << " DetDriftChamber ---- "
-            << " alpha = " << alpha
-            << " layer id = " << layer_id
-            << " cell_phi = " << cell_phi
-            << " epsilon = " << epsilon
-            << " offset= " << offset
-            << std::endl;
-
 
         double r_in_test = rmid_zZero*std::cos(alpha / 2.0);
 
-        double r_in0 = rmid_zZero - cell_size / 2.0;//
+        double r_in0 = rmid_zZero - layer_width / 2.0;//
         double r_in = r_in0 / std::cos(alpha / 2.0);//layer min at z=half length
 
-        double r_out0 = rmid_zZero + cell_size / 2.0;
+        double r_out0 = rmid_zZero + layer_width / 2.0;
         double r_out = r_out0 / std::cos(alpha / 2.0);
 
         double delta_a_in = delta_b_func(r_in, r_in0);
@@ -199,20 +191,6 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
 
         double eps_in = epsilon_func(delta_a_in, chamber_length );
         double eps_out = epsilon_func(delta_a_out, chamber_length );
-
-//        std::cout << " Hyperboloid ------ "
-//            << " alpha = " << alpha
-//            << " r_in_test = " << r_in_test
-//            << " r_in0 = " << r_in0
-//            << " r_in = " << r_in
-//            << " r_out0 = " << r_out0
-//            << " r_out = " << r_out
-//            << " delta_a_in = " << delta_a_in
-//            << " delta_a_out = " << delta_a_out
-//            << " eps_in = " << eps_in 
-//            << " eps_out = " << eps_out
-//            << std::endl;
-
 
         /// create hyper layer volume
         dd4hep::Hyperboloid layer_vol_solid(r_in0, eps_in, r_out0, eps_out, chamber_half_length);
@@ -236,7 +214,7 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
         //--------------------
         // loop over cells
         for(int icell=0; icell<nWire; icell++) {
-            double wire_phi = (icell+0.5)*cell_phi + offset;
+            double wire_phi = icell*cell_phi + offset;
 
             // - signal wire
             dd4hep::RotationZ rz(wire_phi);
@@ -246,10 +224,10 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
 
             (*current_vol_ptr).placeVolume(signalWireVolume,transform_signal_wire);
             // - Field wire
-            double radius[5] = {rmid_zZero-chamber_layer_width*0.5+safe_distance,rmid_zZero-chamber_layer_width*0.5+safe_distance,rmid_zZero,rmid_zZero+chamber_layer_width*0.5-safe_distance,rmid_zZero+chamber_layer_width*0.5-safe_distance};
+            double radius[5] = {rmid_zZero-layer_width*0.5+safe_distance,rmid_zZero-layer_width*0.5+safe_distance,rmid_zZero,rmid_zZero+layer_width*0.5-safe_distance,rmid_zZero+layer_width*0.5-safe_distance};
             double phi[5] = {wire_phi,wire_phi-cell_phi*0.5,wire_phi-cell_phi*0.5,wire_phi-cell_phi*0.5,wire_phi};
             int num = 3;
-            if(layer_id==(chamber_layer_number-1)) {
+            if(layer_id==(DC_layer_number-1)) {
                 num = 5;
             }
             for(int i=0; i<num ; i++) {

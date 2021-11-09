@@ -22,16 +22,12 @@ GridDriftChamber::GridDriftChamber(const BitFieldCoder* decoder) : Segmentation(
   _description = "Drift chamber segmentation in the global coordinates";
 
   registerParameter("cell_size", "cell size", m_cellSize, 1., SegmentationParameter::LengthUnit);
-//  registerParameter("epsilon0", "epsilon", m_epsilon0, 0., SegmentationParameter::AngleUnit, true);
   registerParameter("detector_length", "Length of the wire", m_detectorLength, 1., SegmentationParameter::LengthUnit);
   registerIdentifier("identifier_phi", "Cell ID identifier for phi", m_phiID, "cellID");
   registerIdentifier("layerID", "layer id", layer_id, "layer");
-  registerParameter("safe_distance", "safe_distance", m_safe_distance, 0., SegmentationParameter::LengthUnit);
   registerParameter("layer_width", "layer_width", m_layer_width, 0., SegmentationParameter::LengthUnit);
   registerParameter("DC_rbegin", "DC_rbegin", m_DC_rbegin, 0., SegmentationParameter::LengthUnit);
   registerParameter("DC_rend", "DC_rend", m_DC_rend, 0., SegmentationParameter::LengthUnit);
-  registerParameter("DC_rmin", "DC_rmin", m_DC_rmin, 0., SegmentationParameter::LengthUnit);
-  registerParameter("DC_rmax", "DC_rmax", m_DC_rmax, 0., SegmentationParameter::LengthUnit);
 }
 
 Vector3D GridDriftChamber::position(const CellID& /*cID*/) const {
@@ -47,56 +43,26 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
   int chamberID = _decoder->get(cID, "chamber");
   int layerid = _decoder->get(cID, "layer");
 
-  std::cout << "layer = " << layerid << std::endl;
-
   double posx = globalPosition.X;
   double posy = globalPosition.Y;
   double posz = globalPosition.Z;
-  Vector3D wire0 = returnPosWire0(posz);
-  double R_in = sqrt(wire0.X*wire0.X+wire0.Y*wire0.Y);
-
-  std::cout<< "POSZ = " << posz << " R_in = " << R_in << " Wire0 X = " << wire0.X << " Wire0 Y = " << wire0.Y  <<" Wire0 Z = " << wire0.Z << std::endl;
-  double phi_wire0 = phiFromXY(wire0);
 
   updateParams(chamberID,layerid);
 
   TVector3 Phi0 = returnPhi0(chamberID,layerid,posz);
   double phi0 = phiFromXY2(Phi0);
 
-  std::cout<< " Phi0 X = " << Phi0.X() << " Phi0 Y = " << Phi0.Y() << " Phi0 Z = " << Phi0.Z() << " Phi0 = " << phi0 << std::endl;
-
   double phi_hit = phiFromXY(globalPosition);
   double offsetphi= m_offset;
   double _lphi;
 
-  //if(phi_hit >= (offsetphi+phi0)) {
-  //  _lphi = (int) ((phi_hit - _currentLayerphi - phi0)/ _currentLayerphi);
-  //}
-  //else {
-  _lphi = phi_hit - _currentLayerphi/2. - phi0;
+  _lphi = phi_hit - phi0 + _currentLayerphi/2.;
   if(_lphi<0.){
       _lphi+=2*M_PI;
   }else if(_lphi>2*M_PI){
       _lphi=fmod(_lphi,2*M_PI);
   }
   int cellID=floor(_lphi/_currentLayerphi);
-  //}
-
-
-  std::cout << "#######################################: "
-      << " posx= " << posx
-      << " posy= " << posy
-      << " posz= " << posz
-      << " phi_hit: " << phi_hit
-      << " phi_wire0: " << phi_wire0
-      << " _lphi: " << _lphi
-      << " cellID: " << cellID
-      << " offset : " << m_offset
-      << " offsetphi: " << offsetphi
-      << " layerID: " << layerid
-      << " r: " << _currentRadius
-      << " layerphi: " << _currentLayerphi
-      << std::endl;
 
   _decoder->set(cID, m_phiID, cellID);
 
@@ -116,10 +82,9 @@ void GridDriftChamber::cellposition(const CellID& cID, TVector3& Wstart,
     updateParams(chamberIndex,layerIndex);
 
     double phi_start = phi(cID);
-    double phi_mid = phi_start + _currentLayerphi/2.;
-    double phi_end = phi_mid + returnAlpha();
+    double phi_end = phi_start + returnAlpha();
 
-    Wstart = returnWirePosition(phi_mid, -1);
+    Wstart = returnWirePosition(phi_start, -1);
     Wend = returnWirePosition(phi_end, 1);
 }
 
@@ -127,8 +92,7 @@ TVector3 GridDriftChamber::returnPhi0(int chamber,int layer, double z) const
 {
     updateParams(chamber,layer);
 
-    double phi_cell_start = binToPosition(0 , _currentLayerphi, m_offset);
-    double phi_wire_start = phi_cell_start + _currentLayerphi/2.;
+    double phi_wire_start = binToPosition(0 , _currentLayerphi, m_offset);
     double phi_wire_end = phi_wire_start + returnAlpha();
 
     TVector3 wire_start = returnWirePosition(phi_wire_start, -1);
@@ -146,10 +110,9 @@ void GridDriftChamber::cellposition2(int chamber,int layer, int cell,
         TVector3& Wstart, TVector3& Wend) const {
     updateParams(chamber,layer);
     double phi_start = binToPosition(cell, _currentLayerphi, m_offset);
-    double phi_mid = phi_start + _currentLayerphi/2.;
-    double phi_end = phi_mid + returnAlpha();
+    double phi_end = phi_start + returnAlpha();
 
-    Wstart = returnWirePosition(phi_mid, -1);
+    Wstart = returnWirePosition(phi_start, -1);
     Wend = returnWirePosition(phi_end, 1);
 }
 
