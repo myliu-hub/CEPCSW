@@ -103,7 +103,12 @@ class GenfitTrack {
 
 
     ///Add WireMeasurements of hits on track
-    virtual int addWireMeasurements(edm4hep::Track& track,float sigma,
+    virtual int addWireMeasurementsOnTrack(edm4hep::Track& track,float sigma,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            int sortMethod,bool truthAmbig,float skipCorner, float skipNear);
+
+    ///Add WireMeasurements of hits on track from hit selection
+    virtual int addWireMeasurementsFromList(std::vector<edm4hep::ConstTrackerHit> hits,float sigma,
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
             int sortMethod,bool truthAmbig,float skipCorner, float skipNear);
 
@@ -113,7 +118,7 @@ class GenfitTrack {
 
     ///Add silicon measurements, return number of hits on track
     int addSiliconMeasurements(edm4hep::Track& track,
-            std::vector<float> sigmaU,std::vector<float> sigmaV);
+            std::vector<float> sigmaU,std::vector<float> sigmaV,bool isInner=true);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,

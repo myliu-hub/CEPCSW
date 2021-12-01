@@ -307,10 +307,15 @@ StatusCode TruthTrackerAlg::execute()
         if(m_useIdealHit){
             nDCHitDCTk=addIdealHitsToTk(m_DCDigiCol,truthTrackerHitCol,dcTrack,
                     "DC digi",nDCHitDCTk);
+            if(!m_useSi){
+                nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
+            }
         }else{
             nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
+            if(!m_useSi){
+                nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
+            }
         }
-        if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
 
         //track.setType();//TODO
         //track.setChi2(gauss(digiDCHitsCol->size-5(),1));//FIXME

@@ -21,6 +21,7 @@
 #include "k4FWCore/DataHandle.h"
 #include "DD4hep/Fields.h"
 #include <string>
+#include <vector>
 #include "AbsKalmanFitter.h"
 
 class GenfitFitter;
@@ -48,6 +49,8 @@ namespace edm4hep{
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticle;
     class ReconstructedParticleCollection;
+    class ConstTrackerHit;
+    class Track;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -67,6 +70,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                 double eventStartTime);
 
         void debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol);
+        void selectHits(const edm4hep::Track&, std::vector<edm4hep::ConstTrackerHit>& dcDigiSelected);
 
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
@@ -161,6 +165,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<int> m_multipleMeasurementHandling{this,
             "multipleMeasurementHandling",
             (int) genfit::eMultipleMeasurementHandling::unweightedClosestToPredictionWire};
+        Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};
+        Gaudi::Property<bool> m_selectDCHit{this,"selectDCHit",true};
+        Gaudi::Property<double> m_docaCut{this,"docaCut",0.33};//cm
         int m_fitSuccess[5];
         int m_nRecTrack;
         bool m_firstTuple;
@@ -250,6 +257,31 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_mdcHitExpMcPocaWireX;
         NTuple::Array<double> m_mdcHitExpMcPocaWireY;
         NTuple::Array<double> m_mdcHitExpMcPocaWireZ;
+
+        NTuple::Array<double> m_dcDigiChamber;
+        NTuple::Array<double> m_dcDigiLayer;
+        NTuple::Array<double> m_dcDigiCell;
+        NTuple::Array<double> m_dcDigiTime;
+        NTuple::Array<double> m_dcDigiDocaMC;
+        NTuple::Array<double> m_dcDigiPocaOnWireMCX;
+        NTuple::Array<double> m_dcDigiPocaOnWireMCY;
+        NTuple::Array<double> m_dcDigiWireStartX;
+        NTuple::Array<double> m_dcDigiWireStartY;
+        NTuple::Array<double> m_dcDigiWireStartZ;
+        NTuple::Array<double> m_dcDigiWireEndX;
+        NTuple::Array<double> m_dcDigiWireEndY;
+        NTuple::Array<double> m_dcDigiWireEndZ;
+        NTuple::Array<double> m_dcDigiMcPosX;
+        NTuple::Array<double> m_dcDigiMcPosY;
+        NTuple::Array<double> m_dcDigiMcPosZ;
+        NTuple::Array<double> m_dcDigiMcMomX;
+        NTuple::Array<double> m_dcDigiMcMomY;
+        NTuple::Array<double> m_dcDigiMcMomZ;
+        NTuple::Array<double> m_dcDigiDocaExt;
+        NTuple::Array<double> m_dcDigiPocaExtX;
+        NTuple::Array<double> m_dcDigiPocaExtY;
+        NTuple::Array<double> m_dcDigiPocaExtZ;
+        NTuple::Item<double> m_firstMomMc;
 
 };
 #endif

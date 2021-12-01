@@ -429,8 +429,11 @@ GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
 
     ///Get measurement and cov
     TVectorD hitCoords(2);
-    hitCoords(0)=atan2(o.y(),o.x());
-    hitCoords(1)=o.z();
+    TVector3 p(hit.getPosition().x*dd4hep::mm,hit.getPosition().y*dd4hep::mm,
+            hit.getPosition().z*dd4hep::mm);
+    hitCoords(0)=(p-o).Dot(u);
+    hitCoords(1)=(p-o).Dot(v);
+    std::cout<<"yzhang debug hitCoords cm "<<hitCoords(0)<<" "<<hitCoords(1)<<std::endl;
     TMatrixDSym hitCov(2);
     hitCov.Zero();
     hitCov(0,0)=sigmaU*sigmaU;
@@ -452,6 +455,7 @@ GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
         std::cout<<"u "<<u.x()<<" "<<u.y()<<" "<<u.z()<<std::endl;
         std::cout<<"v "<<v.x()<<" "<<v.y()<<" "<<v.z()<<std::endl;
         std::cout<<"o "<<o.x()<<" "<<o.y()<<" "<<o.z()<<std::endl;
+        std::cout<<"p "<<p.x()<<" "<<p.y()<<" "<<p.z()<<std::endl;
         std::cout<<"hitCoords "<<hitCoords(0)<<" "<<hitCoords(1)<<std::endl;
         std::cout<<"hitCov "<<hitCov(0,0)<<" "<<hitCov(1,1)<<std::endl;
     }
@@ -460,7 +464,7 @@ GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
 }
 
 int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track,
-        std::vector<float> sigmaU,std::vector<float> sigmaV)
+        std::vector<float> sigmaU,std::vector<float> sigmaV,bool isInner)
 {
     dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
     ///Get TrackerHit on Track
@@ -493,6 +497,8 @@ int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track,
         if(m_debug>0){
             std::cout<<sigmaU[sigmaUID]<<" "<<sigmaV[sigmaVID]<<"mm "<<std::endl;
         }
+        if(isInner&&(sigmaUID==8)) continue;
+        if((!isInner)&&(sigmaUID!=8)) continue;
         addSiliconMeasurement(hit,sigmaU[sigmaUID]*dd4hep::mm,
                 sigmaV[sigmaVID]*dd4hep::mm,cellID,nHitAdd++);
     }
@@ -500,28 +506,17 @@ int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track,
 }
 
 //Add wire measurement on wire, unit conversion here
-int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
+int GenfitTrack::addWireMeasurementsFromList(std::vector<edm4hep::ConstTrackerHit> hits,float sigma,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         int sortMethod, bool truthAmbig,float skipCorner,float skipNear)
 {
     int nHitAdd=0;
-    if(m_debug>2) std::cout<<"in GenfitTrack::addWireMeasurements"<<std::endl;
-    if(0==track.trackerHits_size()){
-        if(m_debug>0) std::cout<<"No hit on track"<<std::endl;
-        return nHitAdd;
-    }
-
     dd4hep::DDSegmentation::BitFieldCoder* m_decoder
         = m_geomSvc->getDecoder("DriftChamberHitsCollection");
 
-    if(m_debug>0){
-        std::cout<<"sort sim hit layer sortMethod "<<sortMethod
-            <<" simTrackerHit "<<std::endl;
-    }
-
     std::vector<std::pair<double,edm4hep::ConstTrackerHit> > sortedDCTrackerHit;
-    for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
-        const edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
+    int iHit=0;
+    for(auto hit:hits){
         if(m_geomSvc->lcdd()->constant<int>("DetID_DC")
                 !=getDetTypeID(hit.getCellID())) continue;//skip non-DC hit
 
@@ -532,16 +527,14 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         double time=simTrackerHitAsso.getTime();
         if(0==sortMethod){
             //by time
-            sortedDCTrackerHit.push_back(std::make_pair(
-                        time,track.getTrackerHits(iHit)));
+            sortedDCTrackerHit.push_back(std::make_pair(time,hit));
         }else{
             //by layer
             sortedDCTrackerHit.push_back(std::make_pair(
-                        m_decoder->get(hit.getCellID(),"layer"),
-                        track.getTrackerHits(iHit)));
+                        m_decoder->get(hit.getCellID(),"layer"),hit));
         }
         if(m_debug>0){
-            std::cout<<"("<<std::setw(2)<<iHit<<","
+            std::cout<<"("<<std::setw(2)<<iHit++<<","
                 <<m_decoder->get(hit.getCellID(),"layer")
                 <<","<<std::setw(3)<<m_decoder->get(hit.getCellID(),"cellID")
                 <<","<<std::setprecision(5)<<time<<") "<<std::endl;
@@ -651,7 +644,7 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
         }
 
         if(m_debug>=2){
-            std::cout<<nHitAdd<<"("<<m_decoder->get(hit.getCellID(),"layer")
+            std::cout<<nHitAdd-1<<"("<<m_decoder->get(hit.getCellID(),"layer")
                 <<","<<m_decoder->get(hit.getCellID(),"cellID")
                 <<") wire(" <<endPointStart.X()
                 <<","<<endPointStart.Y()<<"," <<endPointStart.Z()<<") ("
@@ -661,8 +654,35 @@ int GenfitTrack::addWireMeasurements(edm4hep::Track& track,float sigma,
                 <<" dd "<<driftDistance
                 <<" ddSm "<<driftDistanceSmeared
                 <<" sigma "<<sigma*dd4hep::mm<<"cm lr "<<lrAmbigFlag<<std::endl;
+
         }
+    }//end of loop over sotred hits
+    return nHitAdd;
+}
+
+//Add wire measurement on wire, unit conversion here
+int GenfitTrack::addWireMeasurementsOnTrack(edm4hep::Track& track,float sigma,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        int sortMethod, bool truthAmbig,float skipCorner,float skipNear)
+{
+    int nHitAdd=0;
+    if(m_debug>2) std::cout<<"in GenfitTrack::addWireMeasurementsOnTrack"<<std::endl;
+    if(0==track.trackerHits_size()){
+        if(m_debug>0) std::cout<<"No hit on track"<<std::endl;
+        return nHitAdd;
     }
+
+    if(m_debug>0){
+        std::cout<<"sort sim hit layer sortMethod "<<sortMethod
+            <<" simTrackerHit "<<std::endl;
+    }
+
+
+    std::vector<edm4hep::ConstTrackerHit> hits;
+    podio::RelationRange<edm4hep::ConstTrackerHit> hits_t=track.getTrackerHits();
+    for(auto h:hits_t){ hits.push_back(h); }
+    nHitAdd=addWireMeasurementsFromList(hits,sigma,assoHits,sortMethod,truthAmbig,skipCorner,skipNear);
+
     return nHitAdd;
 }//end of addWireMeasurements
 
@@ -1000,8 +1020,8 @@ double GenfitTrack::extrapolateToHit( TVector3& poca, TVector3& pocaDir,
 
     //poca = poca*(dd4hep::cm);
     //pocaOnWire = pocaOnWire*(dd4hep::cm);
-    poca.SetZ(0);
-    pocaOnWire.SetZ(0);
+    //poca.SetZ(0);
+    //pocaOnWire.SetZ(0);
     doca = (pocaOnWire-poca).Mag();
     //std::cout<<" debug poca yzhang "<<std::endl;
     //poca.Print();
