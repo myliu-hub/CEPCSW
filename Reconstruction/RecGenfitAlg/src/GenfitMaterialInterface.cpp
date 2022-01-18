@@ -2,6 +2,7 @@
 ///   Authors: ZHANG Yao (zhangyao@ihep.ac.cn)
 ///
 #include "GenfitMaterialInterface.h"
+#include "GenfitUnit.h"
 //Gaudi
 #include "GaudiKernel/Bootstrap.h"
 #include "GaudiKernel/SmartIF.h"
@@ -365,8 +366,13 @@ bool GenfitMaterialInterface::isSameLocation(double posX, double posY,
 #ifdef DEBUG_GENFITGEO
     std::cout<<" MatInt  "<<" posXYZ "<<posX<<" "<<posY<<" "<<posZ<<std::endl;
 #endif
-    return getGeoManager()->IsSameLocation(posX,posY,
-            posZ,change);
+
+    double rootUnitCM=1.;//FIXME
+    //std::cout<<" MatInt  "<<" posXYZ cm "<<posX/rootUnitCM<<" "<<posY/rootUnitCM<<" "<<posZ/rootUnitCM<<std::endl;
+    return getGeoManager()->IsSameLocation(
+        posX/GenfitUnit::cm*rootUnitCM,
+        posY/GenfitUnit::cm*rootUnitCM,
+        posZ/GenfitUnit::cm*rootUnitCM,change);
 }
 
 void GenfitMaterialInterface::setCurrentDirection(double nx, double ny,

@@ -84,6 +84,7 @@ protected:
   Gaudi::Property<float> m_velocity  { this, "drift_velocity", 40};// um/ns
   Gaudi::Property<float> m_mom_threshold { this, "mom_threshold", 0};// GeV
   Gaudi::Property<float> m_mom_threshold_high { this, "mom_threshold_high", 1e9};// GeV
+  Gaudi::Property<float> m_edep_threshold{ this, "edep_threshold", 0};// GeV
   Gaudi::Property<bool>  m_WriteAna { this, "WriteAna", false};
   Gaudi::Property<bool>  m_debug{ this, "debug", false};
 

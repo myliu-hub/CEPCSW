@@ -144,7 +144,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<bool> m_noMaterialEffects{this,
             "noMaterialEffects",false};
         Gaudi::Property<bool> m_skipWireMaterial{this,
-            "skipWireMaterial",false};
+            "skipWireMaterial",true};
         Gaudi::Property<int> m_maxIteration{this,"maxIteration",20};
         Gaudi::Property<int> m_resortHits{this,"resortHits",true};
         Gaudi::Property<double> m_bStart{this,"bStart",100};
@@ -166,7 +166,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "multipleMeasurementHandling",
             (int) genfit::eMultipleMeasurementHandling::unweightedClosestToPredictionWire};
         Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};
-        Gaudi::Property<bool> m_selectDCHit{this,"selectDCHit",true};
+        Gaudi::Property<bool> m_selectDCHit{this,"selectDCHit",false};
         Gaudi::Property<double> m_docaCut{this,"docaCut",0.33};//cm
         int m_fitSuccess[5];
         int m_nRecTrack;

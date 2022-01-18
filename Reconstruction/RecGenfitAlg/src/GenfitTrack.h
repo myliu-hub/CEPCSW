@@ -20,6 +20,7 @@
 #define RECGENFITALG_GENFITTRACK_H
 
 #include "GenfitFitter.h"
+#include "GenfitHit.h"
 
 //ROOT
 #include "TVector3.h"
@@ -34,6 +35,7 @@
 
 class TLorentzVector;
 class IGeomSvc;
+class WireMeasurementDC;
 
 namespace genfit{
     class Track;
@@ -76,10 +78,6 @@ class GenfitTrack {
             SmartIF<IGeomSvc> geom,
             const char* name="GenfitTrack");
     virtual ~GenfitTrack();
-
-    /// ---------Add a Genfit track-------
-    virtual bool createGenfitTrack(int pdgType,int charge,TLorentzVector pos,
-            TVector3 mom, TMatrixDSym covM);
 
     ///Create genfit track from MCParticle
     bool createGenfitTrackFromMCParticle(int pidTyep,const edm4hep::MCParticle&
@@ -133,18 +131,10 @@ class GenfitTrack {
     /// Copy a track to event
     //void CopyATrack()const;
 
-    ///Extrapolate to Hit
-    /// Extrapolate the track to the drift chamber hit
-    /// Output: poca pos and dir and poca distance to the hit wire
-    /// Input: genfit track, pos and mom, two ends of a wire
-    ///        pos, and mom are position & momentum at starting point
-    double extrapolateToHit( TVector3& poca, TVector3& pocaDir,
-            TVector3& pocaOnWire, double& doca, TVector3 pos, TVector3 mom,
-            TVector3 end0,//one end of the hit wire
-            TVector3 end1,//the orhter end of the hit wire
-            int repID,
-            bool stopAtBoundary=false,
-            bool calcJacobianNoise=true) const;
+    //return dd4hep unit
+    double extrapolateToHit(TVector3& poca, TVector3& pocaDir,
+            TVector3& pocaOnWire, double& doca,edm4hep::MCParticle mcParticle,
+            int cellID, int repID, bool stopAtBoundary, bool calcJacobianNoise)const;
     /// Extrapolate the track to the point
     /// Output: pos and mom of POCA point to point
     /// Input: genfitTrack,point,repID,stopAtBoundary and calcAverageState
@@ -207,12 +197,16 @@ class GenfitTrack {
     genfit::Track* getTrack() const{return m_track;}
 
     /// Add a track representation
-    genfit::RKTrackRep* addTrackRep(int pdg);
+    genfit::RKTrackRep* addTrackRep(int pdgType,int charge);
 
     protected:
     //genfit::Track* getTrack() {return m_track;}
 
     private:
+
+    /// ---------Add a Genfit track-------
+    bool createGenfitTrack(int pdgType,int charge,
+            TVectorD trackParam, TMatrixDSym covMInit_6);
 
     int getDetTypeID(unsigned long long cellID) const;
     const char* m_name;
@@ -223,10 +217,27 @@ class GenfitTrack {
     bool getMOP(int hitID, genfit::MeasuredStateOnPlane& mop,
             genfit::AbsTrackRep* trackRep=nullptr) const;
     const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit hit);
+    void getSeedCov(TMatrixDSym& cov);
     void getAssoSimTrackerHit(
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
             edm4hep::ConstTrackerHit trackerHit,
             edm4hep::ConstSimTrackerHit& simTrackerHit) const;
+    ///Create a WireMeasurementNew from TrackerHit, unit conversion here
+    WireMeasurementDC* createWireMeasurementDC(
+            const edm4hep::ConstTrackerHit trackerHit,int layer,int cell,
+            const edm4hep::ConstSimTrackerHit simTrackerHit,
+            double driftDistance,double sigma,int lrAmbig,int iHit);
+    void getEndPointsOfWire(int cellID,TVector3& end0,TVector3& end1)const;
+    void getTrackFromEDMTrack(const edm4hep::Track& edm4HepTrack,
+            double& charge, TVectorD& trackParam, TMatrixDSym& cov) const;
+    void getTrackFromMCPartile(const edm4hep::MCParticle mcParticle,
+            TVectorD& trackParam, TMatrixDSym& cov) const;
+    void getPosMomFromMCPartile(const edm4hep::MCParticle mcParticle,
+            TVector3& pos,TVector3& mom) const;
+    void clearGenfitHitVec();
+    void getISurfaceOUV(const dd4hep::rec::ISurface* iSurface,TVector3& o,
+            TVector3& u,TVector3& v);
+    void getMeasurementAndCov(edm4hep::ConstTrackerHit hit,TVector3& pos,TMatrixDSym& cov);
 
     genfit::Track* m_track;/// track
     int m_debug;/// debug level
@@ -238,6 +249,7 @@ class GenfitTrack {
     static const int s_PDG[2][5];
 
     SmartIF<IGeomSvc> m_geomSvc;
+    std::vector<GenfitHit*> m_genfitHitVec;
 
 };
 
