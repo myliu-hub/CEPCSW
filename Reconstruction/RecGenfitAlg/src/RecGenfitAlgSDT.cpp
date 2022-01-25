@@ -276,6 +276,7 @@ StatusCode RecGenfitAlgSDT::execute()
         ++m_eventNo;
         return sc;
     }
+    ++m_eventNo;
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
     if(m_tuple) start=std::chrono::high_resolution_clock::now();
@@ -353,7 +354,7 @@ StatusCode RecGenfitAlgSDT::execute()
                         m_sigmaHitU,m_sigmaHitV);
             }else if(1==m_measurementTypeSi.value()){
                 nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack,
-                        m_sigmaHitU,m_sigmaHitV,true);
+                        m_sigmaHitU,m_sigmaHitV);
             }
 
             //add DC hits
@@ -379,7 +380,7 @@ StatusCode RecGenfitAlgSDT::execute()
             //add silicon hits SOT
             if(1==m_measurementTypeSi.value()){
                 nHitAdded+=genfitTrack->addSiliconMeasurements(sdtTrack,
-                        m_sigmaHitU,m_sigmaHitV,false);
+                        m_sigmaHitU,m_sigmaHitV);
             }
 
 
@@ -441,7 +442,6 @@ StatusCode RecGenfitAlgSDT::execute()
 
     if(m_tuple) sc=m_tuple->write();
 
-    ++m_eventNo;
     return StatusCode::SUCCESS;
 }
 
@@ -803,7 +803,7 @@ void RecGenfitAlgSDT::selectHits(const edm4hep::Track&,
                 <<dcSimTrackerHit.getPosition().y/10.<<","
                 <<dcSimTrackerHit.getPosition().z/10.<<") diffZ "
                 <<dcSimTrackerHit.getPosition().z/10.-pocaOnWire.Z()<<endmsg;
-            if(fabs(docaExt-docaMC)>m_docaCut){
+            if(fabs(docaExt-docaMC)>m_docaCut*GenfitUnit::mm){
                 debug()<<"Skip hit delta doca "<<fabs(docaExt-docaMC)<<endmsg;
                 continue;
             }

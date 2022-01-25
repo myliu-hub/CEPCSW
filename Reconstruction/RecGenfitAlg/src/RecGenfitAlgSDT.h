@@ -111,14 +111,14 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
         Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
         Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
-            "sigmaHitU",{0.11, // DC z
+            "sigmaHitU",{0.11, // DC z mm
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD U
                     0.0072, //SIT U 4 layers same resolusion
                     0.0072, //SET U
                     0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
         Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
-            "sigmaHitV",{1, // DC z
+            "sigmaHitV",{1, // DC z mm
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
                     0.086, //SIT V
                     0.086, //SET V
@@ -165,9 +165,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         Gaudi::Property<int> m_multipleMeasurementHandling{this,
             "multipleMeasurementHandling",
             (int) genfit::eMultipleMeasurementHandling::unweightedClosestToPredictionWire};
-        Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};
+        Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};//um/ns
         Gaudi::Property<bool> m_selectDCHit{this,"selectDCHit",false};
-        Gaudi::Property<double> m_docaCut{this,"docaCut",0.33};//cm
+        Gaudi::Property<double> m_docaCut{this,"docaCut",3.3};//mm
         int m_fitSuccess[5];
         int m_nRecTrack;
         bool m_firstTuple;

@@ -11,8 +11,6 @@
 ///
 /// Authors:
 ///   Zhang Yao (zhangyao@ihep.ac.cn)
-///   Y.Fujii (yfujii@ihep.ac.cn)
-///   Yohei Nakatsugawa (yohei@ihep.ac.cn)
 ///
 //////////////////////////////////////////////////////////////////
 
@@ -59,6 +57,7 @@ namespace edm4hep{
 namespace dd4hep {
     namespace DDSegmentation{
         class GridDriftChamber;
+        class BitFieldCoder;
     }
     namespace rec{
         class ISurface;
@@ -116,7 +115,7 @@ class GenfitTrack {
 
     ///Add silicon measurements, return number of hits on track
     int addSiliconMeasurements(edm4hep::Track& track,
-            std::vector<float> sigmaU,std::vector<float> sigmaV,bool isInner=true);
+            std::vector<float> sigmaU,std::vector<float> sigmaV);
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
@@ -238,17 +237,28 @@ class GenfitTrack {
     void getISurfaceOUV(const dd4hep::rec::ISurface* iSurface,TVector3& o,
             TVector3& u,TVector3& v);
     void getMeasurementAndCov(edm4hep::ConstTrackerHit hit,TVector3& pos,TMatrixDSym& cov);
+    int getSigmas(int cellID,std::vector<float> sigmaUVec,
+        std::vector<float> sigmaVVec,float& sigmaU,float& sigmaV)const;
+    bool isCDCHit(edm4hep::ConstTrackerHit hit);
+    GenfitHit* makeAGenfitHit(edm4hep::ConstTrackerHit trackerHit,
+            edm4hep::ConstSimTrackerHit simTrackerHitAsso,
+            double sigma,bool truthAmbig,double skipCorner,double skipNear);
+    void getSortedTrackerHits(std::vector<edm4hep::ConstTrackerHit> hits,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            std::vector<edm4hep::ConstTrackerHit> sortedDCTrackerHits,
+            int sortMethod);
 
     genfit::Track* m_track;/// track
     int m_debug;/// debug level
     int m_debugLocal;/// debug level local
 
+    SmartIF<IGeomSvc> m_geomSvc;
     const GenfitField* m_genfitField;//pointer to genfit field
     const dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
+    const dd4hep::DDSegmentation::BitFieldCoder* m_decoderDC;
 
     static const int s_PDG[2][5];
 
-    SmartIF<IGeomSvc> m_geomSvc;
     std::vector<GenfitHit*> m_genfitHitVec;
 
 };

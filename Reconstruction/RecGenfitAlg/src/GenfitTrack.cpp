@@ -74,21 +74,20 @@ sortDCDigi(std::pair<double,edm4hep::ConstTrackerHit> hitPair1,std::pair<double,
     bool isEarly=hitPair1.first<hitPair2.first;
     return isEarly;
 }
-    bool
-sortDCDigiLayer(std::pair<int,edm4hep::ConstTrackerHit> hitPair1,std::pair<int,edm4hep::ConstTrackerHit> hitPair2)
-{
-    bool isEarly=hitPair1.first<hitPair2.first;
-    return isEarly;
-}
+//bool sortDCDigiLayer(std::pair<int,edm4hep::ConstTrackerHit> hitPair1,std::pair<int,edm4hep::ConstTrackerHit> hitPair2)
+//{
+//    bool isEarly=hitPair1.first<hitPair2.first;
+//    return isEarly;
+//}
 
 
 GenfitTrack::GenfitTrack(const GenfitField* genfitField,
         const dd4hep::DDSegmentation::GridDriftChamber* seg,
         SmartIF<IGeomSvc> geom, const char* name)
-:m_name(name),m_track(nullptr),m_debug(0),m_debugLocal(0),
-    m_genfitField(genfitField),m_gridDriftChamber(seg),m_geomSvc(geom)
+:m_name(name),m_track(nullptr),m_debug(0),m_debugLocal(0),m_geomSvc(geom),
+    m_genfitField(genfitField),m_gridDriftChamber(seg),
+    m_decoderDC(geom->getDecoder("DriftChamberHitsCollection"))
 {
-
 }
 
 GenfitTrack::~GenfitTrack()
@@ -111,6 +110,11 @@ void GenfitTrack::clearGenfitHitVec(){
 bool GenfitTrack::createGenfitTrack(int pdgType,int charge,
         TVectorD trackParam, TMatrixDSym covMInit_6)
 {
+    if(m_debug){
+        std::cout<<"createGenfitTrack pdgType "<<pdgType<<" charge "<<charge
+          <<" trackParam "<<std::endl; trackParam.Print();
+        std::cout<<"Cov"<<std::endl; covMInit_6.Print();
+    }
     ///new a track and set seed state and cov
     if(nullptr!=m_track) {
         delete m_track;
@@ -141,15 +145,6 @@ bool GenfitTrack::createGenfitTrackFromMCParticle(int pidType,
     TVectorD seedState(6);
     getTrackFromMCPartile(mcParticle,seedState,covMInit_6);
 
-    if(m_debug){
-        std::cout<<"createGenfitTrackFromMCParticle"<<
-            " pid "<<pidType<<" charge "
-            <<mcParticle.getCharge()<<" seedState "<<std::endl;
-        seedState.Print();
-        std::cout<<"Cov"<<std::endl;
-        covMInit_6.Print();
-    }
-    ///Create a genfit track with seed
     return createGenfitTrack(pidType,mcParticle.getCharge(),seedState,covMInit_6);
 }//end of createGenfitTrackFromMCParticle
 
@@ -160,12 +155,12 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 
     ///Skip track w.o. hit
     if(track.trackerHits_size()<=0) {
-        if(m_debug>=2){
-            std::cout<<"createGenfitTrackFromEDM4HepTrack skip track n hit=0"
-                <<std::endl;
+        if(m_debug){
+          std::cout<<"createGenfitTrackFromEDM4HepTrack skip track w/o hit"<<std::endl;
         }
         return false;
     }
+
     //pivotToFirstLayer(mcPocaPos,mcPocaMom,firstLayerPos,firstLayerMom);
     ///Get track parameters
     double charge=0;
@@ -174,88 +169,45 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 
     getTrackFromEDMTrack(track,charge,seedState,covMInit_6);///unit conversion
     if(!isUseCovTrack) getSeedCov(covMInit_6);
-    if(m_debug){
-        std::cout<<"createGenfitTrackFromEDM4HepTrack "<<
-            " pid "<<pidType<<" charge "<<charge<<" seedState "<<std::endl;
-        seedState.Print();
-        std::cout<<"Cov"<<std::endl;
-        covMInit_6.Print();
-    }
+
     bool status=createGenfitTrack(pidType,charge,seedState,covMInit_6);
     return status;
 }
 
 /// Add a 3d SpacepointMeasurement
 bool GenfitTrack::addSpacePointMeasurement(const TVector3& pos,
-        std::vector<float> sigmaU,std::vector<float> sigmaV,int cellID,int hitID)
+        std::vector<float> sigmaUVec,std::vector<float> sigmaVVec,int cellID,int hitID)
 {
     TVectorD pos_smeared(3);
     for(int i=0;i<3;i++) pos_smeared[i]=pos(i)*GenfitUnit::mm;
 
     /// New a SpacepointMeasurement
     /// space point error matrix and smear, unit cm
-    bool smear=(sigmaU[0]>0);
     TMatrixDSym hitCov(3);
     hitCov.Zero();
+
+    //get sigmas
+    float sigmaU,sigmaV;
+    getSigmas(cellID,sigmaUVec,sigmaVVec,sigmaU,sigmaV);
+    float sigmaX=sigmaU*cos(atan2(pos_smeared[1],pos_smeared[0]));
+    float sigmaY=sigmaU*sin(atan2(pos_smeared[1],pos_smeared[0]));
+    float sigmaZ=sigmaV;
+
     //smear 3d track position
-    int detTypeID=getDetTypeID(cellID);
-
-    if(m_debug){
-        std::cout<<"detTypeID "<<detTypeID<<"addSpacePointMeasurement pos "<<std::endl;
-        pos.Print();
-    }
-
-    int sigmaUID=0;
-    int sigmaVID=0;
-    int layer=0;
-    dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
-    if(m_geomSvc->lcdd()->constant<int>("DetID_DC")==detTypeID){
-        sigmaUID=0;
-        sigmaVID=0;
-    }else if(detTypeID==lcio::ILDDetID::VXD){
-        m_decoder=m_geomSvc->getDecoder("VXDCollection");//FIXME
-        layer=m_decoder->get(cellID,"layer");//FIXME
-        sigmaUID=layer+1;
-        sigmaVID=layer+1;
-    }else if(detTypeID==lcio::ILDDetID::SIT){
-        sigmaUID=7;
-        sigmaVID=7;
-    }else if(detTypeID==lcio::ILDDetID::SET){
-        sigmaUID=8;
-        sigmaVID=8;
-    }else if(detTypeID==lcio::ILDDetID::FTD){
-        m_decoder=m_geomSvc->getDecoder("FTDCollection");//FIXME
-        layer=m_decoder->get(cellID,"layer");//FIXME
-        sigmaUID=layer+9;
-        sigmaVID=layer+9;
-    }else{
-        if(m_debug>=0) std::cout<<m_name<<" Error: no detType!"<<std::endl;
-        return false;
-    }
-
-    if(m_debug){
-        std::cout<<"sigmaUID "<<sigmaUID<<" sigmaVID "<<sigmaVID<<std::endl;
-        std::cout<<"pos "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "<<pos_smeared[2]<<std::endl;
-        std::cout<<"angle "<<atan2(pos_smeared[1],pos_smeared[0])<<std::endl;
-        std::cout<<"sigmaU "<<sigmaU[sigmaUID]<<" sigmaV "<<sigmaV[sigmaVID]<<std::endl;
-    }
-    float sigmaX=sigmaU[sigmaUID]*GenfitUnit::mm*cos(atan2(pos_smeared[1],pos_smeared[0]));
-    float sigmaY=sigmaU[sigmaUID]*GenfitUnit::mm*sin(atan2(pos_smeared[1],pos_smeared[0]));
-    float sigmaZ=sigmaV[sigmaVID]*GenfitUnit::mm;
+    bool smear=(sigmaUVec[0]>0);
     if(smear){
         pos_smeared[0]+=gRandom->Gaus(0,sigmaX);
         pos_smeared[1]+=gRandom->Gaus(0,sigmaY);
         pos_smeared[2]+=gRandom->Gaus(0,sigmaZ);
     }
-    //hitCov(0,0)=sigmaX*sigmaX;//FIXME
-    //hitCov(1,1)=sigmaX*sigmaX;//FIXME
-    //hitCov(2,2)=sigmaX*sigmaX;//FIXME
-    hitCov(0,0)=sigmaU[sigmaUID]*sigmaU[sigmaUID]*GenfitUnit::mm*GenfitUnit::mm;//FIXME
-    hitCov(1,1)=sigmaU[sigmaUID]*sigmaU[sigmaUID]*GenfitUnit::mm*GenfitUnit::mm;//FIXME
-    hitCov(2,2)=sigmaV[sigmaVID]*sigmaV[sigmaVID]*GenfitUnit::mm*GenfitUnit::mm;//FIXME
+    hitCov(0,0)=sigmaX*sigmaX;//FIXME
+    hitCov(1,1)=sigmaX*sigmaX;
+    hitCov(2,2)=sigmaX*sigmaX;
 
     if(m_debug>=2){
-        std::cout<<m_name<<" hit "<<hitID<<" detTypeID "<<detTypeID
+        std::cout<<"addSpacePointMeasurement pos "<<std::endl;
+        pos.Print();
+        std::cout<<m_name<<" hit "<<hitID
             <<" pos_smeared "<<pos_smeared[0]<<" "<<pos_smeared[1]
             <<" "<<pos_smeared[2]<<" "<<" hitCov (0,0) "<<hitCov(0,0)<<" cm"<<std::endl;
         hitCov.Print();
@@ -299,8 +251,8 @@ GenfitTrack::getISurface(edm4hep::ConstTrackerHit hit){
         return nullptr;
     }
     if(m_debug>2) std::cout<<m_name<<" detectorName  "<<detectorName
-        <<" hit position "<<hit.getPosition()<<" cellID "<<hit.getCellID()
-            <<" cellId+ "<<cellID<<" detTypeID "<<detTypeID<<std::endl;
+        <<" hit position "<<hit.getPosition()<<" hit.cellID "<<hit.getCellID()
+            <<" cellId "<<cellID<<" detTypeID "<<detTypeID<<std::endl;
     const dd4hep::rec::SurfaceMap* surfaceMap=surfaceManager.map(detectorName);
     auto iter=surfaceMap->find(cellID);
     dd4hep::rec::ISurface* iSurface=nullptr;
@@ -378,43 +330,17 @@ GenfitTrack::addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
 }
 
 int GenfitTrack::addSiliconMeasurements(edm4hep::Track& track,
-        std::vector<float> sigmaU,std::vector<float> sigmaV,bool isInner)
+        std::vector<float> sigmaUVec,std::vector<float> sigmaVVec)
 {
-    dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
     ///Get TrackerHit on Track
     int nHitAdd=0;
     for(unsigned int iHit=0;iHit<track.trackerHits_size();iHit++){
-        unsigned long long cellID=track.getTrackerHits(iHit).getCellID();
-        int detTypeID=getDetTypeID(cellID);
-        if(m_geomSvc->lcdd()->constant<int>("DetID_DC")==detTypeID) continue;
-        edm4hep::ConstTrackerHit hit=track.getTrackerHits(iHit);
-        int sigmaUID=0;
-        int sigmaVID=0;
-        if(detTypeID==lcio::ILDDetID::VXD){
-            m_decoder=m_geomSvc->getDecoder("VXDCollection");//FIXME
-            int layer=m_decoder->get(cellID,"layer");//FIXME
-            sigmaUID=layer+1;
-            sigmaVID=layer+1;
-        }else if(detTypeID==lcio::ILDDetID::SIT){
-            sigmaUID=7;
-            sigmaVID=7;
-        }else if(detTypeID==lcio::ILDDetID::SET){
-            sigmaUID=8;
-            sigmaVID=8;
-        }else if(detTypeID==lcio::ILDDetID::FTD){
-            m_decoder=m_geomSvc->getDecoder("FTDCollection");//FIXME
-            int layer=m_decoder->get(cellID,"layer");//FIXME
-            sigmaUID=layer+9;
-            sigmaVID=layer+9;
-        }
-
-        if(m_debug>0){
-            std::cout<<sigmaU[sigmaUID]<<" "<<sigmaV[sigmaVID]<<"mm "<<std::endl;
-        }
-        if(isInner&&(sigmaUID==8)) continue;
-        if((!isInner)&&(sigmaUID!=8)) continue;
-        addSiliconMeasurement(hit,sigmaU[sigmaUID]/10.*GenfitUnit::cm,
-                sigmaV[sigmaVID]/10.*GenfitUnit::cm,cellID,nHitAdd++);
+        edm4hep::ConstTrackerHit trackerHit=track.getTrackerHits(iHit);
+        unsigned long long cellID=trackerHit.getCellID();
+        float sigmaU,sigmaV;
+        int sigmaUID=getSigmas(cellID,sigmaUVec,sigmaVVec,sigmaU,sigmaV);
+        if(0==sigmaUID) continue;//skip DC track
+        addSiliconMeasurement(trackerHit,sigmaU,sigmaV,cellID,nHitAdd++);
     }
     return nHitAdd;
 }
@@ -424,97 +350,44 @@ int GenfitTrack::addWireMeasurementsFromList(std::vector<edm4hep::ConstTrackerHi
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         int sortMethod, bool truthAmbig,float skipCorner,float skipNear)
 {
+    std::vector<edm4hep::ConstTrackerHit> sortedTrackerHits;
+    getSortedTrackerHits(hits,assoHits,sortedTrackerHits,sortMethod);
+
     int nHitAdd=0;
-    dd4hep::DDSegmentation::BitFieldCoder* m_decoder
-        = m_geomSvc->getDecoder("DriftChamberHitsCollection");
-
-    std::vector<std::pair<double,edm4hep::ConstTrackerHit> > sortedDCTrackerHit;
-    std::vector<std::pair<double,GenfitHit*> > sortedGenfitHit;
-    //int iHit=0;
-    for(auto hit:hits){
-        if(m_geomSvc->lcdd()->constant<int>("DetID_DC")
-                !=getDetTypeID(hit.getCellID())) continue;//skip non-DC hit
-
+    for(auto trackerHit:sortedTrackerHits){
         edm4hep::ConstSimTrackerHit simTrackerHitAsso;
-        getAssoSimTrackerHit(assoHits,hit,simTrackerHitAsso);
-        //simTrackerHitAsso=
-        //  CEPC::getAssoClosestSimTrackerHit(assoHits,hit,m_gridDriftChamber,0);
-        double time=simTrackerHitAsso.getTime();
-        if(0==sortMethod){
-            //by time
-            sortedDCTrackerHit.push_back(std::make_pair(time,hit));
-        }else{
-            //by layer
-            sortedDCTrackerHit.push_back(std::make_pair(
-                        m_decoder->get(hit.getCellID(),"layer"),hit));
-        }
-    }
-    if(0==sortedDCTrackerHit.size()){
-        if(m_debug>0){ std::cout<<"No DC hit on track"<<std::endl;}
-        return nHitAdd;
-    }
-    if(0==sortMethod){
-        std::sort(sortedDCTrackerHit.begin(),sortedDCTrackerHit.end(),sortDCDigi);
-        if(m_debug>0){ std::cout<<"addWireMeasurements sorted by time"<<std::endl;}
-    }else{
-        std::sort(sortedDCTrackerHit.begin(),sortedDCTrackerHit.end(),sortDCDigiLayer);
-        if(m_debug>0){ std::cout<<"addWireMeasurements sorted by layer"<<std::endl;}
-    }
-    if(m_debug>0){
-        std::cout<<"hits on track after sort \n";
-        for(auto hit:sortedDCTrackerHit){
-            std::cout<<"("<<std::setw(2)
-                <<m_decoder->get(hit.second.getCellID(),"layer")
-                <<","<<std::setw(3)
-                <<m_decoder->get(hit.second.getCellID(),"cellID")<<")\n";
-        }
-        std::cout<<"\n"; std::cout.unsetf(std::ios_base::floatfield);
-    }
-    for(auto hitPair:sortedDCTrackerHit){
-        edm4hep::ConstTrackerHit hit=hitPair.second;
-        edm4hep::ConstSimTrackerHit simTrackerHitAsso;
-        getAssoSimTrackerHit(assoHits,hit,simTrackerHitAsso);
-        double driftVelocity=40.;//FIXME
-        GenfitHit* genfitHit= new GenfitHit(hit,simTrackerHitAsso,m_decoder,
-                m_gridDriftChamber,driftVelocity,sigma*GenfitUnit::mm);
+        getAssoSimTrackerHit(assoHits,trackerHit,simTrackerHitAsso);
+        //FIXME driftVelocity
+        GenfitHit* genfitHit=
+            makeAGenfitHit(trackerHit,simTrackerHitAsso,sigma,truthAmbig,
+                    skipCorner,skipNear);
+        if(nullptr==genfitHit) continue;
         m_genfitHitVec.push_back(genfitHit);
-        //skip corner hit
-        if(fabs(genfitHit->getDriftDistance())>skipCorner){
-            if(m_debug) std::cout<<" skip hit dd > skipCorner"<<std::endl;
-            continue;
-        }
-        if(genfitHit->getDriftDistance()<skipNear){
-            if(m_debug) std::cout<<" skip hit dd < skipCorner"<<std::endl;
-            continue;
-        }
 
         ///New a TrackPoint,create connection between meas. and trackPoint
-        WireMeasurementDC* wireMeasurementDC=new WireMeasurementDC(genfitHit,nHitAdd++);
-        m_track->insertPoint(new genfit::TrackPoint(wireMeasurementDC ,m_track));
-        if(m_debug>=2){
-            std::cout<<nHitAdd-1;
-            wireMeasurementDC->Print();
-            //std::cout <<" dd "<<driftDistance<<"cm sigma "<<sigma<<std::endl;
-        }
+        WireMeasurementDC* wireMeasurementDC=
+            new WireMeasurementDC(genfitHit,nHitAdd++);
+        m_track->insertPoint(new genfit::TrackPoint(wireMeasurementDC,m_track));
+        if(m_debug>=2){ std::cout<<nHitAdd-1; wireMeasurementDC->Print(); }
     }//end of loop over sotred hits
     return nHitAdd;
-}
+}//end of addWireMeasurementsFromList
 
 //Add wire measurement on wire, unit conversion here
-//no unit conversion here
 int GenfitTrack::addWireMeasurementsOnTrack(edm4hep::Track& track,float sigma,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         int sortMethod, bool truthAmbig,float skipCorner,float skipNear)
 {
+    if(m_debug>0){ std::cout<<"addWireMeasurementsOnTrack"<<std::endl; }
+
     int nHitAdd=0;
-    if(m_debug>2) std::cout<<"in GenfitTrack::addWireMeasurementsOnTrack"<<std::endl;
     if(0==track.trackerHits_size()){
         if(m_debug>0) std::cout<<"No hit on track"<<std::endl;
         return nHitAdd;
     }
 
-    std::vector<edm4hep::ConstTrackerHit> hits;
     podio::RelationRange<edm4hep::ConstTrackerHit> hits_t=track.getTrackerHits();
+    std::vector<edm4hep::ConstTrackerHit> hits;
     for(auto h:hits_t){ hits.push_back(h); }
     nHitAdd=addWireMeasurementsFromList(hits,sigma,assoHits,sortMethod,truthAmbig,skipCorner,skipNear);
 
@@ -522,8 +395,8 @@ int GenfitTrack::addWireMeasurementsOnTrack(edm4hep::Track& track,float sigma,
 }//end of addWireMeasurements
 
 /// Get MOP
-bool GenfitTrack::getMOP(int hitID,
-        genfit::MeasuredStateOnPlane& mop, genfit::AbsTrackRep* trackRep) const
+bool GenfitTrack::getMOP(int hitID,genfit::MeasuredStateOnPlane& mop,
+        genfit::AbsTrackRep* trackRep) const
 {
     if(nullptr == trackRep) trackRep = getRep();
     try{
@@ -1367,4 +1240,119 @@ void GenfitTrack::getMeasurementAndCov(edm4hep::ConstTrackerHit hit,TVector3& po
     pos.SetXYZ(hit.getPosition().x/dd4hep::mm*GenfitUnit::mm,
             hit.getPosition().y/dd4hep::mm*GenfitUnit::mm,
             hit.getPosition().z/dd4hep::mm*GenfitUnit::mm);
+}
+
+
+int GenfitTrack::getSigmas(int cellID,std::vector<float> sigmaUVec,
+        std::vector<float> sigmaVVec,float& sigmaU,float& sigmaV)const{
+    int detTypeID=getDetTypeID(cellID);
+    int sigmaUID=0;
+    int sigmaVID=0;
+    int layer=0;
+    dd4hep::DDSegmentation::BitFieldCoder* decoder;
+    if(m_geomSvc->lcdd()->constant<int>("DetID_DC")==detTypeID){
+        sigmaUID=0;
+        sigmaVID=0;
+    }else if(detTypeID==lcio::ILDDetID::VXD){
+        decoder=m_geomSvc->getDecoder("VXDCollection");//FIXME
+        layer=decoder->get(cellID,"layer");//FIXME
+        sigmaUID=layer+1;
+        sigmaVID=layer+1;
+    }else if(detTypeID==lcio::ILDDetID::SIT){
+        sigmaUID=7;
+        sigmaVID=7;
+    }else if(detTypeID==lcio::ILDDetID::SET){
+        sigmaUID=8;
+        sigmaVID=8;
+    }else if(detTypeID==lcio::ILDDetID::FTD){
+        decoder=m_geomSvc->getDecoder("FTDCollection");//FIXME
+        layer=decoder->get(cellID,"layer");//FIXME
+        sigmaUID=layer+9;
+        sigmaVID=layer+9;
+    }else{
+        if(m_debug>=0) std::cout<<m_name<<" Error: no detType!"<<std::endl;
+    }
+    if(m_debug){
+        std::cout<<"sigmaUID "<<sigmaUID<<" sigmaVID "<<sigmaVID<<std::endl;
+        //std::cout<<"pos "<<pos_smeared[0]<<" "<<pos_smeared[1]<<" "<<pos_smeared[2]<<std::endl;
+        //std::cout<<"angle "<<atan2(pos_smeared[1],pos_smeared[0])<<std::endl;
+        std::cout<<"sigmaU "<<sigmaUVec[sigmaUID]*GenfitUnit::mm
+            <<" sigmaV "<<sigmaVVec[sigmaVID]*GenfitUnit::mm<<std::endl;
+    }
+    sigmaU=sigmaUVec[sigmaUID]*GenfitUnit::mm;
+    sigmaV=sigmaVVec[sigmaVID]*GenfitUnit::mm;
+    return sigmaUID;
+}
+
+bool GenfitTrack::isCDCHit(edm4hep::ConstTrackerHit hit){
+    return m_geomSvc->lcdd()->constant<int>("DetID_DC")==
+        getDetTypeID(hit.getCellID());
+}
+
+void GenfitTrack::getSortedTrackerHits(
+        std::vector<edm4hep::ConstTrackerHit> trackerHits,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        std::vector<edm4hep::ConstTrackerHit> sortedDCTrackerHits,
+        int sortMethod){
+    std::vector<std::pair<double,edm4hep::ConstTrackerHit> > sortedDCTrackerHitPair;
+    for(auto trackerHit:trackerHits){
+        if(!isCDCHit(trackerHit))continue;//skip non-DC trackerHit
+
+        edm4hep::ConstSimTrackerHit simTrackerHitAsso;
+        getAssoSimTrackerHit(assoHits,trackerHit,simTrackerHitAsso);
+        double time=simTrackerHitAsso.getTime();
+        if(0==sortMethod){
+            //by time
+            sortedDCTrackerHitPair.push_back(std::make_pair(time,trackerHit));
+            if(m_debug>0){ std::cout<<"sorted DC digi by time"<<std::endl;}
+        }else if(1==sortMethod){
+            //by layer
+            sortedDCTrackerHitPair.push_back(std::make_pair(
+                        m_decoderDC->get(trackerHit.getCellID(),"layer"),trackerHit));
+            if(m_debug>0){ std::cout<<"sorted DC digi by layer"<<std::endl;}
+        }else{
+            sortedDCTrackerHits.push_back(trackerHit);
+        }
+    }
+    if(0==sortMethod || 1==sortMethod){
+        std::sort(sortedDCTrackerHitPair.begin(),sortedDCTrackerHitPair.end(),
+                sortDCDigi);
+        for(auto trackerHit:sortedDCTrackerHitPair){
+            sortedDCTrackerHits.push_back(trackerHit.second);
+        }
+    }
+    if(m_debug>0){
+        std::cout<<"trackerHits on track after sort \n";
+        for(auto trackerHit:sortedDCTrackerHits){
+            std::cout<<"("<<std::setw(2)
+                <<m_decoderDC->get(trackerHit.getCellID(),"layer")
+                <<","<<std::setw(3)
+                <<m_decoderDC->get(trackerHit.getCellID(),"cellID")<<")\n";
+        }
+        std::cout<<"\n"; std::cout.unsetf(std::ios_base::floatfield);
+    }
+    return;
+}//end of getSortedTrackerHits
+
+//make a genfit hit and do hits selection
+GenfitHit* GenfitTrack::makeAGenfitHit(edm4hep::ConstTrackerHit trackerHit,
+        edm4hep::ConstSimTrackerHit simTrackerHitAsso,
+        double sigma,bool truthAmbig,double skipCorner,double skipNear){
+
+    //TODO truthAmbig
+    double driftVelocity=40.;//FIXME
+    GenfitHit* genfitHit=new GenfitHit(trackerHit,simTrackerHitAsso,m_decoderDC,
+            m_gridDriftChamber,driftVelocity,sigma*GenfitUnit::mm);
+    //skip corner hit
+    if(fabs(genfitHit->getDriftDistance())>skipCorner){
+        if(m_debug) std::cout<<" skip hit dd > skipCorner"<<std::endl;
+        delete genfitHit;
+        genfitHit=nullptr;
+    }
+    if(genfitHit->getDriftDistance()<skipNear){
+        if(m_debug) std::cout<<" skip hit dd < skipCorner"<<std::endl;
+        delete genfitHit;
+        genfitHit=nullptr;
+    }
+    return genfitHit;
 }
