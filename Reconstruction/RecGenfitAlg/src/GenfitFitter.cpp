@@ -1,6 +1,6 @@
 
-//#undef GENFIT_MY_DEBUG
-#define GENFIT_MY_DEBUG 1
+#undef GENFIT_MY_DEBUG
+//#define GENFIT_MY_DEBUG 1
 #include "GenfitFitter.h"
 #include "GenfitTrack.h"
 #include "GenfitField.h"

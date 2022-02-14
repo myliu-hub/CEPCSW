@@ -98,9 +98,9 @@ void GenericBFieldMapBrBz::fieldComponents(const double* pos, double* field) {
               +        rn  *        zn  * Bz_r1z1;
 
     // update the global field
-    field[0] += Br*cos(phi);
-    field[1] += Br*sin(phi);
-    field[2] += Bz;
+    field[0] += Br*cos(phi)*dd4hep::tesla;
+    field[1] += Br*sin(phi)*dd4hep::tesla;
+    field[2] += Bz*dd4hep::tesla;
 
     return;
 }

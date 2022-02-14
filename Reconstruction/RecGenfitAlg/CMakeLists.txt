@@ -2,14 +2,14 @@
 
 if (GenFit_FOUND)
 gaudi_add_module(RecGenfitAlg
-        SOURCES src/RecGenfitAlgDC.cpp
-                src/RecGenfitAlgSDT.cpp
-                #src/DCHDigiSMAlg.cpp
+        SOURCES src/RecGenfitAlgSDT.cpp
                 src/GenfitTrack.cpp
+                src/GenfitHit.cpp
                 src/GenfitField.cpp
                 src/GenfitFitter.cpp
                 src/GenfitMaterialInterface.cpp
                 src/LSFitting.cpp
+                src/WireMeasurementDC
         LINK GearSvc
              Gaudi::GaudiAlgLib
              Gaudi::GaudiKernel

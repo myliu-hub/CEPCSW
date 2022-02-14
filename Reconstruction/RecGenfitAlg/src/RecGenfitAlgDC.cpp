@@ -408,7 +408,7 @@ StatusCode RecGenfitAlgDC::execute()
                     return StatusCode::FAILURE;
                 }
             }else{
-                if(0==genfitTrack->addWireMeasurements(dcTrack,m_sigmaDrift,
+                if(0==genfitTrack->addWireMeasurementsOnTrack(dcTrack,m_sigmaDrift,
                             assoDCHitsCol,m_sortMethod,m_truthAmbig,
                             m_skipCorner,m_skipNear)){
                     debug()<<"no hits in addWireMeasurements!"<<endmsg;

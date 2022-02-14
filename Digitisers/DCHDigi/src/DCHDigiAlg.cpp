@@ -119,7 +119,7 @@ StatusCode DCHDigiAlg::execute()
       float sim_hit_mom = sqrt( SimHit.getMomentum()[0]*SimHit.getMomentum()[0] + SimHit.getMomentum()[1]*SimHit.getMomentum()[1] + SimHit.getMomentum()[2]*SimHit.getMomentum()[2] );//GeV
       if(sim_hit_mom < m_mom_threshold) continue; 
       if(sim_hit_mom > m_mom_threshold_high) continue; 
-      if(SimHit.getEDep() <= 0) continue;
+      if(SimHit.getEDep() <= m_edep_threshold) continue;
 
       if ( id_hits_map.find(id) != id_hits_map.end()) id_hits_map[id].push_back(SimHit);
       else 
