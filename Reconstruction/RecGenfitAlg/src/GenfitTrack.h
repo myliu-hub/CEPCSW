@@ -25,6 +25,7 @@
 #include "TVector3.h"
 #include "TVectorD.h"
 #include "TMatrixDSym.h"
+#include "TLorentzVector.h"
 
 //Gaudi
 #include "GaudiKernel/SmartIF.h"

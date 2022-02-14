@@ -16,6 +16,9 @@
 #include "DDSegmentation/Segmentation.h"
 #include "DetSegmentation/GridDriftChamber.h"
 
+#include <iostream>
+#include <chrono>
+
 using namespace dd4hep;
 using namespace dd4hep::detail;
 using namespace dd4hep::rec ;
@@ -33,6 +36,8 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     // =======================================================================
     // Parameter Definition
     // =======================================================================
+
+auto start = std::chrono::steady_clock::now();
 
     xml_det_t x_det = e;
 
@@ -282,7 +287,11 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     DetElement assDE( sdet , det_name+"_assembly" , x_det.id() )  ;
     assDE.setPlacement(phv);
 
+
     MYDEBUG("Build Detector Drift Chamber successfully.");
+auto end = std::chrono::steady_clock::now();
+std::chrono::duration<double> elapsed_seconds = end-start;
+std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n"; 
     return sdet;
 
 }

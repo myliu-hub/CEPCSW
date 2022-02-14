@@ -72,14 +72,18 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "cell"    , m_n_digi, m_cell     ).ignore();
             m_tuple->addItem( "cell_x"  , m_n_digi, m_cell_x   ).ignore();
             m_tuple->addItem( "cell_y"  , m_n_digi, m_cell_y   ).ignore();
+            m_tuple->addItem( "cell1_x"  , m_n_digi, m_cell1_x   ).ignore();
+            m_tuple->addItem( "cell1_y"  , m_n_digi, m_cell1_y   ).ignore();
             m_tuple->addItem( "hit_x"    , m_n_digi,m_hit_x     ).ignore();
             m_tuple->addItem( "hit_y"    , m_n_digi,m_hit_y     ).ignore();
             m_tuple->addItem( "hit_z"    , m_n_digi,m_hit_z     ).ignore();
+            m_tuple->addItem( "mom_x"    , m_n_digi,m_mom_x     ).ignore();
+            m_tuple->addItem( "mom_y"    , m_n_digi,m_mom_y     ).ignore();
             m_tuple->addItem( "dca"      , m_n_digi, m_dca       ).ignore();
+            m_tuple->addItem( "poca_x"   , m_n_digi, m_poca_x    ).ignore();
+            m_tuple->addItem( "poca_y"   , m_n_digi, m_poca_y    ).ignore();
             m_tuple->addItem( "hit_dE"   , m_n_digi,m_hit_dE    ).ignore();
             m_tuple->addItem( "hit_dE_dx", m_n_digi,m_hit_dE_dx ).ignore();
-            m_tuple->addItem( "SM_dca", m_n_digi, m_SMdca ).ignore();
-            m_tuple->addItem( "distance", m_n_digi, m_Distance ).ignore();
           } else { // did not manage to book the N tuple....
             info() << "    Cannot book N-tuple:" << long( m_tuple ) << endmsg;
           }
@@ -139,6 +143,7 @@ StatusCode DCHDigiAlg::execute()
     double pos_x = 0 ;
     double pos_y = 0 ;
     double pos_z = 0 ;
+    double momx,momy = 0;
     int simhit_size = iter->second.size();
     for(unsigned int i=0; i< simhit_size; i++)
     {
@@ -163,44 +168,30 @@ StatusCode DCHDigiAlg::execute()
     float tmp_distance =0;
     float SMdca = 0;
     float distance =0;
-    TVector3 hitPosition(0,0,0);
+    TVector3 hitPosition;
+    TVector3 PCA;
     for(unsigned int i=0; i< simhit_size; i++)
     {
         float sim_hit_mom = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] + iter->second.at(i).getMomentum()[2]*iter->second.at(i).getMomentum()[2] );//GeV
         float sim_hit_pt = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] );//GeV
         TVector3  pos(iter->second.at(i).getPosition()[0]*dd4hep_mm, iter->second.at(i).getPosition()[1]*dd4hep_mm, iter->second.at(i).getPosition()[2]*dd4hep_mm);
 
-//        TVector3  numerator = denominator.Cross(Wstart-pos) ;
-//        float tmp_distance = numerator.Mag()/denominator.Mag() ;
-
         TVector3 sim_mon(iter->second.at(i).getMomentum()[0],iter->second.at(i).getMomentum()[1],iter->second.at(i).getMomentum()[2]);
         float Steplength = iter->second.at(i).getPathLength();
         TVector3  pos_start = pos - 0.5 * Steplength * sim_mon.Unit();
         TVector3  pos_end = pos + 0.5 * Steplength * sim_mon.Unit();
-        if(m_Doca) {
-            tmp_distance = m_segmentation->distanceTrackWire(wcellid,pos_start,pos_end);
-            tmp_distance = tmp_distance/dd4hep_mm; //mm
-        } else {
-            tmp_distance = (m_segmentation->distanceClosestApproach(wcellid,pos)).Mag();
-            tmp_distance = tmp_distance/dd4hep_mm; //mm
-        }
-
-        SMdca = sqrt(((pos.x()- Wstart.x())*(pos.x()- Wstart.x()))+((pos.y() - Wstart.y())*(pos.y()- Wstart.y())));
-        distance = m_segmentation->Distance(wcellid,pos_start,pos_end,hitPosition);
+        tmp_distance = m_segmentation->Distance(wcellid,pos_start,pos_end,hitPosition,PCA);
+        tmp_distance = tmp_distance/dd4hep_mm; //mm
 
        // std::cout << " Steplength= " << Steplength << std::endl;
 
         if(tmp_distance < min_distance){
             min_distance = tmp_distance;
-            pos_x = pos.x();
-            pos_y = pos.y();
+            pos_x = hitPosition.x();     //pos.x();
+            pos_y = hitPosition.y();     //pos.y();
             pos_z = pos.z();
-        }
-        if(SMdca < min_SM_distance){
-            min_SM_distance = SMdca;
-        }
-        if(distance < min_D_distance){
-            min_D_distance = distance;
+            momx = iter->second.at(i).getMomentum()[0];
+            momy = iter->second.at(i).getMomentum()[1];
         }
         tot_length += iter->second.at(i).getPathLength();//mm
         auto asso = AssoVec->create();
@@ -213,9 +204,6 @@ StatusCode DCHDigiAlg::execute()
             m_simhit_x[m_n_sim] = pos.x();
             m_simhit_y[m_n_sim] = pos.y();
             m_simhit_z[m_n_sim] = pos.z();
-//            m_dca[m_n_sim] = min_distance;
-//            m_Distance[m_n_sim] = distance/dd4hep_mm;
-//            m_SMdca[m_n_sim] = SMdca/dd4hep_mm;
             m_n_sim ++ ;
         }
     }
@@ -232,14 +220,18 @@ StatusCode DCHDigiAlg::execute()
         m_cell     [m_n_digi] = cellID;
         m_cell_x   [m_n_digi] = Wstart.x();
         m_cell_y   [m_n_digi] = Wstart.y();
+        m_cell1_x   [m_n_digi] = Wend.x();
+        m_cell1_y   [m_n_digi] = Wend.y();
         m_hit_x    [m_n_digi] = pos_x;
         m_hit_y    [m_n_digi] = pos_y;
         m_hit_z    [m_n_digi] = pos_z;
+        m_mom_x    [m_n_digi] = momx ;
+        m_mom_y    [m_n_digi] = momy ;
         m_dca      [m_n_digi] = min_distance;
+        m_poca_x   [m_n_digi] = PCA.x();
+        m_poca_y   [m_n_digi] = PCA.y();
         m_hit_dE   [m_n_digi] = trkHit.getEDep();
         m_hit_dE_dx[m_n_digi] = trkHit.getEdx() ;
-        m_SMdca [m_n_digi] = min_SM_distance/dd4hep_mm;
-        m_Distance [m_n_digi] = min_D_distance/dd4hep_mm;
         m_n_digi ++ ;
     }
   }

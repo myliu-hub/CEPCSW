@@ -55,8 +55,8 @@
 //cpp
 #include <cfloat>
 
-#undef GENFIT_MY_DEBUG
-//#define GENFIT_MY_DEBUG 1
+//#undef GENFIT_MY_DEBUG
+#define GENFIT_MY_DEBUG 1
 
 const int GenfitTrack::s_PDG[2][5]
 ={{-11,-13,211,321,2212},{11,13,-211,-321,-2212}};

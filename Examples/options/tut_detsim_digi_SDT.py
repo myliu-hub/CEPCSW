@@ -35,7 +35,7 @@ dsvc = k4DataSvc("EventDataSvc")
 ##############################################################################
 
 # geometry_option = "CepC_v4-onlyTracker.xml"
-geometry_option = "det_inclined_wire.xml"
+geometry_option = "det.xml"
 
 if not os.getenv("DETDRIFTCHAMBERROOT"):
     print("Can't find the geometry. Please setup envvar DETCEPCV4ROOT." )
@@ -75,11 +75,11 @@ gun.Particles = ["mu-"]
 gun.EnergyMins = [100.] # GeV
 gun.EnergyMaxs = [100.] # GeV
 
-gun.ThetaMins = [0] # rad; 45deg
-gun.ThetaMaxs = [360] # rad; 45deg
+gun.ThetaMins = [85] # rad; 45deg
+gun.ThetaMaxs = [85] # rad; 45deg
 
-gun.PhiMins = [85] # rad; 0deg
-gun.PhiMaxs = [85] # rad; 360deg
+gun.PhiMins = [0] # rad; 0deg
+gun.PhiMaxs = [360] # rad; 360deg
 #gun.PhiMins = [0] # rad; 0deg
 #gun.PhiMaxs = [360] # rad; 360deg
 
@@ -171,6 +171,10 @@ dCHDigiAlg.AssociationCollection = "DCHAssociationCollectio"
 dCHDigiAlg.WriteAna  = True
 #dCHDigiAlg.debug  = True
 
+from Configurables import NTupleSvc
+ntsvc = NTupleSvc("NTupleSvc")
+ntsvc.Output = ["MyTuples DATAFILE='DCH_digi_sp_axial2.root' OPT='NEW' TYP='ROOT'"]
+
 ##############################################################################
 # POD I/O
 ##############################################################################
@@ -186,8 +190,8 @@ out.outputCommands = ["keep *"]
 from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [genalg, detsimalg, dCHDigiAlg, out],
                 EvtSel = 'NONE',
-                EvtMax = 10000,
-                ExtSvc = [rndmengine, rndmgensvc, dsvc, geosvc],
+                EvtMax = 1000,
+                ExtSvc = [rndmengine, rndmgensvc, dsvc, geosvc,ntsvc],
                 HistogramPersistency = "ROOT",
                 OutputLevel=INFO
 )

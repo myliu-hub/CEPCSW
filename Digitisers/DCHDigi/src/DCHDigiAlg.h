@@ -54,17 +54,21 @@ protected:
   NTuple::Array<int  > m_cell      ;
   NTuple::Array<float> m_cell_x    ;
   NTuple::Array<float> m_cell_y    ;
+  NTuple::Array<float> m_cell1_x   ;
+  NTuple::Array<float> m_cell1_y   ;
   NTuple::Array<float> m_simhit_x  ;
   NTuple::Array<float> m_simhit_y  ;
   NTuple::Array<float> m_simhit_z  ;
   NTuple::Array<float> m_hit_x     ;
   NTuple::Array<float> m_hit_y     ;
   NTuple::Array<float> m_hit_z     ;
+  NTuple::Array<float> m_mom_x     ;
+  NTuple::Array<float> m_mom_y     ;
   NTuple::Array<float> m_dca       ;
+  NTuple::Array<float> m_poca_x    ;
+  NTuple::Array<float> m_poca_y    ;
   NTuple::Array<float> m_hit_dE    ;
   NTuple::Array<float> m_hit_dE_dx ;
-  NTuple::Array<float> m_SMdca ;
-  NTuple::Array<float> m_Distance ;
 
   clock_t m_start,m_end;
 
@@ -81,7 +85,6 @@ protected:
   Gaudi::Property<float> m_mom_threshold { this, "mom_threshold", 0};// GeV
   Gaudi::Property<float> m_mom_threshold_high { this, "mom_threshold_high", 1e9};// GeV
   Gaudi::Property<bool>  m_WriteAna { this, "WriteAna", false};
-  Gaudi::Property<bool>  m_Doca { this, "Doca", false};//1:line dca 0:point dca
   Gaudi::Property<bool>  m_debug{ this, "debug", false};
 
 

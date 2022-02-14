@@ -199,7 +199,7 @@ double GridDriftChamber::distanceTrackWire2(const CellID& cID, const TVector3& h
     return DCA;
 }
 
-TVector3 GridDriftChamber::distanceClosestApproach(const CellID& cID, const TVector3& hitPos) const {
+TVector3 GridDriftChamber::distanceClosestApproach(const CellID& cID, const TVector3& hitPos, TVector3& PCA) const {
     // Distance of the closest approach between a single hit (point) and the closest wire
 
     TVector3 Wstart = {0,0,0};
@@ -214,7 +214,7 @@ TVector3 GridDriftChamber::distanceClosestApproach(const CellID& cID, const TVec
         hitPhi = hitPhi + 2 * M_PI;
     }
 
-    TVector3 PCA = Wstart + ((Wend - Wstart).Unit()).Dot((hitPos - Wstart)) * ((Wend - Wstart).Unit());
+    PCA = Wstart + ((Wend - Wstart).Unit()).Dot((hitPos - Wstart)) * ((Wend - Wstart).Unit());
     TVector3 dca = hitPos - PCA;
 
     return dca;
@@ -281,7 +281,7 @@ TVector3 GridDriftChamber::IntersectionTrackWire(const CellID& cID, const TVecto
     return intersect;
 }
 
-double GridDriftChamber::Distance(const CellID& cID, const TVector3& pointIn, const TVector3& pointOut, TVector3& hitPosition) const {
+double GridDriftChamber::Distance(const CellID& cID, const TVector3& pointIn, const TVector3& pointOut, TVector3& hitPosition, TVector3& PCA) const {
 
     //For two lines r=r1+t1.v1 & r=r2+t2.v2
     //the closest approach is d=|(r2-r1).(v1 x v2)|/|v1 x v2|
@@ -323,6 +323,8 @@ double GridDriftChamber::Distance(const CellID& cID, const TVector3& pointIn, co
             hitPosition=pointOut;
         }
     }
+
+    PCA = west + ((east - west).Unit()).Dot((hitPosition - west)) * ((east - west).Unit());
 
     return distance;
 }
