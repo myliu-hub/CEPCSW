@@ -245,7 +245,7 @@ class GenfitTrack {
             double sigma,bool truthAmbig,double skipCorner,double skipNear);
     void getSortedTrackerHits(std::vector<edm4hep::ConstTrackerHit> hits,
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-            std::vector<edm4hep::ConstTrackerHit> sortedDCTrackerHits,
+            std::vector<edm4hep::ConstTrackerHit>& sortedDCTrackerHits,
             int sortMethod);
 
     genfit::Track* m_track;/// track

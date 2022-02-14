@@ -617,7 +617,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         float py=mcPocaMom.y;
         float pz=mcPocaMom.z;
         debug()<<"mc pos("<<mcPos[0]<<","<<mcPos[1]<<","<<mcPos[2]
-            <<") pxyz("<<px<<","<<py<<","<<pz<<")"<<endmsg;
+            <<") pxyz("<<px<<","<<py<<","<<pz<<") p"<<sqrt(px*px+py*py+pz*pz)
+            <<endmsg;
         m_pocaMomMcP[iMcParticle]=sqrt(px*px+py*py+pz*pz);
         m_pocaMomMcPt[iMcParticle]=sqrt(px*px+py*py);
         m_pocaMomMc[iMcParticle][0]=px;
