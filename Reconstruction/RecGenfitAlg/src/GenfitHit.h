@@ -25,8 +25,8 @@ namespace dd4hep {
 
 class GenfitHit{
     public:
-        GenfitHit(const edm4hep::ConstTrackerHit trackerHit,
-                const edm4hep::ConstSimTrackerHit simTrackerHit,
+        GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
+                const edm4hep::ConstSimTrackerHit* simTrackerHit,
                 const dd4hep::DDSegmentation::BitFieldCoder* decoder,
                 const dd4hep::DDSegmentation::GridDriftChamber* gridDriftChamber,
                 double driftVelocity,double driftDistanceErr);
