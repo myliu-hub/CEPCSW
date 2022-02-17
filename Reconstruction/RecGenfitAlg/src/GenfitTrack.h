@@ -111,7 +111,7 @@ class GenfitTrack {
             int sortMethod,bool truthAmbig,float skipCorner, float skipNear);
 
     ///Add one silicon hits
-    bool addSiliconMeasurement(edm4hep::ConstTrackerHit& hit,
+    bool addSiliconMeasurement(edm4hep::ConstTrackerHit* hit,
             float sigmaU,float sigmaV,int cellID,int hitID);
 
     ///Add silicon measurements, return number of hits on track
@@ -216,17 +216,12 @@ class GenfitTrack {
     genfit::AbsTrackRep* getRep(int id=0) const;
     bool getMOP(int hitID, genfit::MeasuredStateOnPlane& mop,
             genfit::AbsTrackRep* trackRep=nullptr) const;
-    const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit hit);
+    const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit* hit);
     void getSeedCov(TMatrixDSym& cov);
     void getAssoSimTrackerHit(
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-            edm4hep::ConstTrackerHit trackerHit,
+            edm4hep::ConstTrackerHit* trackerHit,
             edm4hep::ConstSimTrackerHit& simTrackerHit) const;
-    ///Create a WireMeasurementNew from TrackerHit, unit conversion here
-    WireMeasurementDC* createWireMeasurementDC(
-            const edm4hep::ConstTrackerHit trackerHit,int layer,int cell,
-            const edm4hep::ConstSimTrackerHit simTrackerHit,
-            double driftDistance,double sigma,int lrAmbig,int iHit);
     void getEndPointsOfWire(int cellID,TVector3& end0,TVector3& end1)const;
     void getTrackFromEDMTrack(const edm4hep::Track& edm4HepTrack,
             double& charge, TVectorD& trackParam, TMatrixDSym& cov) const;
@@ -237,12 +232,12 @@ class GenfitTrack {
     void clearGenfitHitVec();
     void getISurfaceOUV(const dd4hep::rec::ISurface* iSurface,TVector3& o,
             TVector3& u,TVector3& v);
-    void getMeasurementAndCov(edm4hep::ConstTrackerHit hit,TVector3& pos,TMatrixDSym& cov);
+    void getMeasurementAndCov(edm4hep::ConstTrackerHit* hit,TVector3& pos,TMatrixDSym& cov);
     int getSigmas(int cellID,std::vector<float> sigmaUVec,
         std::vector<float> sigmaVVec,float& sigmaU,float& sigmaV)const;
     bool isCDCHit(edm4hep::ConstTrackerHit hit);
-    GenfitHit* makeAGenfitHit(edm4hep::ConstTrackerHit trackerHit,
-            edm4hep::ConstSimTrackerHit simTrackerHitAsso,
+    GenfitHit* makeAGenfitHit(edm4hep::ConstTrackerHit* trackerHit,
+            edm4hep::ConstSimTrackerHit* simTrackerHitAsso,
             double sigma,bool truthAmbig,double skipCorner,double skipNear);
     void getSortedTrackerHits(std::vector<edm4hep::ConstTrackerHit> hits,
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,

@@ -13,13 +13,13 @@
 
 #include <iostream>
 
-GenfitHit::GenfitHit(const edm4hep::ConstTrackerHit trackerHit,
-        const edm4hep::ConstSimTrackerHit simTrackerHit,
+GenfitHit::GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
+        const edm4hep::ConstSimTrackerHit* simTrackerHit,
         const dd4hep::DDSegmentation::BitFieldCoder* decoder,
         const dd4hep::DDSegmentation::GridDriftChamber* gridDriftChamber,
         double driftVelocity,double driftDistanceErr){
-    m_trackerHit=&trackerHit;
-    m_simTrackerHit=&simTrackerHit;
+    m_trackerHit=trackerHit;
+    m_simTrackerHit=simTrackerHit;
     m_decoder=decoder;
     m_gridDriftChamber=gridDriftChamber;
     m_driftVelocity=driftVelocity;
