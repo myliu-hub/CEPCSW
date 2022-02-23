@@ -23,7 +23,7 @@
     <constant name="DC_Endcap_rmin" value="DC_rbegin"/>
     <constant name="DC_Endcap_rmax" value="DC_rend"/>
 
-    <constant name="DC_construct_wire" value="1"/>
+    <constant name="DC_construct_wire" value="0"/>
 
     <constant name="DC_layer_width" value="9.57687*mm"/>
 

@@ -98,6 +98,7 @@ DetSimAlg::initialize() {
         fastsim_physics->ActivateFastSimulation("h0");
         fastsim_physics->ActivateFastSimulation("nu_mu");
         fastsim_physics->ActivateFastSimulation("nu_ebar");
+        fastsim_physics->ActivateFastSimulation("12C");
         modularPhysicsList->RegisterPhysics(fastsim_physics);
 
         physicsList = modularPhysicsList;

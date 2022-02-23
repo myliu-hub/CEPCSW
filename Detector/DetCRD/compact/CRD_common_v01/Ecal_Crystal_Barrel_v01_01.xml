@@ -8,7 +8,6 @@
     <constant name="bar_y" value="1*cm"/>
   </define>
 
- <regions>
   <regions>
     <region name="EcalBarrelRegion">
     </region>

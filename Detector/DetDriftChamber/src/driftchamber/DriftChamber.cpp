@@ -57,6 +57,8 @@ auto start = std::chrono::steady_clock::now();
     double chamber_length = chamber_half_length*2;
 
     double alpha = theDetector.constant<double>("Alpha");
+    double Pi = 0;
+    if(0!=alpha) Pi = 0.5*M_PI;
 
     double safe_distance = theDetector.constant<double>("DC_safe_distance");
 
@@ -219,12 +221,13 @@ auto start = std::chrono::steady_clock::now();
         //--------------------
         // loop over cells
         for(int icell=0; icell<nWire; icell++) {
+
             double wire_phi = icell*cell_phi + offset;
 
             // - signal wire
-            dd4hep::RotationZ rz(wire_phi);
+            dd4hep::RotationZ rz(wire_phi+Pi);
             dd4hep::RotationY ry(epsilon);
-            dd4hep::Position tr3D = Position(rmid_zZero*std::cos(0.5*M_PI+wire_phi),rmid_zZero*std::sin(0.5*M_PI+wire_phi),0.);
+            dd4hep::Position tr3D = Position(rmid_zZero*std::cos(wire_phi),rmid_zZero*std::sin(wire_phi),0.);
             dd4hep::Transform3D transform_signal_wire(rz*ry,tr3D);
 
             (*current_vol_ptr).placeVolume(signalWireVolume,transform_signal_wire);
@@ -236,9 +239,10 @@ auto start = std::chrono::steady_clock::now();
                 num = 5;
             }
             for(int i=0; i<num ; i++) {
-                dd4hep::RotationZ rz_field(phi[i]);
+                dd4hep::RotationZ rz_field(phi[i]+Pi);
                 dd4hep::RotationY ry_field(epsilon);
-                dd4hep::Position tr3D_field = Position(radius[i]*std::cos(0.5*M_PI+phi[i]),radius[i]*std::sin(0.5*M_PI+phi[i]),0.);
+                dd4hep::Position tr3D_field = Position(radius[i]*std::cos(phi[i]),radius[i]*std::sin(phi[i]),0.);
+
                 dd4hep::Transform3D transform_field_wire(rz_field*ry_field,tr3D_field);
 
                 (*current_vol_ptr).placeVolume(fieldWireVolume,transform_field_wire);
