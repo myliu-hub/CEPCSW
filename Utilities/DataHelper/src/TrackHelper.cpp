@@ -26,8 +26,6 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     mom[0]=pxy*cos(phi);
     mom[1]=pxy*sin(phi);
     mom[2]=pxy*tanLambda;
-    //std::cout<<"TrackerHelper pos "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
-    //std::cout<<"TrackerHelper mom "<<mom[0]<<" "<<mom[1]<<" "<<mom[2]<<std::endl;
     TMatrixDSym covMatrix_5(5);
     ///< lower triangular covariance matrix of the track parameters.
     ///  the order of parameters is  d0, phi, omega, z0, tan(lambda).
@@ -60,10 +58,10 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     const char* m_name="TrackHelper";
     int m_debug=0;
     if(m_debug>=2){
-        std::cout<<m_name<<" covMatrix_5 " <<std::endl;
-        covMatrix_5.Print();
-        std::cout<<m_name<<" mS " <<std::endl;
-        mS.Print();
+        //std::cout<<m_name<<" covMatrix_5 " <<std::endl;
+        //covMatrix_5.Print();
+        //std::cout<<m_name<<" mS " <<std::endl;
+        //mS.Print();
         std::cout<<m_name<<" covMatrix_6 " <<std::endl;
         covMatrix_6.Print();
         std::cout<<m_name<<" pos " <<std::endl;
@@ -79,7 +77,7 @@ void CEPC::getTrackStateFromPosMom(edm4hep::TrackState& trackState,double Bz,
     HelixClass helix;
     double pos_t[3]={pos.X(),pos.Y(),pos.Z()};
     double mom_t[3]={mom.X(),mom.Y(),mom.Z()};
-    helix.Initialize_VP(pos_t,mom_t,charge,Bz);
+    helix.Initialize_VP(pos_t,mom_t,charge,Bz); //mm GeV
 
     trackState.D0=helix.getD0();
     trackState.phi=helix.getPhi0();
@@ -87,7 +85,7 @@ void CEPC::getTrackStateFromPosMom(edm4hep::TrackState& trackState,double Bz,
     trackState.Z0=helix.getZ0();
     trackState.tanLambda=helix.getTanLambda();
     trackState.referencePoint=helix.getReferencePoint();
-    int m_debug=0;
+    int m_debug=1;
     if(m_debug>=2){
         std::cout<<__FILE__<<" pos mom"<<std::endl;
         pos.Print();
@@ -100,26 +98,33 @@ void CEPC::getTrackStateFromPosMom(edm4hep::TrackState& trackState,double Bz,
     TMatrix Jacobian_matrix(5,6);
     Jacobian_matrix.Zero();
 
+    const double FCT = 2.99792458E-4;
     double pt=sqrt(mom.X()*mom.X()+mom.Y()*mom.Y());
-    Jacobian_matrix[0][0] = 2*pos.X()/(sqrt(pos.X()*pos.X()+pos.Y()*pos.Y()));
-    Jacobian_matrix[0][1] = 2*pos.Y()/(sqrt(pos.X()*pos.X()+pos.Y()*pos.Y()));
-    Jacobian_matrix[1][3] = mom.Y()/(pt*pt);
+    Jacobian_matrix[0][0] = pos.X()/(sqrt(pos.X()*pos.X()+pos.Y()*pos.Y()));
+    Jacobian_matrix[0][1] = pos.Y()/(sqrt(pos.X()*pos.X()+pos.Y()*pos.Y()));
+    Jacobian_matrix[1][3] = -1*mom.Y()/(pt*pt);
     Jacobian_matrix[1][4] = mom.X()/(pt*pt);
-    Jacobian_matrix[2][3] = 2*charge*mom.X()/pt;
-    Jacobian_matrix[2][4] = 2*charge*mom.Y()/pt;
+    Jacobian_matrix[2][3] = -1*charge*mom.X()*Bz*FCT/(pt*pt*pt); //FIXME
+    Jacobian_matrix[2][4] = -1*charge*mom.Y()*Bz*FCT/(pt*pt*pt); //FIXME
     Jacobian_matrix[3][2] = 1.;
-    Jacobian_matrix[4][3] = 2*mom.Z()*mom.X()/pt;
-    Jacobian_matrix[4][4] = 2*mom.Z()*mom.Y()/pt;
+    Jacobian_matrix[4][3] = -1*mom.Z()*mom.X()/(pt*pt*pt); //FIXME
+    Jacobian_matrix[4][4] = -1*mom.Z()*mom.Y()/(pt*pt*pt); //FIXME
     Jacobian_matrix[4][5] = 1./pt;
 
     TMatrixDSym covMatrix_5 = covMatrix_6.Similarity(Jacobian_matrix);
 
     std::array<float,15> covMatrix;
     int k=0;
+    int k1;
     for(int i=0;i<5;i++){
         for(int j=0;j<5;j++){
-            if(i>=j) { covMatrix[k++]=covMatrix_5(i,j); }
+            if(i>=j) { 
+                k1=k++;
+                //covMatrix[k++]=covMatrix_5(i,j);
+                covMatrix[k1]=covMatrix_5(i,j);
+            }
         }
     }
+
     trackState.covMatrix = covMatrix;
 }

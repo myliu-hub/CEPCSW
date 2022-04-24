@@ -120,8 +120,11 @@ class GenfitTrack {
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
-            edm4hep::Track& track, int pidType,
-            int ndfCut, double chi2Cut);
+            edm4hep::Track& track,
+            TVector3& pocaToOrigin_pos,
+            TVector3& pocaToOrigin_mom,
+            TMatrixDSym& pocaToOrigin_cov,
+            int pidType, int ndfCut, double chi2Cut);
 
     ///A tool to convert track to the first layer of DC
     void pivotToFirstLayer(const edm4hep::Vector3d& pos,
@@ -139,9 +142,9 @@ class GenfitTrack {
     /// Output: pos and mom of POCA point to point
     /// Input: genfitTrack,point,repID,stopAtBoundary and calcAverageState
     /// repID same with pidType
-    double extrapolateToPoint(TVector3& pos, TVector3& mom,
-            const TVector3& point, int repID=0, bool stopAtBoundary = false,
-            bool calcJacobianNoise = true) const;
+//    double extrapolateToPoint(TVector3& pos, TVector3& mom,TMatrixDSym& cov,
+//            const TVector3& point, int repID=0, bool stopAtBoundary = false,
+//            bool calcJacobianNoise = true) const;
 
     double extrapolateToPoint(TVector3& pos, TVector3& mom, TMatrixDSym& cov,
             const TVector3& point, int repID=0,
@@ -219,8 +222,8 @@ class GenfitTrack {
     const dd4hep::rec::ISurface* getISurface(edm4hep::ConstTrackerHit* hit);
     void getSeedCov(TMatrixDSym& cov);
     void getAssoSimTrackerHit(
-            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-            edm4hep::ConstTrackerHit* trackerHit,
+            const edm4hep::MCRecoTrackerAssociationCollection*& assoHits,
+            edm4hep::ConstTrackerHit& trackerHit,
             edm4hep::ConstSimTrackerHit& simTrackerHit) const;
     void getEndPointsOfWire(int cellID,TVector3& end0,TVector3& end1)const;
     void getTrackFromEDMTrack(const edm4hep::Track& edm4HepTrack,
@@ -231,7 +234,7 @@ class GenfitTrack {
             TVector3& pos,TVector3& mom) const;
     void clearGenfitHitVec();
     void getISurfaceOUV(const dd4hep::rec::ISurface* iSurface,TVector3& o,
-            TVector3& u,TVector3& v);
+            TVector3& u,TVector3& v,double& lengthU,double& lengthV);
     void getMeasurementAndCov(edm4hep::ConstTrackerHit* hit,TVector3& pos,TMatrixDSym& cov);
     int getSigmas(int cellID,std::vector<float> sigmaUVec,
         std::vector<float> sigmaVVec,float& sigmaU,float& sigmaV)const;

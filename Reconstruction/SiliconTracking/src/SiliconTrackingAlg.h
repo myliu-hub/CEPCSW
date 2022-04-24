@@ -237,7 +237,7 @@ class SiliconTrackingAlg : public GaudiAlgorithm {
   Gaudi::Property<float> _cutOnPt{this, "CutOnPt", 0.05};
   Gaudi::Property<int> _minimalHits{this, "MinimalHits",3};
   Gaudi::Property<int> _nHitsChi2{this, "NHitsChi2", 5};
-  Gaudi::Property<int> _max_hits_per_sector{this, "MaxHitsPerSector", 100};
+  Gaudi::Property<int> _max_hits_per_sector{this, "MaxHitsPerSector", 200};
   Gaudi::Property<int> _attachFast{this, "FastAttachment", 0};
   Gaudi::Property<bool> _useSIT{this, "UseSIT", true};
   Gaudi::Property<float> _initialTrackError_d0{this, "InitialTrackErrorD0",1e6};

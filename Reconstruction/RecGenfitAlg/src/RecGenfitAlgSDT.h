@@ -64,7 +64,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         GenfitFitter* m_genfitFitter;//The pointer to a GenfitFitter
         const GenfitField* m_genfitField;//The pointer to a GenfitField
 
-        void debugTrack(int pidType,const GenfitTrack* genfitTrack);
+        void debugTrack(int iStrack,int pidType,const GenfitTrack* genfitTrack,
+                        TVector3 pocaToOrigin_pos,TVector3 pocaToOrigin_mom,
+                        TMatrixDSym pocaToOrigin_cov);
         void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
                 const edm4hep::TrackCollection* sdtRecTrackCol,
                 double eventStartTime);
@@ -77,6 +79,14 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         DataHandle<edm4hep::TrackerHitCollection> m_DCDigiCol{
             "DigiDCHitCollection", Gaudi::DataHandle::Reader, this};
         //Mc truth
+        DataHandle<edm4hep::SimTrackerHitCollection> m_simVXDHitCol{
+            "VXDCollection", Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::SimTrackerHitCollection> m_simSETHitCol{
+            "SETCollection", Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::SimTrackerHitCollection> m_simSITHitCol{
+            "SITCollection", Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::SimTrackerHitCollection> m_simFTDHitCol{
+            "FTDCollection", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
             "MCParticle", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::SimTrackerHitCollection> m_simDCHitCol{
@@ -86,6 +96,18 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                 Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackCollection> m_dcTrackCol{
             "DCTrackCollection", Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+            m_VXDHitAssociationCol{"VXDTrackerHitAssociation",
+                Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+            m_SITHitAssociationCol{"SITTrackerHitAssociation",
+                Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+            m_SETHitAssociationCol{"SETTrackerHitAssociation",
+                Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+            m_FTDHitAssociationCol{"FTDTrackerHitAssociation",
+                Gaudi::DataHandle::Reader, this};
 
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
@@ -108,7 +130,10 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
         Gaudi::Property<int> m_debugGenfit{this,"debugGenfit",0};
-        Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
+        //Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
+        Gaudi::Property<std::vector<int> > m_debugPid{this,"debugPid",
+                       {-99,
+                        -99}};
         Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
         Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
             "sigmaHitU",{0.11, // DC z mm
@@ -118,7 +143,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                     0.003,0.003,0.0072,0.0072,0.0072,0.0072,0.0072}};//FTD V
         //mm, 0:DC, 1~7:VXD, 8:SIT, 9:SET, FTD:10~16
         Gaudi::Property<std::vector<float> > m_sigmaHitV{this,
-            "sigmaHitV",{1, // DC z mm
+            "sigmaHitV",{0.11, // DC z mm
                 0.0028,0.006,0.004,0.004,0.004,0.004, //VXD V
                     0.086, //SIT V
                     0.086, //SET V
@@ -182,46 +207,82 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_tkId;
         NTuple::Item<int> m_mcIndex;//number of navigated mcParicle
         NTuple::Matrix<double> m_truthPocaMc;//2 dim matched particle and 3 pos.
-        NTuple::Item<double> m_seedMomP;//for single track
-        NTuple::Item<double> m_seedMomPt;
-        NTuple::Item<int> m_seedMomQ;
-        NTuple::Array<double> m_seedMom;
-        NTuple::Array<double> m_seedPos;
+        NTuple::Array<double> m_seedMomP;//for some track
+        NTuple::Array<double> m_seedMomPt;
+        NTuple::Array<int> m_seedMomQ;
+        NTuple::Matrix<double> m_seedMom;
+        NTuple::Matrix<double> m_seedPos;
         NTuple::Matrix<double> m_pocaPosMc;//2 dim matched particle and 3 pos.
         NTuple::Matrix<double> m_pocaMomMc;//2 dim matched particle and 3 mom.
         NTuple::Array<double> m_pocaMomMcP;//2 dim matched particle and p
         NTuple::Array<double> m_pocaMomMcPt;//2 dim matched particle and pt
-        NTuple::Array<double> m_pocaPosMdc;//pos 0:x,1:y,2:z
-        NTuple::Array<double> m_pocaMomMdc;//mom. 0:px,1:py,2:pz
+        NTuple::Matrix<double> m_pocaPosMdc;//pos 0:x,1:y,2:z
+        NTuple::Matrix<double> m_pocaMomMdc;//mom. 0:px,1:py,2:pz
         NTuple::Item<int> m_pidIndex;
         NTuple::Matrix<double> m_firstPosKal;//5 hyposis and pos. at first
         NTuple::Array<double> m_firstMomKalP;//5 hyposis and mom. at first
         NTuple::Array<double> m_firstMomKalPt;//5 hyposis and mom. at first
 
-        NTuple::Array<double> m_ErrorcovMatrix;
-        NTuple::Item<double> m_D0;
-        NTuple::Item<double> m_phi;
-        NTuple::Item<double> m_omega;
-        NTuple::Item<double> m_Z0;
-        NTuple::Item<double> m_tanLambda;
+        NTuple::Matrix<double> m_ErrorcovMatrix6;
+        NTuple::Array<double> m_posx;
+        NTuple::Array<double> m_posy;
+        NTuple::Array<double> m_posz;
 
-        NTuple::Item<double> mcP_D0;
-        NTuple::Item<double> mcP_phi;
-        NTuple::Item<double> mcP_omega;
-        NTuple::Item<double> mcP_Z0;
-        NTuple::Item<double> mcP_tanLambda;
+        NTuple::Array<double> m_momx;
+        NTuple::Array<double> m_momy;
+        NTuple::Array<double> m_momz;
+
+        NTuple::Array<double> m_PosMcX;
+        NTuple::Array<double> m_PosMcY;
+        NTuple::Array<double> m_PosMcZ;
+
+        NTuple::Array<double> m_MomMcX;
+        NTuple::Array<double> m_MomMcY;
+        NTuple::Array<double> m_MomMcZ;
+
+        
+        NTuple::Array<double> m_PocaPosX;
+        NTuple::Array<double> m_PocaPosY;
+        NTuple::Array<double> m_PocaPosZ;
+
+        NTuple::Array<double> m_PocaMomX;
+        NTuple::Array<double> m_PocaMomY;
+        NTuple::Array<double> m_PocaMomZ;
+
+        NTuple::Matrix<double> m_McErrCov;
+        NTuple::Matrix<double> m_PocaErrCov;
+
+        NTuple::Matrix<double> m_ErrorcovMatrix;
+        NTuple::Array<double> m_D0;
+        NTuple::Array<double> m_phi;
+        NTuple::Array<double> m_omega;
+        NTuple::Array<double> m_Z0;
+        NTuple::Array<double> m_tanLambda;
+
+        NTuple::Matrix<double> m_ErrorcovMatrix_Origin;
+        NTuple::Array<double> m_D0_Origin;
+        NTuple::Array<double> m_phi_Origin;
+        NTuple::Array<double> m_omega_Origin;
+        NTuple::Array<double> m_Z0_Origin;
+        NTuple::Array<double> m_tanLambda_Origin;
+
+        NTuple::Array<double> mcP_D0;
+        NTuple::Array<double> mcP_phi;
+        NTuple::Array<double> mcP_omega;
+        NTuple::Array<double> mcP_Z0;
+        NTuple::Array<double> mcP_tanLambda;
 
         NTuple::Matrix<double> m_pocaPosKal;//5 hyposis and 3 mom.
         NTuple::Matrix<double> m_pocaMomKal;//5 hyposis and 3 mom.
-        NTuple::Array<double> m_pocaMomKalP;//5 hyposis and p
-        NTuple::Array<double> m_pocaMomKalPt;//5 hyposis and pt
-        NTuple::Array<int> m_chargeKal;
-        NTuple::Array<double> m_chi2Kal;
-        NTuple::Array<double> m_nDofKal;
-        NTuple::Array<int> m_isFitConverged;
-        NTuple::Array<int> m_isFitConvergedFully;
-        NTuple::Array<int> m_isFitted;
-        NTuple::Array<int> m_fittedState;
+        NTuple::Matrix<double> m_pocaMomKalP;//5 hyposis and p
+        NTuple::Matrix<double> m_pocaMomKalPt;//5 hyposis and pt
+        NTuple::Matrix<int> m_chargeKal;
+        NTuple::Matrix<double> m_chi2Kal;
+        NTuple::Matrix<double> m_nDofKal;
+        NTuple::Matrix<int> m_isFitConverged;
+        NTuple::Matrix<int> m_isFitConvergedFully;
+        NTuple::Matrix<int> m_isFitted;
+        NTuple::Matrix<int> m_fittedState;
         NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;
@@ -229,7 +290,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nSdtRecTrack;
 
         NTuple::Item<int> m_nSimDCHit;
-        NTuple::Array<int> m_nHitWithFitInfo;
+        NTuple::Matrix<int> m_nHitWithFitInfo;
         NTuple::Item<int> m_nHitKalInput;
         NTuple::Array<int> m_nHitDetType;
         NTuple::Array<double> m_mdcHitDriftT;
@@ -241,8 +302,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_mdcHitExpDoca;
         NTuple::Array<double> m_mdcHitExpMcDoca;
         NTuple::Array<double> m_mdcHitErr;
-        NTuple::Array<int> m_nHitFailedKal;
-        NTuple::Array<int> m_nHitFitted;
+        NTuple::Matrix<int> m_nHitFailedKal;
+        NTuple::Matrix<int> m_nHitFitted;
         NTuple::Item<double> m_exeTime;
         //truth
         NTuple::Array<int> m_mdcHitMcLr;

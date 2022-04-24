@@ -16,8 +16,11 @@ namespace dd4hep {
 }
 namespace edm4hep {
     class MCParticleCollection;
+    class MCParticle;
+    class ConstMCParticle;
     class SimTrackerHitCollection;
     class TrackerHitCollection;
+    class ConstTrackerHit;
     class TrackCollection;
     class Track;
     class TrackState;
@@ -37,7 +40,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
 
     private:
         bool getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
-                mcParticleCol, edm4hep::TrackState& stat);
+                mcParticleCol, std::vector<edm4hep::TrackState>& stat);
         int addSimHitsToTk(DataHandle<edm4hep::SimTrackerHitCollection>&
                 colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
                 edm4hep::Track& track, const char* msg,int nHitAdded);
@@ -55,6 +58,17 @@ class TruthTrackerAlg: public GaudiAlgorithm
         bool getTrackStateFirstHit(
                 DataHandle<edm4hep::SimTrackerHitCollection>& dcSimTrackerHitCol,
                 float charge,edm4hep::TrackState& trackState);
+        bool getMCParticle(edm4hep::Track& sourceTrack,
+                int hitTypeID,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoColVXD,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoColSIT,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoColSET,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoColFTD,
+                edm4hep::ConstMCParticle *mcParticlerec);
+        int addDCHitsToTk(edm4hep::ConstMCParticle mcParticlerec,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoDCCol,
+                edm4hep::Track& targetTrack);
+
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::Detector* m_dd4hep;
         dd4hep::OverlayedField m_dd4hepField;
@@ -101,6 +115,15 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "SITCollection" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::SimTrackerHitCollection> m_FTDCollection{
             "FTDCollection" , Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_VXDAssoCol{
+            "VXDTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_SITAssoCol{
+            "SITTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_SETAssoCol{
+            "SETTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_FTDAssoCol{
+            "FTDTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
+
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};

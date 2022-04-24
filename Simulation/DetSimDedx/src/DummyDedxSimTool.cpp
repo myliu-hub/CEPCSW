@@ -17,7 +17,8 @@ StatusCode DummyDedxSimTool::finalize() {
 }
 
 double DummyDedxSimTool::dedx(const G4Step* aStep) {
-    double result = aStep->GetTotalEnergyDeposit();
+    double result = 0;
+//    double result = aStep->GetTotalEnergyDeposit();
 
 
     return result;
