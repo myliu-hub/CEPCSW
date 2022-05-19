@@ -10,6 +10,8 @@ gaudi_add_module(RecGenfitAlg
                 src/GenfitMaterialInterface.cpp
                 src/LSFitting.cpp
                 src/WireMeasurementDC
+                src/PlanarMeasurementSDT
+                src/MBg.cpp
         LINK GearSvc
              Gaudi::GaudiAlgLib
              Gaudi::GaudiKernel

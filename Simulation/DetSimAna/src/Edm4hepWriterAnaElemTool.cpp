@@ -35,6 +35,7 @@ Edm4hepWriterAnaElemTool::BeginOfEventAction(const G4Event* anEvent) {
 
     // copy the MC particle first
     for (auto mcGenParticle: *mcGenCol) {
+        if(mcGenParticle.getGeneratorStatus() != 1) continue;
         auto newparticle = mcCol->create();
         newparticle.setPDG            (mcGenParticle.getPDG());
         newparticle.setGeneratorStatus(mcGenParticle.getGeneratorStatus());
@@ -51,6 +52,7 @@ Edm4hepWriterAnaElemTool::BeginOfEventAction(const G4Event* anEvent) {
     }
     
     msg() << "mcCol size: " << mcCol->size() << endmsg;
+    std::cout << "mcCol size: " << mcCol->size() << std::endl;
 
     // reset
     m_track2primary.clear();

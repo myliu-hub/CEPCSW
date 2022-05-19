@@ -31,7 +31,7 @@ class GenfitHit{
                 const dd4hep::DDSegmentation::GridDriftChamber* gridDriftChamber,
                 double driftVelocity,double driftDistanceErr);
         ~GenfitHit(){;}
-        int getCellID()const;
+        unsigned long long getCellID()const;
         int getLayer()const;
         int getCell()const;
         double getDriftDistance()const{return m_driftDistance;}

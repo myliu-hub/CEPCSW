@@ -119,6 +119,8 @@ class WireMeasurementDC : public genfit::AbsMeasurement{
   }
   void print();
 
+  const edm4hep::ConstTrackerHit* getTrackerHit(){return trackerHit_;}
+
  protected:
 
   double wireEndPoint1_[3]; //! Wire end point 1 (X, Y, Z)

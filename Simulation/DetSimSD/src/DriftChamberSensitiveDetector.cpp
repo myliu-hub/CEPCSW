@@ -59,6 +59,8 @@ DriftChamberSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*) {
                                      de, // not the Geant4's deposit energy. from dE/dx simulator
                                      h.track->GetGlobalTime()
                                      );
+
+
     hit->cellID = getCellID(step);
     hit->energyDeposit = de; // FIXME: also use the dedx
     hit->position = position;

@@ -30,19 +30,19 @@ GenfitHit::GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
     if(driftDistanceErr>0) m_driftDistance+=gRandom->Gaus(0,fabs(driftDistanceErr*GenfitUnit::cm));//FIXME
 }
 
-int GenfitHit::getCellID()const{
+unsigned long long GenfitHit::getCellID() const {
     return m_trackerHit->getCellID();
 }
 
-int GenfitHit::getLayer()const{
+int GenfitHit::getLayer() const {
     return m_decoder->get(getCellID(),"layer");
 }
 
-int GenfitHit::getCell()const{
+int GenfitHit::getCell() const {
     return m_decoder->get(getCellID(),"cellID");
 }
 
-int GenfitHit::getLeftRightAmbig() const{
+int GenfitHit::getLeftRightAmbig() const {
     TVector3 momTruth=getTruthMom();
     TVector3 pocaOnTrack=getTruthPos();//FIXME, not poca on track
     TVector3 trackDir=momTruth.Unit();
@@ -55,7 +55,7 @@ int GenfitHit::getLeftRightAmbig() const{
     return fabs(lrAmbig)/lrAmbig;
 }
 
-TVector3 GenfitHit::getEnd0() const{
+TVector3 GenfitHit::getEnd0() const {
     TVector3 end0;
     TVector3 end1;
     m_gridDriftChamber->cellposition(m_trackerHit->getCellID(),end0,end1);//dd4hep unit
@@ -63,7 +63,7 @@ TVector3 GenfitHit::getEnd0() const{
     return end0;
 }
 
-TVector3 GenfitHit::getEnd1() const{
+TVector3 GenfitHit::getEnd1() const {
     TVector3 end0;
     TVector3 end1;
     m_gridDriftChamber->cellposition(m_trackerHit->getCellID(),end0,end1);//dd4hep unit

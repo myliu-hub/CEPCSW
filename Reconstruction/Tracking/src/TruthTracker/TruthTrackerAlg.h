@@ -16,11 +16,8 @@ namespace dd4hep {
 }
 namespace edm4hep {
     class MCParticleCollection;
-    class MCParticle;
-    class ConstMCParticle;
     class SimTrackerHitCollection;
     class TrackerHitCollection;
-    class ConstTrackerHit;
     class TrackCollection;
     class Track;
     class TrackState;
@@ -39,8 +36,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
         virtual StatusCode finalize() override;
 
     private:
-        bool getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
-                mcParticleCol, std::vector<edm4hep::TrackState>& stat);
+        void getTrackStateFromMcParticle(const edm4hep::MCParticleCollection*
+                mcParticleCol, edm4hep::TrackState& stat);
         int addSimHitsToTk(DataHandle<edm4hep::SimTrackerHitCollection>&
                 colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
                 edm4hep::Track& track, const char* msg,int nHitAdded);
@@ -58,29 +55,19 @@ class TruthTrackerAlg: public GaudiAlgorithm
         bool getTrackStateFirstHit(
                 DataHandle<edm4hep::SimTrackerHitCollection>& dcSimTrackerHitCol,
                 float charge,edm4hep::TrackState& trackState);
-        bool getMCParticle(edm4hep::Track& sourceTrack,
-                int hitTypeID,
-                const edm4hep::MCRecoTrackerAssociationCollection* assoColVXD,
-                const edm4hep::MCRecoTrackerAssociationCollection* assoColSIT,
-                const edm4hep::MCRecoTrackerAssociationCollection* assoColSET,
-                const edm4hep::MCRecoTrackerAssociationCollection* assoColFTD,
-                edm4hep::ConstMCParticle *mcParticlerec);
-        int addDCHitsToTk(edm4hep::ConstMCParticle mcParticlerec,
-                const edm4hep::MCRecoTrackerAssociationCollection* assoDCCol,
-                edm4hep::Track& targetTrack);
-
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::Detector* m_dd4hep;
         dd4hep::OverlayedField m_dd4hepField;
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         void debugEvent();
-
         //unit length is mm
         void getCircleFromPosMom(double pos[3],double mom[3],
                 double Bz,double q,double& helixRadius,double& helixXC,double& helixYC);
 
         //reader
+        DataHandle<edm4hep::TrackerHitCollection> m_NoiseHitCol{
+            "NoiseDCHitsCollection", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
             "MCParticle", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::SimTrackerHitCollection> m_DCSimTrackerHitCol{
@@ -95,8 +82,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
                 Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
             "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
-            "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
+//        DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
+//            "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_FTDSpacePointCol{
             "FTDSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_VXDTrackerHits{
@@ -115,15 +102,6 @@ class TruthTrackerAlg: public GaudiAlgorithm
             "SITCollection" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::SimTrackerHitCollection> m_FTDCollection{
             "FTDCollection" , Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_VXDAssoCol{
-            "VXDTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_SITAssoCol{
-            "SITTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_SETAssoCol{
-            "SETTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> m_FTDAssoCol{
-            "FTDTrackerHitAssociation",Gaudi::DataHandle::Reader, this};
-
         //writer
         DataHandle<edm4hep::TrackCollection> m_DCTrackCol{
             "DCTrackCollection", Gaudi::DataHandle::Writer, this};
@@ -144,10 +122,15 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useFirstHitForDC{this,"useFirstHitForDC",false};
         Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
         Gaudi::Property<bool> m_useIdealHit{this,"useIdealHit",false};
-        Gaudi::Property<float> m_momentumLowCut{this,"momentumLowCut",0.1};//momentum cut for the first hit
-        Gaudi::Property<float> m_momentumHighCut{this,"momentumHighCut",200};//momentum cut for the first hit
+
+        Gaudi::Property<bool> m_useNoiseHits{this,"useNoiseHits",false};
+
+        Gaudi::Property<float> m_momentumCut{this,"momentumCut",0.1};//momentum cut for the first hit
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
         Gaudi::Property<float> m_resPz{this,"resPz",0};//ratio
+        Gaudi::Property<float> m_resX{this,"resX",0.11};//mm
+        Gaudi::Property<float> m_resY{this,"resY",0.11};//mm
+        Gaudi::Property<float> m_resZ{this,"resZ",0.11};//mm
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
         Gaudi::Property<float> m_resMomTheta{this,"resMomTheta",0};//radian
         Gaudi::Property<float> m_resVertexX{this,"resVertexX",0.003};//3um

@@ -62,6 +62,8 @@ public:
   virtual double distanceTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual double distanceTrackWire2(const CellID& cID, const TVector3& hit_pos) const;
   virtual void cellposition(const CellID& cID, TVector3& Wstart, TVector3& Wend) const;
+  virtual int maxWireID(int chamber,int layer) const;
+  virtual int GobalWireID(int layer,int cellID) const;
   virtual void cellposition2(int chamber, int layer, int cell, TVector3& Wstart, TVector3& Wend) const;
   TVector3 LineLineIntersect(TVector3& p1, TVector3& p2, TVector3& p3, TVector3& p4) const;
   virtual TVector3 distanceClosestApproach(const CellID& cID, const TVector3& hitPos, TVector3& PCA) const;

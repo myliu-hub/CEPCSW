@@ -19,6 +19,11 @@
 
 #include "ActionInitialization.h"
 
+#include <TTimeStamp.h>
+
+#include <ctime>
+#include <cstdlib>
+
 DECLARE_COMPONENT(DetSimAlg)
 
 DetSimAlg::DetSimAlg(const std::string& name, ISvcLocator* pSvcLocator)
@@ -28,6 +33,14 @@ DetSimAlg::DetSimAlg(const std::string& name, ISvcLocator* pSvcLocator)
 
 StatusCode
 DetSimAlg::initialize() {
+
+//    time_t timep;
+//    time(&timep);
+//    std::cout << "Myliu say: the time is "
+//              << ctime(&timep)
+//              << "at the begin of DetSimAlg::initialize()"
+//              << std::endl;
+//    system("/scratchfs/bes/myliu/script/memory_test.sh");
     StatusCode sc;
 
     info() << "Initialize DetSimAlg... " << endmsg;
@@ -179,14 +192,34 @@ DetSimAlg::initialize() {
     // after set up the user initialization and user actions, start the initialization.
     m_detsimsvc->initializeRM();
 
+//    time(&timep);
+//    std::cout << "Myliu say: the time is "
+//              << ctime(&timep)
+//              << "at the end of DetSimAlg::initialize()"
+//              << std::endl;
+//    system("/scratchfs/bes/myliu/script/memory_test.sh");
+
     return sc;
 }
 
 StatusCode
 DetSimAlg::execute() {
+//    time_t timep;
+//    time(&timep);
+//    std::cout << "Myliu say: the time is "
+//              << ctime(&timep)
+//              << "at the begin of DetSimAlg::execute()"
+//              << std::endl;
+//    system("/scratchfs/bes/myliu/script/memory_test.sh");
     StatusCode sc;
 
     m_detsimsvc->simulateEvent(++i_event);
+//    time(&timep);
+//    std::cout << "Myliu say: the time is "
+//              << ctime(&timep)
+//              << "at the end of DetSimAlg::execute()"
+//              << std::endl;
+//    system("/scratchfs/bes/myliu/script/memory_test.sh");
 
     return sc;
 }

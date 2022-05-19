@@ -69,6 +69,12 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
   sens.setType("tracker");
   std::cout << " ** building SiTrackerEndcapRing_v01 ..." << std::endl ;
 
+  dd4hep::xml::Component recPar = x_det.child(_Unicode(reconstruction));
+  const double strip_width  = recPar.attr< double >(_Unicode(strip_width));
+  const double strip_length = recPar.attr< double >(_Unicode(strip_length));
+  const double strip_pitch  = recPar.attr< double >(_Unicode(strip_pitch));
+  const double strip_angle  = recPar.attr< double >(_Unicode(strip_angle));
+
   dd4hep::rec::ZDiskPetalsData*  zDiskPetalsData = new dd4hep::rec::ZDiskPetalsData;
 
   PlacedVolume pv;
@@ -104,8 +110,8 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
       double thickness = c.thickness();
       layer_thickness  += thickness;
       if(c.isSensitive()){
-	sensitive_thickness[nsensor] = thickness;
-	nsensor++;
+    sensitive_thickness[nsensor] = thickness;
+    nsensor++;
       }
       else      support_thickness   += thickness;
     }
@@ -113,13 +119,14 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
     double zshift_support = dz + 0.5*(sensitive_thickness[0] + sensitive_thickness[1] + support_thickness);
 
     //std::cout << " ****Layer: " << layer_id << " nmodules = " << nmodules << " z = " << zpos << " zshift = " << zshift_support
-    //	      << " rmin = " << rmin << " rmax = " << rmax << " x1 = " << x1 << " x2 = " << x2 << " thickness = " << layer_thickness << std::endl;    
+    //        << " rmin = " << rmin << " rmax = " << rmax << " x1 = " << x1 << " x2 = " << x2 << " thickness = " << layer_thickness << std::endl;    
     
     Trap   moduleSolid(half_thickness, 0, 0, half_width, x1, x2, 0, half_width, x1, x2, 0);
     Volume moduleVol(_toString(layer_id,"layer%d"), moduleSolid, air);
     moduleVol.setVisAttributes(description.visAttributes(x_layer.visStr()));
     
     Placements sensitives;
+    vector<dd4hep::rec::VolPlane> planes;
     int    sensor_id = 1;
     int    c_id      = 0;
     double c_pos     = -half_thickness;
@@ -136,8 +143,28 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
         tracker.check(sensor_id > 2," fromCompact: "+c_name+" Max of 2 modules allowed!");
         pv.addPhysVolID("sensor", sensor_id);
         c_vol.setSensitiveDetector(sens);
-	sensitives.push_back(pv);
-        ++sensor_id;
+    sensitives.push_back(pv);
+
+    dd4hep::rec::Vector3D u(-1., 0.,  0.);
+    dd4hep::rec::Vector3D v( 0., 1.,  0.);
+    dd4hep::rec::Vector3D n( 0., 0., -1.);
+    dd4hep::rec::SurfaceType surfType(dd4hep::rec::SurfaceType::Sensitive);
+    double front_thickness = c_thickness/2;
+    double back_thickness  = (sensor_id==1) ? c_thickness/2+support_thickness : c_thickness/2;
+    if(!is_pixel){
+      surfType.setProperty(dd4hep::rec::SurfaceType::Measurement1D, true) ;
+      if(sensor_id==1){
+        u.fill(-cos(strip_angle), sin(strip_angle), 0.);
+        v.fill( sin(strip_angle), cos(strip_angle), 0.);
+      }
+      else{
+        u.fill(-cos(strip_angle), -sin(strip_angle), 0.);
+        v.fill(-sin(strip_angle),  cos(strip_angle), 0.);
+      }
+    }
+    dd4hep::rec::VolPlane surf(c_vol, surfType , front_thickness, back_thickness, u,v,n);
+    planes.push_back(surf);
+    ++sensor_id;
       }
       c_pos += c_thickness;
     }
@@ -150,29 +177,31 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
       double y = rpos*std::sin(phi);
       double zshift_layer   = zshift_support - 0.5*sensitive_thickness[0] + 0.5*sensitive_thickness[1];
       //std::cout << "****** module_id = " << module_id << " phi = " << phi << " x = " << x << " y = " << y
-      //	<< " zsup = " << zpos+zshift_support << " zsens = " << zpos+zshift_support-0.5*sensitive_thickness[0]-0.5*support_thickness << std::endl;
+      //    << " zsup = " << zpos+zshift_support << " zsens = " << zpos+zshift_support-0.5*sensitive_thickness[0]-0.5*support_thickness << std::endl;
       DetElement module(tracker, m_base+"_pos", det_id);
       Rotation3D rot = Rotation3D(ROOT::Math::AxisAngle(dd4hep::PositionPolar(1,M_PI/2,-M_PI/2+phi),-skew))*Rotation3D(RotationZYX(-M_PI/2+phi,0,0));
       pv = envelope.placeVolume(moduleVol, Transform3D(rot, Position(x,y,zpos+zshift_layer)));
       pv.addPhysVolID("side",1).addPhysVolID("layer", layer_id).addPhysVolID("module",module_id);
       module.setPlacement(pv);
       for(size_t ic=0; ic<sensitives.size(); ++ic)  {
-	PlacedVolume sens_pv = sensitives[ic];
-	DetElement comp_elt(module, sens_pv.volume().name(), module_id);
-	comp_elt.setPlacement(sens_pv);
+    PlacedVolume sens_pv = sensitives[ic];
+    DetElement comp_elt(module, sens_pv.volume().name(), module_id);
+    comp_elt.setPlacement(sens_pv);
+    dd4hep::rec::volSurfaceList(comp_elt)->push_back(planes[ic]);
       }
 
       if(reflect){
-	Rotation3D rotRef = Rotation3D(ROOT::Math::AxisAngle(dd4hep::PositionPolar(1,M_PI/2,-M_PI/2+phi),skew))*Rotation3D(RotationZYX(M_PI/2-phi,M_PI,0));
-	pv = envelope.placeVolume(moduleVol, Transform3D(rotRef, Position(x,y,-zpos-zshift_layer)));
-	pv.addPhysVolID("side",-1).addPhysVolID("layer",layer_id).addPhysVolID("module",module_id);
-	DetElement r_module(tracker, m_base+"_neg", det_id);
-	r_module.setPlacement(pv);
-	for(size_t ic=0; ic<sensitives.size(); ++ic)  {
-	  PlacedVolume sens_pv = sensitives[ic];
-	  DetElement comp_elt(r_module, sens_pv.volume().name(), module_id);
-	  comp_elt.setPlacement(sens_pv);
-	}
+    Rotation3D rotRef = Rotation3D(ROOT::Math::AxisAngle(dd4hep::PositionPolar(1,M_PI/2,-M_PI/2+phi),skew))*Rotation3D(RotationZYX(M_PI/2-phi,M_PI,0));
+    pv = envelope.placeVolume(moduleVol, Transform3D(rotRef, Position(x,y,-zpos-zshift_layer)));
+    pv.addPhysVolID("side",-1).addPhysVolID("layer",layer_id).addPhysVolID("module",module_id);
+    DetElement r_module(tracker, m_base+"_neg", det_id);
+    r_module.setPlacement(pv);
+    for(size_t ic=0; ic<sensitives.size(); ++ic)  {
+      PlacedVolume sens_pv = sensitives[ic];
+      DetElement comp_elt(r_module, sens_pv.volume().name(), module_id);
+      comp_elt.setPlacement(sens_pv);
+      dd4hep::rec::volSurfaceList(comp_elt)->push_back(planes[ic]);
+    }
       }
       zshift_support = -zshift_support;
       phi   +=  dphi;
@@ -202,12 +231,6 @@ static dd4hep::Ref_t create_detector(Detector& description, xml_h e, SensitiveDe
 
     zDiskPetalsData->layers.push_back(thisLayer);
   }
-
-  dd4hep::xml::Component recPar = x_det.child(_Unicode(reconstruction));
-  const double strip_width  = recPar.attr< double >(_Unicode(strip_width));
-  const double strip_length = recPar.attr< double >(_Unicode(strip_length));
-  const double strip_pitch  = recPar.attr< double >(_Unicode(strip_pitch));
-  const double strip_angle  = recPar.attr< double >(_Unicode(strip_angle));
 
   zDiskPetalsData->widthStrip  = strip_width;
   zDiskPetalsData->lengthStrip = strip_length;

@@ -22,6 +22,7 @@ bool G4PrimaryCnvTool::mutate(G4Event* anEvent) {
         if (p.getGeneratorStatus() != 1) {
             continue;
         }
+//        std::cout << "G4PrimaryCnvTool =  " << p << std::endl;
 
         // vertex
         const edm4hep::Vector3d& vertex = p.getVertex();

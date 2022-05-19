@@ -105,6 +105,17 @@ TVector3 GridDriftChamber::returnPhi0(int chamber,int layer, double z) const
     return TVector3(x_pos,y_pos,z);
 }
 
+int GridDriftChamber::maxWireID(int chamber,int layer) const
+{
+    updateParams(chamber,layer);
+//    std::cout << " maxWireID = " << (int) ((2*3.1415926/_currentLayerphi)+1)  << std::endl;
+    return (int) ((2*3.1415926/_currentLayerphi)+1);
+}
+
+int GridDriftChamber::GobalWireID(int layer,int cellID) const
+{
+    return layer*1000000+cellID;
+}
 
 void GridDriftChamber::cellposition2(int chamber,int layer, int cell,
         TVector3& Wstart, TVector3& Wend) const {

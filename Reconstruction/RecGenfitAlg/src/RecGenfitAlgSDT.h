@@ -69,10 +69,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                         TMatrixDSym pocaToOrigin_cov);
         void debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
                 const edm4hep::TrackCollection* sdtRecTrackCol,
-                double eventStartTime);
+                double eventStartTime,int nFittedSDT);
 
-        void debugEvent2(const edm4hep::TrackCollection* sdtRecTrackCol);
-        void selectHits(const edm4hep::Track&, std::vector<edm4hep::ConstTrackerHit>& dcDigiSelected);
+        void selectHits(const edm4hep::Track&, std::vector<edm4hep::ConstTrackerHit*>& dcDigiSelected);
 
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};
@@ -108,11 +107,16 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
             m_FTDHitAssociationCol{"FTDTrackerHitAssociation",
                 Gaudi::DataHandle::Reader, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+            m_NoiseDCHitAssociationCol{"NoiseDCHitAssociationCollection",
+                Gaudi::DataHandle::Reader, this};
 
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
             Gaudi::DataHandle::Writer, this};
         DataHandle<edm4hep::TrackCollection> m_SDTRecTrackCol{"SDTRecTrackCollection",
+            Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackCollection> m_SDTDebugRecTrackCol{"SDTDebugRecTrackCollection",
             Gaudi::DataHandle::Writer, this};
 
         //Output hits and particles
@@ -124,16 +128,14 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         SmartIF<IGeomSvc> m_geomSvc;
         dd4hep::OverlayedField m_dd4hepField;
         dd4hep::Detector* m_dd4hepDetector;
+        double m_cell_width;
         dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
         dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         Gaudi::Property<std::string> m_readout_name{this,
             "readout", "DriftChamberHitsCollection"};
         Gaudi::Property<int> m_debug{this,"debug",0};
         Gaudi::Property<int> m_debugGenfit{this,"debugGenfit",0};
-        //Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
-        Gaudi::Property<std::vector<int> > m_debugPid{this,"debugPid",
-                       {-99,
-                        -99}};
+        Gaudi::Property<int> m_debugPid{this,"debugPid",-99};
         Gaudi::Property<int> m_eventNoSelection{this,"eventNoSelection",1e9};
         Gaudi::Property<std::vector<float> > m_sigmaHitU{this,
             "sigmaHitU",{0.11, // DC z mm
@@ -192,6 +194,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             (int) genfit::eMultipleMeasurementHandling::unweightedClosestToPredictionWire};
         Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};//um/ns
         Gaudi::Property<bool> m_selectDCHit{this,"selectDCHit",false};
+        Gaudi::Property<bool> m_useNoiseDCHit{this,"useNoiseDCHit",false};
         Gaudi::Property<double> m_docaCut{this,"docaCut",3.3};//mm
         int m_fitSuccess[5];
         int m_nRecTrack;
@@ -286,6 +289,10 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nDCDigi;
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;
+        NTuple::Item<int> m_nSdtTrackHit;
+        NTuple::Item<int> m_nSdtDCTrackHit;
+        NTuple::Array<double> m_smearDis;
+        NTuple::Array<double> m_truthDis;
 
         NTuple::Item<int> m_nSdtRecTrack;
 
@@ -323,6 +330,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_dcDigiLayer;
         NTuple::Array<double> m_dcDigiCell;
         NTuple::Array<double> m_dcDigiTime;
+        NTuple::Array<double> m_dcDigiDrift;
         NTuple::Array<double> m_dcDigiDocaMC;
         NTuple::Array<double> m_dcDigiPocaOnWireMCX;
         NTuple::Array<double> m_dcDigiPocaOnWireMCY;
@@ -344,5 +352,8 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_dcDigiPocaExtZ;
         NTuple::Item<double> m_firstMomMc;
 
+        NTuple::Item<int> m_nTrackerHitSDT;
+        NTuple::Item<int> m_nTrackerHitDC;
+        NTuple::Item<int> m_nGenFitTrackerHit;
 };
 #endif
