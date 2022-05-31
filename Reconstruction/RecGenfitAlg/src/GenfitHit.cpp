@@ -27,7 +27,7 @@ GenfitHit::GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
     //driftVelocity um/ns
     m_driftDistanceTruth=m_trackerHit->getTime()*driftVelocity*GenfitUnit::um;
     m_driftDistance=m_driftDistanceTruth*GenfitUnit::cm;
-    if(driftDistanceErr>0) m_driftDistance+=gRandom->Gaus(0,fabs(driftDistanceErr*GenfitUnit::cm));//FIXME
+//    if(driftDistanceErr>0) m_driftDistance+=gRandom->Gaus(0,fabs(driftDistanceErr*GenfitUnit::cm));//FIXME
 }
 
 unsigned long long GenfitHit::getCellID() const {

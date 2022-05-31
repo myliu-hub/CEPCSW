@@ -6,6 +6,7 @@
 #include <DetSimInterface/IAnaElemTool.h>
 
 #include "G4UserSteppingAction.hh"
+#include "G4Track.hh"
 
 class G4Step;
 

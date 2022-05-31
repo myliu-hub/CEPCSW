@@ -159,6 +159,7 @@ bool GenfitTrack::createGenfitTrackFromEDM4HepTrack(int pidType,
 
     ///Skip track w.o. hit
     if(track.trackerHits_size()<=0) {
+        std::cout << " track.trackerHits_size = " << track.trackerHits_size() << std::endl;
         if(m_debug){
           std::cout<<"createGenfitTrackFromEDM4HepTrack skip track w/o hit"<<std::endl;
         }
@@ -427,6 +428,7 @@ int GenfitTrack::addWireMeasurementsOnTrack(edm4hep::Track& track,float sigma,
 bool GenfitTrack::getMOP(int hitID,genfit::MeasuredStateOnPlane& mop,
         genfit::AbsTrackRep* trackRep) const
 {
+
     if(nullptr == trackRep) trackRep = getRep();
     try{
         mop = m_track->getFittedState(hitID,trackRep);
@@ -553,9 +555,15 @@ void GenfitTrack::printSeed() const
 {
     TLorentzVector pos = getSeedStatePos();
     TVector3 mom = getSeedStateMom();
+    std::cout << " Seed pos "  << std::endl;
+    pos.Print();
+    std::cout << " Seed Mom =  " << std::endl;
+    mom.Print();
     print(pos,mom);
     TMatrixDSym covSeed=m_track->getCovSeed();
-    if(m_debug>1)covSeed.Print();
+    //if(m_debug>1)
+    std::cout << " covSeed = " << std::endl;
+    covSeed.Print();
     //std::cout<<" pdg "<<0<<getRep(0)<<std::endl;//FIXME
 }
 
@@ -1045,21 +1053,56 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
         TVector3& pocaToOrigin_mom,TMatrixDSym& pocaToOrigin_cov,
        // edm4hep::TrackState& trackState,
         int pidType, int ndfCut, double chi2Cut,
-        int& nFittedDC, int& nFittedSDT, int& ngenfitHit)
+        int& nFittedDC, int& nFittedSDT, int& ngenfitHit,
+        std::vector<double>& trackL, std::vector<double>& hitMom,
+        std::vector<float>& truthMomEdep,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits)
 {
 
     int id = 0;
+    int fitid = 0;
     int DCHit = 0;
+    int dcFit = 0;
+    int sdtFit = 0;
     int SDTHit = 0;
+
+    //  getNumRawMeasurements
+    unsigned int nPoints = m_track->getNumPoints();
+std::cout << " nPoints =  " << nPoints << std::endl;
+
+    std::vector<double> hitMomMag;
+
     while(1){
         genfit::TrackPoint* point = m_track->getPointWithFitterInfo(id);
         if(!point)break;
         id++;
         genfit::AbsMeasurement* absMea = point->getRawMeasurement();
+
+        // getPoint FitterInfo
+        genfit::AbsFitterInfo* FitterInfo = point->getFitterInfo();
+        genfit::KalmanFitterInfo *KalmanfitterInfo =
+            dynamic_cast<genfit::KalmanFitterInfo*>(FitterInfo);
+
+        unsigned int nNumMea = KalmanfitterInfo->getNumMeasurements();
+
+        bool flag = false;
+        for(int i=0;i<nNumMea;i++)
+        {
+            genfit::MeasurementOnPlane* MeaOnPlane =
+                KalmanfitterInfo->getMeasurementOnPlane(i);
+            double weight = MeaOnPlane->getWeight();
+            if(weight>0.8) flag = true;
+        }
+        if(flag) fitid++;
+
+        genfit::MeasurementOnPlane * Mea =
+            KalmanfitterInfo->getMeasurementOnPlane();
+
         genfit::PlanarMeasurementSDT* sdtMea =
             dynamic_cast<genfit::PlanarMeasurementSDT*>(absMea);
         if(sdtMea){
             SDTHit++;
+            if(flag) sdtFit++;
             const edm4hep::ConstTrackerHit* TrackerHit_ = sdtMea->getTrackerHit();
             track.addToTrackerHits(*TrackerHit_);
         }else{
@@ -1068,17 +1111,59 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
             if(dcMea){
                 const edm4hep::ConstTrackerHit* TrackerHit_ = dcMea->getTrackerHit();
                 track.addToTrackerHits(*TrackerHit_);
+
+
                 DCHit++;
+                if(flag)
+                {
+
+                    truthMomEdep.push_back(TrackerHit_->getEDep());
+
+                    TMatrixDSym fittedHitCov(6);//cm, GeV
+                    TLorentzVector fittedHitPos;
+                    TVector3 fittedHitMom;
+                    int fittedState=getFittedState(fittedHitPos,fittedHitMom,fittedHitCov,dcFit);
+                    hitMomMag.push_back(fittedHitMom.Mag());
+
+                    for(int iSim=0;iSim<assoHits->size();iSim++)
+                    {
+                        //if(*TrackerHit_ == assoHits->at(iSim).getRec())
+                        if(TrackerHit_->getCellID() == assoHits->at(iSim).getRec().getCellID())
+                        {
+                            std::cout << " if  TrackerHit_ = " << TrackerHit_->getCellID() << std::endl;
+                            std::cout << " if assoHits->at(iSim).getRec() = " << assoHits->at(iSim).getRec().getCellID() << std::endl;
+                            std::cout << " Sim Mom = " << assoHits->at(iSim).getSim().getMomentum() << std::endl;
+                            std::cout << " Sim MomMag = " << sqrt(assoHits->at(iSim).getSim().getMomentum()[0]*assoHits->at(iSim).getSim().getMomentum()[0]+assoHits->at(iSim).getSim().getMomentum()[1]*assoHits->at(iSim).getSim().getMomentum()[1]+assoHits->at(iSim).getSim().getMomentum()[2]*assoHits->at(iSim).getSim().getMomentum()[2]) << std::endl;
+
+                            break;
+                        }
+                    }
+
+                    std::cout << " i = " << dcFit << "fittedMom = " << fittedHitMom.X() << " " << fittedHitMom.Y() << " " << fittedHitMom.Z() << std::endl;
+                    std::cout << " i = " << dcFit << "fittedMomMag = " << fittedHitMom.Mag() << std::endl;
+                    dcFit++;
+                }
             }
         }
     }
 
-    nFittedDC = DCHit;
+    std::cout << " id = " << id << std::endl;
+    std::cout << " fitid = " << fitid << std::endl;
+
+    nFittedDC = fitid;
     nFittedSDT = SDTHit;
 
-    std::cout<<"nFittedDC: "<<nFittedDC<<", nFittedSDT: "<<nFittedSDT<<std::endl;
+    std::cout<<"nDC: "<<nFittedDC<<", nSDT: "<<nFittedSDT<<std::endl;
+    std::cout<<"nFittedDC: "<<dcFit<<", nFittedSDT: "<<sdtFit<<std::endl;
     if(m_debug>0)std::cout<<m_name<<" store track ndfCut "<<ndfCut<<" chi2Cut "
         <<chi2Cut<<std::endl;
+
+    for(int j=1;j<hitMomMag.size();j++)
+    {
+        hitMom.push_back(hitMomMag[j]-hitMomMag[j-1]);
+        std::cout << " Error Dep = " << hitMomMag[j]-hitMomMag[j-1] << std::endl;
+    }
+
     /// Get fit status
     const genfit::FitStatus* fitState = getFitStatus();
     double ndf = fitState->getNdf();
@@ -1104,6 +1189,23 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     TLorentzVector fittedPos;
     TVector3 fittedMom;
     int fittedState=getFittedState(fittedPos,fittedMom,fittedCov);
+
+    //get dx
+    TVector3 pos;
+    TVector3 mom;
+    pos.SetXYZ(fittedPos.X(),fittedPos.Y(),fittedPos.Z());
+    mom.SetXYZ(fittedMom.X(),fittedMom.Y(),fittedMom.Z());
+    double radius = 80.022;  // cm
+    const TVector3 linePoint(0,0,0);
+    const TVector3 lineDirection(0,0,1);
+
+    for(int i = 0;i<fitid;i++){
+        int repID=1;
+        radius+=1.741321;
+        double tracklength =
+            extrapolateToCylinder(pos,mom,radius,linePoint,lineDirection,repID);
+        trackL.push_back(tracklength);
+    }
 
     if(m_debug>0)std::cout<<m_name<<" fit result: get status OK? pidType "
         <<pidType<<" fittedState"<<fittedState<<"==0? "<<(0==fittedState)
@@ -1146,7 +1248,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
         }
     }
 
-    
+
     //TVectorD seedState5(5);
     //getSeedState5(seedState5);
 
@@ -1158,7 +1260,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     pocaToOrigin_mom.SetXYZ(1e9*dd4hep::GeV,1e9*dd4hep::GeV,1e9*dd4hep::GeV);
     //TMatrixDSym pocaToOrigin_cov;
     if(extrapolateToPoint(pocaToOrigin_pos,pocaToOrigin_mom,pocaToOrigin_cov,
-    referencePoint) > 1e6*dd4hep::cm){
+                referencePoint) > 1e6*dd4hep::cm){
         if(m_debug>0)std::cout<<m_name<<" extrapolate to origin failed"<<std::endl;
         return false;
     }
@@ -1171,7 +1273,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
             pocaToOrigin_mom.Y(),
             pocaToOrigin_mom.Z());
 
-     //unit conversion of error matrix
+    //unit conversion of error matrix
     TMatrixDSym covMatrix_6=fittedCov;
     for(int i=0;i<5;i++){
         covMatrix_6[0][i]=fittedCov[0][i]/dd4hep::mm;//d0 column
@@ -1208,21 +1310,21 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
 
     trackState.location=0;//edm4hep::AtIP;//FIXME
     if(m_debug>2){
-       std::cout<<m_name<<" trackState "<<trackState<<std::endl;
+        std::cout<<m_name<<" trackState "<<trackState<<std::endl;
     }
     track.addToTrackStates(trackState);
 
-    ngenfitHit = m_genfitHitVec.size();
+    //ngenfitHit = m_genfitHitVec.size();
+    ngenfitHit = nPoints;
     std::cout << " m_genfitHitVec size = " << m_genfitHitVec.size() << std::endl;
-    for(long unsigned int i=0; i<m_genfitHitVec.size();i++)
-    {
-        GenfitHit * genfitHit = GetHit(i);
-        edm4hep::ConstTrackerHit* trackHit =
-             const_cast<edm4hep::ConstTrackerHit*>(genfitHit->getTrackerHit());
-        //const edm4hep::ConstTrackerHit* trackHit = genfitHit->getTrackerHit();
-        
-        track.addToTrackerHits(*trackHit);
-    }
+//    for(long unsigned int i=0; i<m_genfitHitVec.size();i++)
+//    {
+//        GenfitHit * genfitHit = GetHit(i);
+//        edm4hep::ConstTrackerHit* trackHit =
+//            const_cast<edm4hep::ConstTrackerHit*>(genfitHit->getTrackerHit());
+//
+//        track.addToTrackerHits(*trackHit);
+//    }
     //track.setType();
     track.setChi2(chi2);
     track.setNdf(ndf);
@@ -1275,7 +1377,7 @@ void GenfitTrack::getAssoSimTrackerHit(
     for(auto assoHit: *assoHits){
         if(assoHit.getRec()==*trackerHit)
         {
-          simTrackerHit=assoHit.getSim();
+            simTrackerHit=assoHit.getSim();
 
         }
     }
@@ -1423,7 +1525,7 @@ int GenfitTrack::getSigmas(int cellID,std::vector<float> sigmaUVec,
         //std::cout<<"angle "<<atan2(pos_smeared[1],pos_smeared[0])<<std::endl;
         std::cout<<"sigmaU "<<sigmaUVec[sigmaUID]*GenfitUnit::mm
             <<" sigmaV "<<sigmaVVec[sigmaVID]*GenfitUnit::mm<<std::endl;
-     }
+    }
     sigmaU=sigmaUVec[sigmaUID]*GenfitUnit::mm;
     sigmaV=sigmaVVec[sigmaVID]*GenfitUnit::mm;
     return sigmaUID;

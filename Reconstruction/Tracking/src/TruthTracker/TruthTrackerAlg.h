@@ -6,6 +6,8 @@
 #include "DD4hep/Fields.h"
 #include "GaudiKernel/NTuple.h"
 
+#include "TRandom3.h"
+
 class IGeomSvc;
 namespace dd4hep {
     class Detector;
@@ -41,6 +43,13 @@ class TruthTrackerAlg: public GaudiAlgorithm
         int addSimHitsToTk(DataHandle<edm4hep::SimTrackerHitCollection>&
                 colHandle, edm4hep::TrackerHitCollection*& truthTrackerHitCol,
                 edm4hep::Track& track, const char* msg,int nHitAdded);
+        int smearDCTkhit(DataHandle<edm4hep::TrackerHitCollection>&
+                colHandle,DataHandle<edm4hep::TrackerHitCollection>& smearCol,
+                DataHandle<edm4hep::SimTrackerHitCollection>& SimDCHitCol,
+                DataHandle<edm4hep::SimTrackerHitCollection>& SimSmearDCHitCol,
+                DataHandle<edm4hep::MCRecoTrackerAssociationCollection>& AssoDCHitCol,
+                DataHandle<edm4hep::MCRecoTrackerAssociationCollection>& AssoSmearDCHitCol,
+                double resX, double resY, double resZ);
         int addHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
                 colHandle, edm4hep::Track& track, const char* msg,int nHitAdded);
         int addIdealHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
@@ -64,10 +73,16 @@ class TruthTrackerAlg: public GaudiAlgorithm
         //unit length is mm
         void getCircleFromPosMom(double pos[3],double mom[3],
                 double Bz,double q,double& helixRadius,double& helixXC,double& helixYC);
+        int makeNoiseHit(edm4hep::SimTrackerHitCollection* SimVec,
+                edm4hep::TrackerHitCollection* Vec,
+                edm4hep::MCRecoTrackerAssociationCollection* AssoVec,
+                const edm4hep::TrackerHitCollection* digiDCHitsCol,
+                const edm4hep::MCRecoTrackerAssociationCollection* assoHits);
+        bool debugNoiseHitsCol(edm4hep::TrackerHitCollection* Vec);
 
-        //reader
-        DataHandle<edm4hep::TrackerHitCollection> m_NoiseHitCol{
-            "NoiseDCHitsCollection", Gaudi::DataHandle::Reader, this};
+            //reader
+            //        DataHandle<edm4hep::TrackerHitCollection> m_NoiseHitCol{
+            //            "NoiseDCHitsCollection", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::MCParticleCollection> m_mcParticleCol{
             "MCParticle", Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::SimTrackerHitCollection> m_DCSimTrackerHitCol{
@@ -82,8 +97,8 @@ class TruthTrackerAlg: public GaudiAlgorithm
                 Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_SITSpacePointCol{
             "SITSpacePoints" , Gaudi::DataHandle::Reader, this};
-//        DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
-//            "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
+        //        DataHandle<edm4hep::TrackerHitCollection> m_SETSpacePointCol{
+        //            "SETSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_FTDSpacePointCol{
             "FTDSpacePoints" , Gaudi::DataHandle::Reader, this};
         DataHandle<edm4hep::TrackerHitCollection> m_VXDTrackerHits{
@@ -110,6 +125,22 @@ class TruthTrackerAlg: public GaudiAlgorithm
         DataHandle<edm4hep::TrackerHitCollection> m_truthTrackerHitCol{
             "TruthTrackerHitCollection", Gaudi::DataHandle::Writer, this};
 
+        // Smear hit
+        DataHandle<edm4hep::SimTrackerHitCollection> w_SimSmearHCol{
+            "SmearSimHitsCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackerHitCollection> m_SmeartruthTrackerHitCol{
+            "SmearTrackerHitCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> w_SmearAssociationCol{
+            "SmearDCHitAssociationCollection", Gaudi::DataHandle::Writer, this};
+        // make noise hit
+        DataHandle<edm4hep::SimTrackerHitCollection> w_SimNoiseHCol{
+            "NoiseSimHitsCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::TrackerHitCollection> w_NoiseHitCol{
+            "NoiseDCHitsCollection", Gaudi::DataHandle::Writer, this};
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> w_NoiseAssociationCol{
+            "NoiseDCHitAssociationCollection", Gaudi::DataHandle::Writer, this};
+
+
         //readout for getting segmentation
         Gaudi::Property<std::string> m_readout_name{this, "readout",
             "DriftChamberHitsCollection"};
@@ -124,6 +155,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useIdealHit{this,"useIdealHit",false};
 
         Gaudi::Property<bool> m_useNoiseHits{this,"useNoiseHits",false};
+        Gaudi::Property<bool> m_smearHits{this,"smearHits",false};
 
         Gaudi::Property<float> m_momentumCut{this,"momentumCut",0.1};//momentum cut for the first hit
         Gaudi::Property<float> m_resPT{this,"resPT",0};//ratio
@@ -131,6 +163,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<float> m_resX{this,"resX",0.11};//mm
         Gaudi::Property<float> m_resY{this,"resY",0.11};//mm
         Gaudi::Property<float> m_resZ{this,"resZ",0.11};//mm
+        Gaudi::Property<float> m_driftVelocity{this,"driftVelocity",40};// um/us
         Gaudi::Property<float> m_resMomPhi{this,"resMomPhi",0};//radian
         Gaudi::Property<float> m_resMomTheta{this,"resMomTheta",0};//radian
         Gaudi::Property<float> m_resVertexX{this,"resVertexX",0.003};//3um
@@ -142,6 +175,10 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<std::vector<float> > m_resSET{this,"resSET",{0.003,0.003,0.003}};//mm
         Gaudi::Property<std::vector<float> > m_resFTDPixel{this,"resFTDPixel",{0.003,0.003,0.003}};//mm
         Gaudi::Property<std::vector<float> > m_resFTDStrip{this,"resFTDStrip",{0.003,0.003,0.003}};//mm
+
+        Gaudi::Property<double> m_fHitPurity{this,"fHitPurity",0.1};
+        Gaudi::Property<float> m_pocaTime  { this, "pocaTime", 225};// ns
+
         double m_helixRadius,m_helixXC,m_helixYC;
         double m_helixRadiusFirst,m_helixXCFirst,m_helixYCFirst;
 
@@ -152,6 +189,14 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Array<double> m_siPos;
         NTuple::Array<double> m_mcMom;
         NTuple::Array<double> m_mcPos;
+
+        NTuple::Item<int> m_nDCTrackHit;
+        NTuple::Item<int> m_nSmearDCTrackHit;
+        NTuple::Item<int> m_nNoiseDCTrackHit;
+        NTuple::Array<float> m_DriftDistance;
+        NTuple::Array<float> m_SmearDriftDistance;
+        NTuple::Array<float> m_NoiseDriftDistance;
+
         NTuple::Item<int> m_nSimTrackerHitVXD;
         NTuple::Item<int> m_nSimTrackerHitSIT;
         NTuple::Item<int> m_nSimTrackerHitSET;
@@ -183,6 +228,9 @@ class TruthTrackerAlg: public GaudiAlgorithm
         NTuple::Item<int> m_nHitOnSdtTkFTD;
         NTuple::Item<int> m_nHitOnSdtTkDC;
         NTuple::Item<int> m_nHitOnSdtTk;
+        NTuple::Item<int> m_nNoiseOnSdtTk;
+
+        TRandom3 fRandom;
 };
 
 #endif

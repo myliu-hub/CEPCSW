@@ -130,7 +130,10 @@ class GenfitTrack {
             TVector3& pocaToOrigin_mom,
             TMatrixDSym& pocaToOrigin_cov,
             int pidType, int ndfCut, double chi2Cut,
-            int& nFittedDC, int& nFittedSDT,int& ngenfitHit);
+            int& nFittedDC, int& nFittedSDT,int& ngenfitHit,
+            std::vector<double>& trackL, std::vector<double>& hitMom,
+            std::vector<float>& truthMomEdep,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits);
 
     ///A tool to convert track to the first layer of DC
     void pivotToFirstLayer(const edm4hep::Vector3d& pos,

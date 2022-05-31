@@ -107,9 +107,6 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
             m_FTDHitAssociationCol{"FTDTrackerHitAssociation",
                 Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
-            m_NoiseDCHitAssociationCol{"NoiseDCHitAssociationCollection",
-                Gaudi::DataHandle::Reader, this};
 
         //Track from silicon detectors
         DataHandle<edm4hep::TrackCollection> m_SDTTrackCol{"SDTTrackCollection",
@@ -118,6 +115,15 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
             Gaudi::DataHandle::Writer, this};
         DataHandle<edm4hep::TrackCollection> m_SDTDebugRecTrackCol{"SDTDebugRecTrackCollection",
             Gaudi::DataHandle::Writer, this};
+
+        //Smear
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> r_SmearAssociationCol{
+            "SmearDCHitAssociationCollection", Gaudi::DataHandle::Reader, this};
+
+
+        //Noise
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection> r_NoiseAssociationCol{
+            "NoiseDCHitAssociationCollection", Gaudi::DataHandle::Reader, this};
 
         //Output hits and particles
         DataHandle<edm4hep::ReconstructedParticleCollection> m_SDTRecParticleCol{
@@ -290,9 +296,6 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nHitMc;
         NTuple::Item<int> m_nSdtTrack;
         NTuple::Item<int> m_nSdtTrackHit;
-        NTuple::Item<int> m_nSdtDCTrackHit;
-        NTuple::Array<double> m_smearDis;
-        NTuple::Array<double> m_truthDis;
 
         NTuple::Item<int> m_nSdtRecTrack;
 
@@ -355,5 +358,10 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Item<int> m_nTrackerHitSDT;
         NTuple::Item<int> m_nTrackerHitDC;
         NTuple::Item<int> m_nGenFitTrackerHit;
+
+        NTuple::Array<double> m_trackLength;
+        NTuple::Array<double> m_hitMomEdep;
+        NTuple::Array<float> m_truthMomEdep;
+
 };
 #endif

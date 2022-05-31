@@ -26,8 +26,12 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
 : GaudiAlgorithm(name, svcLoc),m_dd4hep(nullptr),m_gridDriftChamber(nullptr),
     m_decoder(nullptr)
 {
-    declareProperty("NoiseDCHitsCollection", m_NoiseHitCol,
+    declareProperty("NoiseSimHitsCollection", w_SimNoiseHCol,
+            "Handle of the output simulation  DC Noise hits collection");
+    declareProperty("NoiseDCHitsCollection", w_NoiseHitCol,
             "Handle of the input DC Noise hits collection");
+    declareProperty("NoiseDCHitAssociationCollection", w_NoiseAssociationCol,
+            "Handle of the simNoiseDCHit and noiseDC Noise hits collection");
     declareProperty("MCParticle", m_mcParticleCol,
             "Handle of the input MCParticle collection");
     declareProperty("DriftChamberHitsCollection", m_DCSimTrackerHitCol,
@@ -66,6 +70,12 @@ TruthTrackerAlg::TruthTrackerAlg(const std::string& name, ISvcLocator* svcLoc)
             "Handle of input FTD hit collection");
     declareProperty("TruthTrackerHitCollection", m_truthTrackerHitCol,
             "Handle of output truth TrackerHit collection");
+    declareProperty("SmearTrackerHitCollection", m_SmeartruthTrackerHitCol,
+            "Handle of output smear truth TrackerHit collection");
+    declareProperty("SmearSimHitsCollection", w_SimSmearHCol,
+            "Handle of output smear SimTrackerHit collection");
+    declareProperty("SmearDCHitAssociationCollection", w_SmearAssociationCol,
+            "Handle of output smear simulationhit and TrackerHit collection");
 }
 
 
@@ -117,7 +127,15 @@ StatusCode TruthTrackerAlg::initialize()
                 sc=m_tuple->addItem("siMom",3,m_siMom);
                 sc=m_tuple->addItem("siPos",3,m_siPos);
                 sc=m_tuple->addItem("mcMom",3,m_mcMom);
+
                 sc=m_tuple->addItem("mcPos",3,m_mcPos);
+                sc=m_tuple->addItem("nDCTrackHit",m_nDCTrackHit,0,100000);
+                sc=m_tuple->addItem("DriftDistance",m_nDCTrackHit,m_DriftDistance);
+                sc=m_tuple->addItem("nSmearDCTrackHit",m_nSmearDCTrackHit,0,100000);
+                sc=m_tuple->addItem("SmearDriftDistance",m_nSmearDCTrackHit,m_SmearDriftDistance);
+                sc=m_tuple->addItem("nNoiseDCTrackHit",m_nNoiseDCTrackHit,0,100000);
+                sc=m_tuple->addItem("NoiseDriftDistance",m_nNoiseDCTrackHit,m_NoiseDriftDistance);
+
                 sc=m_tuple->addItem("nSimTrackerHitVXD",m_nSimTrackerHitVXD);
                 sc=m_tuple->addItem("nSimTrackerHitSIT",m_nSimTrackerHitSIT);
                 sc=m_tuple->addItem("nSimTrackerHitSET",m_nSimTrackerHitSET);
@@ -141,6 +159,7 @@ StatusCode TruthTrackerAlg::initialize()
                 sc=m_tuple->addItem("nHitOnSdtTkFTD",m_nHitOnSdtTkFTD);
                 sc=m_tuple->addItem("nHitOnSdtTkDC",m_nHitOnSdtTkDC);
                 sc=m_tuple->addItem("nHitSdt",m_nHitOnSdtTk);
+                sc=m_tuple->addItem("nNoiseOnSdt",m_nNoiseOnSdtTk);
             }
         }
     }
@@ -170,9 +189,11 @@ StatusCode TruthTrackerAlg::execute()
     }
     ///Retrieve DC digi
     const edm4hep::TrackerHitCollection* digiDCHitsCol=nullptr;
+    const edm4hep::SimTrackerHitCollection* dcSimHitCol
+        =m_DCSimTrackerHitCol.get();
+    const edm4hep::MCRecoTrackerAssociationCollection* assoHits
+        = m_DCHitAssociationCol.get();
     if(m_useDC){
-        const edm4hep::SimTrackerHitCollection* dcSimHitCol
-            =m_DCSimTrackerHitCol.get();
         if(nullptr==dcSimHitCol){
             debug()<<"DC SimTrackerHitCollection not found"<<endmsg;
         }else{
@@ -181,6 +202,7 @@ StatusCode TruthTrackerAlg::execute()
             if(m_tuple)m_nSimTrackerHitDC=dcSimHitCol->size();
         }
         digiDCHitsCol=m_DCDigiCol.get();
+        m_nDCTrackHit = digiDCHitsCol->size();
         if(nullptr==digiDCHitsCol){
             debug()<<"TrackerHitCollection not found"<<endmsg;
         }else{
@@ -191,6 +213,12 @@ StatusCode TruthTrackerAlg::execute()
             }
         }
     }
+
+    // make noise
+    edm4hep::SimTrackerHitCollection* SimVec = w_SimNoiseHCol.createAndPut();
+    edm4hep::MCRecoTrackerAssociationCollection* AssoVec = 
+        w_NoiseAssociationCol.createAndPut();
+    edm4hep::TrackerHitCollection* Vec = w_NoiseHitCol.createAndPut();
 
     ////TODO
     //Output MCRecoTrackerAssociationCollection collection
@@ -301,6 +329,7 @@ StatusCode TruthTrackerAlg::execute()
             dcTrack.addToTrackStates(trackStateMc);
             dcTrack.addToTrackStates(trackStateFirstDCHit);
         }
+        //sdtTk.addToTrackStates(trackStateFirstDCHit);
 
         ///Add other track properties
         dcTrack.setNdf(dcTrack.trackerHits_size()-5);
@@ -313,17 +342,27 @@ StatusCode TruthTrackerAlg::execute()
             nDCHitDCTk=addHitsToTk(m_DCDigiCol,dcTrack,"DC digi",nDCHitDCTk);
         }
 //        if(m_useSi) nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
-        if(m_useSi)
-        {
-            if(!m_useNoiseHits)
-            {
-                nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
-            } else {
-
-                nDCHitSDTTk=addHitsToTk(m_NoiseHitCol,sdtTk,
-                            "DC digi",nDCHitSDTTk);
-            } 
+       // if(m_useSi)
+       // {
+        if(m_smearHits){
+            m_nSmearDCTrackHit = smearDCTkhit(m_DCDigiCol,
+                    m_SmeartruthTrackerHitCol,m_DCSimTrackerHitCol,
+                    w_SimSmearHCol,m_DCHitAssociationCol,
+                    w_SmearAssociationCol,m_resX,m_resY,m_resZ);
         }
+
+        if(!m_useNoiseHits)
+        {
+            //nDCHitSDTTk=addHitsToTk(m_DCDigiCol,sdtTk,"DC digi",nDCHitSDTTk);
+            nDCHitSDTTk=addHitsToTk(m_SmeartruthTrackerHitCol,sdtTk,"DC digi",nDCHitSDTTk);
+        } else {
+            m_nNoiseOnSdtTk = makeNoiseHit(SimVec,Vec,AssoVec,
+                    m_SmeartruthTrackerHitCol.get(),w_SmearAssociationCol.get());
+            if(debugNoiseHitsCol(Vec))std::cout << " Make noise hits successfully!" << std::endl;
+            nDCHitSDTTk=addHitsToTk(w_NoiseHitCol,sdtTk,
+                    "DC digi",nDCHitSDTTk);
+        } 
+        //}
 
         //track.setType();//TODO
         //track.setChi2(gauss(digiDCHitsCol->size-5(),1));//FIXME
@@ -588,6 +627,164 @@ int TruthTrackerAlg::addIdealHitsToTk(DataHandle<edm4hep::TrackerHitCollection>&
             <<fabs(docaIdeal)*1e3/40.<<endmsg;
         ++nHit;
     }
+    return nHit;
+}
+
+bool TruthTrackerAlg::debugNoiseHitsCol(edm4hep::TrackerHitCollection* Vec)
+{
+    m_nNoiseDCTrackHit = Vec->size();
+std::cout << "  m_nNoiseDCTrackHit = " <<  m_nNoiseDCTrackHit << std::endl;
+    int ihit=0;
+    for(auto Vechit: *Vec)
+    {
+        m_NoiseDriftDistance[ihit] = (Vechit.getTime())*m_driftVelocity*1e-3;
+        ihit++;
+    }
+
+    return true;
+}
+
+int TruthTrackerAlg::makeNoiseHit(edm4hep::SimTrackerHitCollection* SimVec,
+        edm4hep::TrackerHitCollection* Vec,
+        edm4hep::MCRecoTrackerAssociationCollection* AssoVec,
+        const edm4hep::TrackerHitCollection* digiDCHitsCol,
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits)
+{
+    int nNoise = 0;
+    //loop all hits
+    for(unsigned int i = 0; i<(digiDCHitsCol->size()); i++)
+    {
+        edm4hep::TrackerHit mcHit = digiDCHitsCol->at(i);
+        unsigned long long wcellid = mcHit.getCellID();
+
+        float pocaTime = mcHit.getTime();
+
+        // store trackHit
+        auto trkHit = Vec->create();
+
+        trkHit.setCellID(wcellid);
+        trkHit.setTime(pocaTime);
+        trkHit.setEDep(mcHit.getEDep());
+        trkHit.setEdx(mcHit.getEdx());
+        trkHit.setPosition(mcHit.getPosition());
+        trkHit.setCovMatrix(mcHit.getCovMatrix());
+        for(int iAsso=0;iAsso<(int) assoHits->size();iAsso++)
+        {
+
+            if(assoHits->at(iAsso).getRec().getCellID()==wcellid )
+            {
+                auto SimtrkHit = SimVec->create();
+
+                SimtrkHit.setCellID(assoHits->at(iAsso).getSim().getCellID());
+                SimtrkHit.setEDep(assoHits->at(iAsso).getSim().getEDep());
+                SimtrkHit.setTime(assoHits->at(iAsso).getSim().getTime());
+                SimtrkHit.setPathLength(assoHits->at(iAsso).getSim().getPathLength());
+                SimtrkHit.setQuality(assoHits->at(iAsso).getSim().getQuality());
+                SimtrkHit.setPosition(assoHits->at(iAsso).getSim().getPosition());
+                SimtrkHit.setMomentum(assoHits->at(iAsso).getSim().getMomentum());
+                SimtrkHit.setMCParticle(assoHits->at(iAsso).getSim().getMCParticle());
+
+                auto asso = AssoVec->create();
+                asso.setRec(trkHit);
+                asso.setSim(SimtrkHit);
+                asso.setWeight(SimtrkHit.getEDep()/trkHit.getEDep());
+            }
+        }
+
+        double prob1 = fRandom.Uniform(1.);
+        if(prob1 > m_fHitPurity) continue;
+
+        float noiseTime = m_pocaTime*fRandom.Uniform(1.);
+        if(noiseTime>pocaTime) continue;
+        nNoise++;
+        trkHit.setTime(noiseTime);
+
+        for(int iAsso=0;iAsso<(int) assoHits->size();iAsso++)
+        {
+
+            if(assoHits->at(iAsso).getRec().getCellID()==wcellid )
+            {
+
+                AssoVec->at(iAsso).setRec(trkHit);
+
+            }
+
+        }
+
+    }
+
+std::cout << " Truth Noise number = " << nNoise << std::endl;
+    return nNoise;
+}
+
+int TruthTrackerAlg::smearDCTkhit(DataHandle<edm4hep::TrackerHitCollection>&
+        colHandle,DataHandle<edm4hep::TrackerHitCollection>& smearCol,
+        DataHandle<edm4hep::SimTrackerHitCollection>& SimDCHitCol,
+        DataHandle<edm4hep::SimTrackerHitCollection>& SimSmearDCHitCol,
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>& AssoDCHitCol,
+        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>& AssoSmearDCHitCol,
+        double resX, double resY, double resZ)
+{
+    int nHit=0;
+    const edm4hep::TrackerHitCollection* col=colHandle.get();
+    auto smearTrackerHitCol = smearCol.createAndPut();
+
+    auto simDCCol = SimDCHitCol.get();
+    auto SimVec = SimSmearDCHitCol.createAndPut();
+
+    auto assoHits = AssoDCHitCol.get();
+    auto AssoVec = AssoSmearDCHitCol.createAndPut();
+
+    //sort,FIXME
+    for(auto hit:*col){
+
+        auto smearHit=smearTrackerHitCol->create();
+
+        float truthD = (hit.getTime())*m_driftVelocity*1e-3;
+        m_DriftDistance[nHit] = truthD;
+
+        truthD+=gRandom->Gaus(0,fabs(m_resX));
+        m_SmearDriftDistance[nHit] = truthD;
+        float smearT = (truthD*1e3)/m_driftVelocity;
+
+        smearHit.setTime(smearT);
+        smearHit.setCellID(hit.getCellID());
+        smearHit.setType(hit.getCellID());
+        smearHit.setQuality(hit.getQuality());
+        smearHit.setEDep(hit.getEDep());
+        smearHit.setEDepError(hit.getEDepError());
+        smearHit.setEdx(hit.getEdx());
+        smearHit.setPosition(hit.getPosition());
+        smearHit.setCovMatrix(hit.getCovMatrix());
+        smearHit.addToRawHits(hit.getObjectID());
+
+        ++nHit;
+        for(int iAsso=0;iAsso<(int) assoHits->size();iAsso++)
+        {
+
+            if(assoHits->at(iAsso).getRec().getCellID()== smearHit.getCellID())
+            {
+                auto SimtrkHit = SimVec->create();
+
+                SimtrkHit.setCellID(assoHits->at(iAsso).getSim().getCellID());
+                SimtrkHit.setEDep(assoHits->at(iAsso).getSim().getEDep());
+                SimtrkHit.setTime(assoHits->at(iAsso).getSim().getTime());
+                SimtrkHit.setPathLength(assoHits->at(iAsso).getSim().getPathLength());
+                SimtrkHit.setQuality(assoHits->at(iAsso).getSim().getQuality());
+                SimtrkHit.setPosition(assoHits->at(iAsso).getSim().getPosition());
+                SimtrkHit.setMomentum(assoHits->at(iAsso).getSim().getMomentum());
+                SimtrkHit.setMCParticle(assoHits->at(iAsso).getSim().getMCParticle());
+
+                auto asso = AssoVec->create();
+                asso.setRec(smearHit);
+                asso.setSim(SimtrkHit);
+                asso.setWeight(SimtrkHit.getEDep()/smearHit.getEDep());
+            }
+        }
+    }
+    std::cout << " SimSmear size = " <<  SimVec->size() << " Asso size = " << AssoVec->size() << std::endl;
+    std::cout << " Sim size = " <<  simDCCol->size() << " Asso size = " << assoHits->size() << std::endl;
+
     return nHit;
 }
 
