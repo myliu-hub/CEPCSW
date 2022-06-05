@@ -362,6 +362,9 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
         NTuple::Array<double> m_trackLength;
         NTuple::Array<double> m_hitMomEdep;
         NTuple::Array<float> m_truthMomEdep;
+        NTuple::Array<float> m_FittedDoca;
+        NTuple::Array<float> m_driftDis;
+        NTuple::Array<float> m_Res;
 
 };
 #endif

@@ -16,12 +16,18 @@
 #include "DDSegmentation/Segmentation.h"
 #include "DetSegmentation/GridDriftChamber.h"
 
-#include <iostream>
+
+#include<iostream>
+#include<fstream>
+#include<string>
+
 #include <chrono>
 
 using namespace dd4hep;
 using namespace dd4hep::detail;
 using namespace dd4hep::rec ;
+
+using namespace std;
 
 #define MYDEBUG(x) std::cout << __FILE__ << ":" << __LINE__ << ": " << x << std::endl;
 #define MYDEBUGVAL(x) std::cout << __FILE__ << ":" << __LINE__ << ": " << #x << ": " << x << std::endl;
@@ -37,7 +43,7 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
     // Parameter Definition
     // =======================================================================
 
-auto start = std::chrono::steady_clock::now();
+    auto start = std::chrono::steady_clock::now();
 
     xml_det_t x_det = e;
 
@@ -169,6 +175,7 @@ auto start = std::chrono::steady_clock::now();
         double rmid_zEnd = rmid_zZero/std::cos(alpha/2);  //  z=endcap
         int nCell = floor((2. * M_PI * rmid_zZero) / layer_width);
         int nWire = nCell;
+//std::cout << " Simulation layer = " << layer_id << " nWire = " << nWire << std::endl;
         if(!DC_construct_wire) nWire =0;
         double cell_phi = 2*M_PI / nCell;
         double offset=0;//phi offset of first cell in each layer
@@ -205,6 +212,7 @@ auto start = std::chrono::steady_clock::now();
         current_vol_ptr = &layer_vol;
 
         if ( x_det.isSensitive() )   {
+std::cout << " isSensitive = " << x_det.isSensitive() << std::endl;
             layer_vol.setRegion(theDetector,x_det.regionStr());
             layer_vol.setLimitSet(theDetector,x_det.limitsStr());
             layer_vol.setSensitiveDetector(sens);
@@ -228,6 +236,7 @@ auto start = std::chrono::steady_clock::now();
             dd4hep::RotationZ rz(wire_phi+Pi);
             dd4hep::RotationY ry(epsilon);
             dd4hep::Position tr3D = Position(rmid_zZero*std::cos(wire_phi),rmid_zZero*std::sin(wire_phi),0.);
+
             dd4hep::Transform3D transform_signal_wire(rz*ry,tr3D);
 
             (*current_vol_ptr).placeVolume(signalWireVolume,transform_signal_wire);
@@ -293,9 +302,14 @@ auto start = std::chrono::steady_clock::now();
 
 
     MYDEBUG("Build Detector Drift Chamber successfully.");
-auto end = std::chrono::steady_clock::now();
-std::chrono::duration<double> elapsed_seconds = end-start;
-std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n"; 
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n"; 
+
+    std::cout << " DD4hep Units cm = " << dd4hep::cm <<  "\n"
+              << " DD4hep Units mm = " << dd4hep::mm <<  "\n"
+              << std::endl;
+
     return sdet;
 
 }

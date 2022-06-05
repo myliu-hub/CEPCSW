@@ -123,6 +123,9 @@ class GenfitTrack {
             int& nFittedDC,int& nFittedSDT,int& ngenfitHit,
             std::vector<double>& smearDistance,
             std::vector<double>& truthDistance,double driftVelocity);
+    bool GetDocaRes(int hitID,  double& DriftDis,double& fittedDoca,
+            double& res,int repID=0, bool biased=true) const;
+
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::ReconstructedParticle& recParticle,
             edm4hep::Track& track,
@@ -133,7 +136,10 @@ class GenfitTrack {
             int& nFittedDC, int& nFittedSDT,int& ngenfitHit,
             std::vector<double>& trackL, std::vector<double>& hitMom,
             std::vector<float>& truthMomEdep,
-            const edm4hep::MCRecoTrackerAssociationCollection* assoHits);
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            std::vector<double>& driftDis,
+            std::vector<double>& FittedDoca,
+            std::vector<double>& Res);
 
     ///A tool to convert track to the first layer of DC
     void pivotToFirstLayer(const edm4hep::Vector3d& pos,

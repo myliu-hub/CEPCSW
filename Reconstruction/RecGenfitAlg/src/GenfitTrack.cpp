@@ -624,7 +624,9 @@ bool GenfitTrack::getPosMomCovMOP(int hitID, TLorentzVector& pos,
 int GenfitTrack::getNumPointsWithFittedInfo(int repID) const
 {
     int nHitWithFittedInfo = 0;
+    //check number of hit with fitter info
     int nHit = m_track->getNumPointsWithMeasurement();
+    //check number of hit with fitter info
     for(int i=0; i<nHit; i++){
         if(nullptr != m_track->getPointWithFitterInfo(i,getRep(repID))){
             nHitWithFittedInfo++;
@@ -1047,16 +1049,36 @@ bool GenfitTrack::debugDistance(const edm4hep::TrackerHitCollection* dCDigiCol,
     return true;
 }
 
+/// Get doca on plane of hitID-th hit
+bool GenfitTrack::GetDocaRes(int hitID, double& DriftDis,double& fittedDoca,
+        double& res, int repID, bool biased) const
+{
+    genfit::TrackPoint* trackPoint = m_track->getPointWithFitterInfo(hitID, getRep(repID));
+    if(!trackPoint)return false;
+    genfit::AbsMeasurement* thismea = trackPoint->getRawMeasurement(0);
+    const TVectorD measereddoca = thismea->getRawHitCoords();
+    DriftDis = abs(measereddoca[0]);
+    genfit::MeasuredStateOnPlane mop;
+    if(!getMOP(hitID,mop,getRep(repID))) return false;
+    TVectorD state = mop.getState();
+    if(state.GetNrows() != 5)return false;
+    fittedDoca = abs(state[3]);
+    res = 10*(fittedDoca - DriftDis);
+    return true;
+}
 
 bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
         edm4hep::Track& track,TVector3& pocaToOrigin_pos,
         TVector3& pocaToOrigin_mom,TMatrixDSym& pocaToOrigin_cov,
-       // edm4hep::TrackState& trackState,
+        // edm4hep::TrackState& trackState,
         int pidType, int ndfCut, double chi2Cut,
         int& nFittedDC, int& nFittedSDT, int& ngenfitHit,
         std::vector<double>& trackL, std::vector<double>& hitMom,
         std::vector<float>& truthMomEdep,
-        const edm4hep::MCRecoTrackerAssociationCollection* assoHits)
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        std::vector<double>& driftDis,
+        std::vector<double>& FittedDoca,
+        std::vector<double>& Res)
 {
 
     int id = 0;
@@ -1068,7 +1090,7 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
 
     //  getNumRawMeasurements
     unsigned int nPoints = m_track->getNumPoints();
-std::cout << " nPoints =  " << nPoints << std::endl;
+    std::cout << " nPoints =  " << nPoints << std::endl;
 
     std::vector<double> hitMomMag;
 
@@ -1118,29 +1140,34 @@ std::cout << " nPoints =  " << nPoints << std::endl;
                 {
 
                     truthMomEdep.push_back(TrackerHit_->getEDep());
+                    double DriftDis,fittedDoca,res = 0;
+                    GetDocaRes(dcFit,DriftDis,fittedDoca,res);
+                    driftDis.push_back(DriftDis);
+                    FittedDoca.push_back(fittedDoca);
+                    Res.push_back(res);
 
-                    TMatrixDSym fittedHitCov(6);//cm, GeV
-                    TLorentzVector fittedHitPos;
-                    TVector3 fittedHitMom;
-                    int fittedState=getFittedState(fittedHitPos,fittedHitMom,fittedHitCov,dcFit);
-                    hitMomMag.push_back(fittedHitMom.Mag());
+                    //                    TMatrixDSym fittedHitCov(6);//cm, GeV
+                    //                    TLorentzVector fittedHitPos;
+                    //                    TVector3 fittedHitMom;
+                    //                    int fittedState=getFittedState(fittedHitPos,fittedHitMom,fittedHitCov,dcFit);
+                    //                    hitMomMag.push_back(fittedHitMom.Mag());
+                    //
+                    //                    for(int iSim=0;iSim<assoHits->size();iSim++)
+                    //                    {
+                    //                        //if(*TrackerHit_ == assoHits->at(iSim).getRec())
+                    //                        if(TrackerHit_->getCellID() == assoHits->at(iSim).getRec().getCellID())
+                    //                        {
+                    //                           // std::cout << " if  TrackerHit_ = " << TrackerHit_->getCellID() << std::endl;
+                    //                           // std::cout << " if assoHits->at(iSim).getRec() = " << assoHits->at(iSim).getRec().getCellID() << std::endl;
+                    //                           // std::cout << " Sim Mom = " << assoHits->at(iSim).getSim().getMomentum() << std::endl;
+                    //                           // std::cout << " Sim MomMag = " << sqrt(assoHits->at(iSim).getSim().getMomentum()[0]*assoHits->at(iSim).getSim().getMomentum()[0]+assoHits->at(iSim).getSim().getMomentum()[1]*assoHits->at(iSim).getSim().getMomentum()[1]+assoHits->at(iSim).getSim().getMomentum()[2]*assoHits->at(iSim).getSim().getMomentum()[2]) << std::endl;
+                    //
+                    //                            break;
+                    //                        }
+                    //                    }
 
-                    for(int iSim=0;iSim<assoHits->size();iSim++)
-                    {
-                        //if(*TrackerHit_ == assoHits->at(iSim).getRec())
-                        if(TrackerHit_->getCellID() == assoHits->at(iSim).getRec().getCellID())
-                        {
-                            std::cout << " if  TrackerHit_ = " << TrackerHit_->getCellID() << std::endl;
-                            std::cout << " if assoHits->at(iSim).getRec() = " << assoHits->at(iSim).getRec().getCellID() << std::endl;
-                            std::cout << " Sim Mom = " << assoHits->at(iSim).getSim().getMomentum() << std::endl;
-                            std::cout << " Sim MomMag = " << sqrt(assoHits->at(iSim).getSim().getMomentum()[0]*assoHits->at(iSim).getSim().getMomentum()[0]+assoHits->at(iSim).getSim().getMomentum()[1]*assoHits->at(iSim).getSim().getMomentum()[1]+assoHits->at(iSim).getSim().getMomentum()[2]*assoHits->at(iSim).getSim().getMomentum()[2]) << std::endl;
-
-                            break;
-                        }
-                    }
-
-                    std::cout << " i = " << dcFit << "fittedMom = " << fittedHitMom.X() << " " << fittedHitMom.Y() << " " << fittedHitMom.Z() << std::endl;
-                    std::cout << " i = " << dcFit << "fittedMomMag = " << fittedHitMom.Mag() << std::endl;
+                    //std::cout << " i = " << dcFit << "fittedMom = " << fittedHitMom.X() << " " << fittedHitMom.Y() << " " << fittedHitMom.Z() << std::endl;
+                    //std::cout << " i = " << dcFit << "fittedMomMag = " << fittedHitMom.Mag() << std::endl;
                     dcFit++;
                 }
             }
@@ -1150,19 +1177,13 @@ std::cout << " nPoints =  " << nPoints << std::endl;
     std::cout << " id = " << id << std::endl;
     std::cout << " fitid = " << fitid << std::endl;
 
-    nFittedDC = fitid;
+    nFittedDC = dcFit;
     nFittedSDT = SDTHit;
 
     std::cout<<"nDC: "<<nFittedDC<<", nSDT: "<<nFittedSDT<<std::endl;
     std::cout<<"nFittedDC: "<<dcFit<<", nFittedSDT: "<<sdtFit<<std::endl;
     if(m_debug>0)std::cout<<m_name<<" store track ndfCut "<<ndfCut<<" chi2Cut "
         <<chi2Cut<<std::endl;
-
-    for(int j=1;j<hitMomMag.size();j++)
-    {
-        hitMom.push_back(hitMomMag[j]-hitMomMag[j-1]);
-        std::cout << " Error Dep = " << hitMomMag[j]-hitMomMag[j-1] << std::endl;
-    }
 
     /// Get fit status
     const genfit::FitStatus* fitState = getFitStatus();
@@ -1195,6 +1216,8 @@ std::cout << " nPoints =  " << nPoints << std::endl;
     TVector3 mom;
     pos.SetXYZ(fittedPos.X(),fittedPos.Y(),fittedPos.Z());
     mom.SetXYZ(fittedMom.X(),fittedMom.Y(),fittedMom.Z());
+    //std::cout << "fitted momx = " << mom.X() << "momy = " << mom.Y() << "momz = " << mom.Z() << " mom.Mag = " << mom.Mag() << std::endl;
+    //std::cout << "fitted posx = " << pos.X() << "posy = " << pos.Y() << "posz = " << pos.Z() << std::endl;
     double radius = 80.022;  // cm
     const TVector3 linePoint(0,0,0);
     const TVector3 lineDirection(0,0,1);
@@ -1204,7 +1227,16 @@ std::cout << " nPoints =  " << nPoints << std::endl;
         radius+=1.741321;
         double tracklength =
             extrapolateToCylinder(pos,mom,radius,linePoint,lineDirection,repID);
+        hitMomMag.push_back(mom.Mag());
+        //std::cout << "momx = " << mom.X() << "momy = " << mom.Y() << "momz = " << mom.Z() << " mom.Mag = " << mom.Mag() << std::endl;
+        //std::cout << "posx = " << pos.X() << "posy = " << pos.Y() << "posz = " << pos.Z() << std::endl;
         trackL.push_back(tracklength);
+    }
+
+    for(int j=0;j<hitMomMag.size()-1;j++)
+    {
+        hitMom.push_back(hitMomMag[j]-hitMomMag[j+1]);
+        //std::cout << " Error Dep = " << hitMomMag[j]-hitMomMag[j+1] << std::endl;
     }
 
     if(m_debug>0)std::cout<<m_name<<" fit result: get status OK? pidType "
@@ -1317,14 +1349,14 @@ std::cout << " nPoints =  " << nPoints << std::endl;
     //ngenfitHit = m_genfitHitVec.size();
     ngenfitHit = nPoints;
     std::cout << " m_genfitHitVec size = " << m_genfitHitVec.size() << std::endl;
-//    for(long unsigned int i=0; i<m_genfitHitVec.size();i++)
-//    {
-//        GenfitHit * genfitHit = GetHit(i);
-//        edm4hep::ConstTrackerHit* trackHit =
-//            const_cast<edm4hep::ConstTrackerHit*>(genfitHit->getTrackerHit());
-//
-//        track.addToTrackerHits(*trackHit);
-//    }
+    //    for(long unsigned int i=0; i<m_genfitHitVec.size();i++)
+    //    {
+    //        GenfitHit * genfitHit = GetHit(i);
+    //        edm4hep::ConstTrackerHit* trackHit =
+    //            const_cast<edm4hep::ConstTrackerHit*>(genfitHit->getTrackerHit());
+    //
+    //        track.addToTrackerHits(*trackHit);
+    //    }
     //track.setType();
     track.setChi2(chi2);
     track.setNdf(ndf);
