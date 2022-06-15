@@ -40,6 +40,7 @@ add_subdirectory(Reconstruction)
 add_subdirectory(Service)
 add_subdirectory(Simulation)
 add_subdirectory(Utilities)
+add_subdirectory(belle2)
 
 ##############################################################################
 # INSTALL

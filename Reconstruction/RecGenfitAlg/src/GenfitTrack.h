@@ -139,7 +139,9 @@ class GenfitTrack {
             const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
             std::vector<double>& driftDis,
             std::vector<double>& FittedDoca,
-            std::vector<double>& Res);
+            std::vector<double>& truthDoca,
+            std::vector<double>& Res,
+            std::vector<double>& truthRes);
 
     ///A tool to convert track to the first layer of DC
     void pivotToFirstLayer(const edm4hep::Vector3d& pos,

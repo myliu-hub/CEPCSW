@@ -69,8 +69,7 @@ sortDCSimHit(edm4hep::ConstSimTrackerHit hit1,edm4hep::ConstSimTrackerHit hit2)
 {
     //std::cout<<"hit1"<<hit1<<std::endl;
     //std::cout<<"hit2"<<hit2<<std::endl;
-    bool isEarly=hit1.getTime()<hit2.getTime();
-    return isEarly;
+    bool isEarly=hit1.getTime()<hit2.getTime(); return isEarly;
 }
     bool
 sortDCDigi(std::pair<double,edm4hep::ConstTrackerHit*> hitPair1,std::pair<double,edm4hep::ConstTrackerHit*> hitPair2)
@@ -384,6 +383,7 @@ int GenfitTrack::addWireMeasurementsFromList(std::vector<edm4hep::ConstTrackerHi
         GenfitHit* genfitHit=
             makeAGenfitHit(trackerHit,&simTrackerHitAsso,sigma,truthAmbig,
                     skipCorner,skipNear);
+
         if(nullptr==genfitHit) continue;
         m_genfitHitVec.push_back(genfitHit);
 
@@ -1078,7 +1078,9 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
         std::vector<double>& driftDis,
         std::vector<double>& FittedDoca,
-        std::vector<double>& Res)
+        std::vector<double>& truthDoca,
+        std::vector<double>& Res,
+        std::vector<double>& truthRes)
 {
 
     int id = 0;
@@ -1091,6 +1093,8 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
     //  getNumRawMeasurements
     unsigned int nPoints = m_track->getNumPoints();
     std::cout << " nPoints =  " << nPoints << std::endl;
+    unsigned int nPointsWithMea = m_track->getNumPointsWithMeasurement();
+    std::cout << " nPointsWithMea =  " << nPointsWithMea << std::endl;
 
     std::vector<double> hitMomMag;
 
@@ -1141,33 +1145,14 @@ bool GenfitTrack::storeTrack(edm4hep::ReconstructedParticle& recParticle,
 
                     truthMomEdep.push_back(TrackerHit_->getEDep());
                     double DriftDis,fittedDoca,res = 0;
-                    GetDocaRes(dcFit,DriftDis,fittedDoca,res);
-                    driftDis.push_back(DriftDis);
-                    FittedDoca.push_back(fittedDoca);
+                    GetDocaRes((id-1),DriftDis,fittedDoca,res);
+                    driftDis.push_back(10*DriftDis);
+                    FittedDoca.push_back(10*fittedDoca);
+                    truthDoca.push_back(40*1e-3*TrackerHit_->getTime());
+                    truthRes.push_back((40*1e-3*TrackerHit_->getTime())-10*fittedDoca);
                     Res.push_back(res);
 
-                    //                    TMatrixDSym fittedHitCov(6);//cm, GeV
-                    //                    TLorentzVector fittedHitPos;
-                    //                    TVector3 fittedHitMom;
-                    //                    int fittedState=getFittedState(fittedHitPos,fittedHitMom,fittedHitCov,dcFit);
-                    //                    hitMomMag.push_back(fittedHitMom.Mag());
-                    //
-                    //                    for(int iSim=0;iSim<assoHits->size();iSim++)
-                    //                    {
-                    //                        //if(*TrackerHit_ == assoHits->at(iSim).getRec())
-                    //                        if(TrackerHit_->getCellID() == assoHits->at(iSim).getRec().getCellID())
-                    //                        {
-                    //                           // std::cout << " if  TrackerHit_ = " << TrackerHit_->getCellID() << std::endl;
-                    //                           // std::cout << " if assoHits->at(iSim).getRec() = " << assoHits->at(iSim).getRec().getCellID() << std::endl;
-                    //                           // std::cout << " Sim Mom = " << assoHits->at(iSim).getSim().getMomentum() << std::endl;
-                    //                           // std::cout << " Sim MomMag = " << sqrt(assoHits->at(iSim).getSim().getMomentum()[0]*assoHits->at(iSim).getSim().getMomentum()[0]+assoHits->at(iSim).getSim().getMomentum()[1]*assoHits->at(iSim).getSim().getMomentum()[1]+assoHits->at(iSim).getSim().getMomentum()[2]*assoHits->at(iSim).getSim().getMomentum()[2]) << std::endl;
-                    //
-                    //                            break;
-                    //                        }
-                    //                    }
 
-                    //std::cout << " i = " << dcFit << "fittedMom = " << fittedHitMom.X() << " " << fittedHitMom.Y() << " " << fittedHitMom.Z() << std::endl;
-                    //std::cout << " i = " << dcFit << "fittedMomMag = " << fittedHitMom.Mag() << std::endl;
                     dcFit++;
                 }
             }

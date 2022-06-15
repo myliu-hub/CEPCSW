@@ -329,7 +329,9 @@ StatusCode RecGenfitAlgSDT::initialize()
             sc=m_tuple->addItem("truthMomedep",m_nTrackerHitDC,m_truthMomEdep);
             sc=m_tuple->addItem("driftDis",m_nTrackerHitDC,m_driftDis);
             sc=m_tuple->addItem("FittedDoca",m_nTrackerHitDC,m_FittedDoca);
+            sc=m_tuple->addItem("truthDoca",m_nTrackerHitDC,m_truthDoca);
             sc=m_tuple->addItem("Res",m_nTrackerHitDC,m_Res);
+            sc=m_tuple->addItem("truthRes",m_nTrackerHitDC,m_truthRes);
             sc=m_tuple->addItem("nTrackerHitSDT",m_nTrackerHitSDT);
             sc=m_tuple->addItem("nGenFitTrackerHit",m_nGenFitTrackerHit);
             debug()<< "Book tuple RecGenfitAlgSDT/recGenfitAlgSDT" << endmsg;
@@ -427,7 +429,9 @@ StatusCode RecGenfitAlgSDT::execute()
     std::vector<float> truthMomEdep;
     std::vector<double> driftDis;
     std::vector<double> FittedDoca;
+    std::vector<double> truthDoca;
     std::vector<double> Res;
+    std::vector<double> truthRes;
     for(auto sdtTrack: *sdtTrackCol)
     {
         ///Loop over 5 particle hypothesis(0-4): e,mu,pi,K,p
@@ -536,7 +540,7 @@ std::cout << " sdtTrack size = " << sdtTrack.trackerHits_size() << std::endl;
                         pocaToOrigin_pos,pocaToOrigin_mom,pocaToOrigin_cov,
                         pidType,m_ndfCut,m_chi2Cut,nFittedDC,nFittedSDT,
                         ngenfitHit,trackL,hitMom,truthMomEdep,assoDCHitsCol,
-                        driftDis,FittedDoca,Res)){
+                        driftDis,FittedDoca,truthDoca,Res,truthRes)){
                 debug()<<"Fitting failed!"<<std::endl;
             }else{
                 ++m_fitSuccess[pidType];
@@ -568,7 +572,9 @@ std::cout << " sdtTrack size = " << sdtTrack.trackerHits_size() << std::endl;
         for(int i=0;i<truthMomEdep.size();i++) m_truthMomEdep[i] = truthMomEdep[i];
         for(int i=0;i<driftDis.size();i++) m_driftDis[i] = driftDis[i];
         for(int i=0;i<FittedDoca.size();i++) m_FittedDoca[i] = FittedDoca[i];
+        for(int i=0;i<truthDoca.size();i++) m_truthDoca[i] = truthDoca[i];
         for(int i=0;i<Res.size();i++) m_Res[i] = Res[i];
+        for(int i=0;i<truthRes.size();i++) m_truthRes[i] = truthRes[i];
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
         debug() << "Elapsed time: " << elapsed.count() << " s"<<endmsg;

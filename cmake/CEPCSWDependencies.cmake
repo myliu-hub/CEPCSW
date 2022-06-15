@@ -16,6 +16,7 @@ Find all the dependencies here, so in each package user don't need to find the p
 - PandoraSDK
 - podio
 - ROOT
+- Eigen3
 #]]
 
 find_package(CLHEP REQUIRED;CONFIG)
@@ -32,3 +33,6 @@ find_package(PandoraSDK REQUIRED)
 find_package(podio REQUIRED)
 find_package(ROOT COMPONENTS EG Graf Graf3d Gpad MathCore Net RIO Tree TreePlayer Minuit REQUIRED)
 find_package(GenFit)
+find_package(Eigen3)
+find_package(Python)
+find_package(Boost)
