@@ -15,7 +15,7 @@
 #include <tracking/trackFindingCDC/topology/CDCWire.h>
 #include <tracking/trackFindingCDC/numerics/ERightLeft.h>
 
-//#include <boost/optional.hpp>
+#include <boost/optional.hpp>
 
 namespace Belle2 {
 
@@ -46,8 +46,9 @@ namespace Belle2 {
     /// Match seed to the MC track, return it. Works for seed-states only
     const RecoTrack* getMCRecoTrack(const std::string& mcRecoTrackStoreArrayName = "MCRecoTracks") const
     {
-      const RecoTrack* seed = getSeed();
-      return seed->getRelated<RecoTrack>(mcRecoTrackStoreArrayName);
+     // const RecoTrack* seed = getSeed();
+     // return seed->getRelated<RecoTrack>(mcRecoTrackStoreArrayName);
+        return nullptr;
     }
 
     /// Returns true if the state corresponds to the seed track

@@ -10,10 +10,10 @@
 
 #include <framework/utilities/Utils.h>
 #include <framework/gearbox/Unit.h>
-#include <framework/pcore/ProcHandler.h>
-#include <framework/datastore/StoreObjPtr.h>
+//#include <framework/pcore/ProcHandler.h>
+//#include <framework/datastore/StoreObjPtr.h>
 #include <framework/dataobjects/EventMetaData.h>
-#include <framework/core/ProcessStatistics.h>
+//#include <framework/core/ProcessStatistics.h>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <ostream>
@@ -102,24 +102,24 @@ std::string LogMessage::toJSON(bool complete) const
     buffer << ",\"line\":" << m_line;
   if (logInfo & LogConfig::c_Timestamp)
     buffer << ",\"timestamp\":" << std::fixed << std::setprecision(3) << time;
-  if (ProcHandler::EvtProcID() != -1 or complete)
-    buffer << ",\"proc\":" << ProcHandler::EvtProcID();
+  //if (ProcHandler::EvtProcID() != -1 or complete)
+  //  buffer << ",\"proc\":" << ProcHandler::EvtProcID();
   if (complete) {
     buffer << ",\"count\":" << m_count;
-    StoreObjPtr<EventMetaData> eventMetaData;
-    if (eventMetaData.isValid()) {
-      buffer << ",\"experiment\":" << eventMetaData->getExperiment();
-      buffer << ",\"run\":" << eventMetaData->getRun();
-      buffer << ",\"subrun\":" << eventMetaData->getSubrun();
-      buffer << ",\"event\":" << eventMetaData->getEvent();
-    }
-    StoreObjPtr<ProcessStatistics> processStatistics("", DataStore::c_Persistent);
-    if (processStatistics.isValid()) {
-      const auto& stats = processStatistics->getGlobal();
-      buffer << ",\"nruns\":" << int(stats.getCalls(ModuleStatistics::EStatisticCounters::c_BeginRun));
-      buffer << ",\"nevents\":" << int(stats.getCalls());
-    }
-    buffer << ",\"initialize\":" << ((DataStore::Instance().getInitializeActive()) ? "true" : "false");
+    //StoreObjPtr<EventMetaData> eventMetaData;
+    //if (eventMetaData.isValid()) {
+    //  buffer << ",\"experiment\":" << eventMetaData->getExperiment();
+    //  buffer << ",\"run\":" << eventMetaData->getRun();
+    //  buffer << ",\"subrun\":" << eventMetaData->getSubrun();
+    //  buffer << ",\"event\":" << eventMetaData->getEvent();
+    //}
+    //StoreObjPtr<ProcessStatistics> processStatistics("", DataStore::c_Persistent);
+    //if (processStatistics.isValid()) {
+    //  const auto& stats = processStatistics->getGlobal();
+    //  buffer << ",\"nruns\":" << int(stats.getCalls(ModuleStatistics::EStatisticCounters::c_BeginRun));
+    //  buffer << ",\"nevents\":" << int(stats.getCalls());
+    //}
+    //buffer << ",\"initialize\":" << ((DataStore::Instance().getInitializeActive()) ? "true" : "false");
   }
   buffer << "}\n";
   return buffer.str();
@@ -142,10 +142,10 @@ std::ostream& LogMessage::print(std::ostream& out) const
     const std::string debugLevel = (m_logLevel == LogConfig::c_Debug) ? (":" + std::to_string(m_debugLevel)) : "";
     out << "[" << LogConfig::logLevelToString(m_logLevel) << debugLevel << "] ";
   }
-  if (ProcHandler::EvtProcID() != -1) {
+  //if (ProcHandler::EvtProcID() != -1) {
     //which process is this?
-    out << "(" << ProcHandler::EvtProcID() << ") ";
-  }
+  //  out << "(" << ProcHandler::EvtProcID() << ") ";
+ // }
   if (logInfo & LogConfig::c_Message) {
     out << m_message.str(!(logInfo & LogConfig::c_NoVariables));
   }

@@ -164,7 +164,7 @@ namespace Belle2 {
 
       unsigned short m_bits;  /**< The internal representation of the set as bit pattern. */
 
-      ClassDef(DetectorSet, 1) /**< A set of Detector IDs. */
+      //ClassDef(DetectorSet, 1) /**< A set of Detector IDs. */
     };
 
     /**

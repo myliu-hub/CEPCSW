@@ -22,7 +22,7 @@ bool CDCPathTruthVarSet::extract(const BaseCDCPathFilter::Object* path)
   // check if hit belongs to same seed
   const auto& seed = path->front();
   auto* seedRecoTrack = seed.getSeed();
-  auto* seedMCTrack = seedRecoTrack->getRelated<RecoTrack>("MCRecoTracks");
+  //auto* seedMCTrack = seedRecoTrack->getRelated<RecoTrack>("MCRecoTracks");
 
 //  MCParticle* seedMCParticle;
 //  if (seedMCTrack) {

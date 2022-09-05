@@ -2,7 +2,6 @@
 
 gaudi_add_library(paths
         SOURCES
-            src/CDCfromEclPathTruthVarSet.cc
             src/CDCPathBasicVarSet.cc
             src/CDCPathFilterFactory.cc
             src/CDCPathTruthVarSet.cc

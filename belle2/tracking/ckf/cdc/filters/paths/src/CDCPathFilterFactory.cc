@@ -13,13 +13,13 @@
 #include <tracking/trackFindingCDC/filters/base/AllFilter.icc.h>
 #include <tracking/trackFindingCDC/filters/base/AndFilter.icc.h>
 #include <tracking/trackFindingCDC/filters/base/NoneFilter.icc.h>
-#include <tracking/trackFindingCDC/filters/base/RecordingFilter.icc.h>
+//#include <tracking/trackFindingCDC/filters/base/RecordingFilter.icc.h>
 
 #include <tracking/trackFindingCDC/varsets/VariadicUnionVarSet.h>
 
 #include <tracking/ckf/cdc/filters/paths/CDCPathBasicVarSet.h>
 #include <tracking/ckf/cdc/filters/paths/CDCPathTruthVarSet.h>
-#include <tracking/ckf/cdc/filters/paths/CDCfromEclPathTruthVarSet.h>
+//#include <tracking/ckf/cdc/filters/paths/CDCfromEclPathTruthVarSet.h>
 
 #include <tracking/ckf/cdc/filters/paths/SeedChargeCDCPathFilter.h>
 
@@ -28,9 +28,9 @@ using namespace TrackFindingCDC;
 
 namespace {
   /// Recording filter
-  using RecordingCDCPathFilter = RecordingFilter<VariadicUnionVarSet<CDCPathBasicVarSet, CDCPathTruthVarSet>>;
+  //using RecordingCDCPathFilter = RecordingFilter<VariadicUnionVarSet<CDCPathBasicVarSet, CDCPathTruthVarSet>>;
   /// Recording filter
-  using RecordingCDCfromEclPathFilter = RecordingFilter<VariadicUnionVarSet<CDCPathBasicVarSet, CDCfromEclPathTruthVarSet>>;
+  //using RecordingCDCfromEclPathFilter = RecordingFilter<VariadicUnionVarSet<CDCPathBasicVarSet, CDCfromEclPathTruthVarSet>>;
   /// And filter for cdc paths
   using AndCDCPathFilter = AndFilter<BaseCDCPathFilter>;
 }
@@ -79,27 +79,27 @@ CDCPathFilterFactory::create(const std::string& filterName) const
     return std::make_unique<SizeCDCPathFilter>();
     //} else if (filterName == "mc_truth") {
     //  return std::make_unique<MCTruthCDCPathFilter>();
-  } else if (filterName == "recording") {
-    return std::make_unique<RecordingCDCPathFilter>("CDCPathFilter.root");
-  } else if (filterName == "size_and_recording") {
-    return std::make_unique<AndCDCPathFilter>(
-             std::make_unique<RecordingCDCPathFilter>("CDCPathFilter.root"),
-             std::make_unique<SizeCDCPathFilter>()
-           );
-  } else if (filterName == "recording_fromEcl") {
-    return std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root");
-  } else if (filterName == "size_and_recording_fromEcl") {
-    return std::make_unique<AndCDCPathFilter>(
-             std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root"),
-             std::make_unique<SizeCDCPathFilter>()
-           );
+  //} else if (filterName == "recording") {
+  //  return std::make_unique<RecordingCDCPathFilter>("CDCPathFilter.root");
+  //} else if (filterName == "size_and_recording") {
+  //  return std::make_unique<AndCDCPathFilter>(
+  //           std::make_unique<RecordingCDCPathFilter>("CDCPathFilter.root"),
+  //           std::make_unique<SizeCDCPathFilter>()
+  //         );
+  //} else if (filterName == "recording_fromEcl") {
+  //  return std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root");
+  //} else if (filterName == "size_and_recording_fromEcl") {
+ //   return std::make_unique<AndCDCPathFilter>(
+ //            std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root"),
+ //            std::make_unique<SizeCDCPathFilter>()
+ //          );
   } else if (filterName == "seedCharge") {
     return std::make_unique<SeedChargeCDCPathFilter>();
-  } else if (filterName == "seedCharge_and_recording_fromEcl") {
-    return std::make_unique<AndCDCPathFilter>(
-             std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root"),
-             std::make_unique<SeedChargeCDCPathFilter>()
-           );
+  //} else if (filterName == "seedCharge_and_recording_fromEcl") {
+  //  return std::make_unique<AndCDCPathFilter>(
+  //           std::make_unique<RecordingCDCfromEclPathFilter>("CDCfromEclPathFilter.root"),
+  //           std::make_unique<SeedChargeCDCPathFilter>()
+  //         );
 
   } else {
     return Super::create(filterName);

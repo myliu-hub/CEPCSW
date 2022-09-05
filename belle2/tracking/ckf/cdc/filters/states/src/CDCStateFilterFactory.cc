@@ -11,7 +11,7 @@
 #include <tracking/trackFindingCDC/filters/base/AllFilter.icc.h>
 #include <tracking/trackFindingCDC/filters/base/NoneFilter.icc.h>
 #include <tracking/trackFindingCDC/filters/base/AndFilter.icc.h>
-#include <tracking/trackFindingCDC/filters/base/RecordingFilter.icc.h>
+//#include <tracking/trackFindingCDC/filters/base/RecordingFilter.icc.h>
 
 #include <tracking/trackFindingCDC/varsets/VariadicUnionVarSet.h>
 
@@ -30,10 +30,10 @@ using namespace TrackFindingCDC;
 
 namespace {
   /// Recording filter for SVD seeding.
-  using RecordingCDCStateFilter = RecordingFilter<VariadicUnionVarSet<CDCStateBasicVarSet>>;
+  //using RecordingCDCStateFilter = RecordingFilter<VariadicUnionVarSet<CDCStateBasicVarSet>>;
   //using RecordingCDCStateFilter = RecordingFilter<VariadicUnionVarSet<CDCStateBasicVarSet, CDCStateTruthVarSet>>;
   /// Recording filter for ECL seeding.
-  using RecordingCDCfromEclStateFilter = RecordingFilter<VariadicUnionVarSet<CDCStateBasicVarSet, CDCfromEclStateTruthVarSet>>;
+  //using RecordingCDCfromEclStateFilter = RecordingFilter<VariadicUnionVarSet<CDCStateBasicVarSet, CDCfromEclStateTruthVarSet>>;
   /// And filter for cdc states
   using AndCDCStateFilter = AndFilter<BaseCDCStateFilter>;
 }
@@ -95,25 +95,25 @@ CDCStateFilterFactory::create(const std::string& filterName) const
     return std::make_unique<ExtrapolateAndUpdateCDCStateFilter>();
   } else if (filterName == "distance") {
     return std::make_unique<DistanceCDCStateFilter>();
-  } else if (filterName == "recording") {
-    return std::make_unique<RecordingCDCStateFilter>("CDCStateFilter.root");
-  } else if (filterName == "rough_and_recording") {
-    return std::make_unique<AndCDCStateFilter>(
-             std::make_unique<RecordingCDCStateFilter>("CDCStateFilter.root"),
-             std::make_unique<RoughCDCStateFilter>()
-           );
-  } else if (filterName == "recording_eclSeed") {
-    return std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root");
-  } else if (filterName == "rough_and_recording_eclSeed") {
-    return std::make_unique<AndCDCStateFilter>(
-             std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root"),
-             std::make_unique<RoughCDCfromEclStateFilter>()
-           );
-  } else if (filterName == "distance_and_recording_eclSeed") {
-    return std::make_unique<AndCDCStateFilter>(
-             std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root"),
-             std::make_unique<DistanceCDCStateFilter>()
-           );
+  //} else if (filterName == "recording") {
+  //  return std::make_unique<RecordingCDCStateFilter>("CDCStateFilter.root");
+  //} else if (filterName == "rough_and_recording") {
+  //  return std::make_unique<AndCDCStateFilter>(
+  //           std::make_unique<RecordingCDCStateFilter>("CDCStateFilter.root"),
+  //           std::make_unique<RoughCDCStateFilter>()
+  //         );
+  //} else if (filterName == "recording_eclSeed") {
+  //  return std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root");
+  //} else if (filterName == "rough_and_recording_eclSeed") {
+  //  return std::make_unique<AndCDCStateFilter>(
+  //           std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root"),
+  //           std::make_unique<RoughCDCfromEclStateFilter>()
+  //         );
+  //} else if (filterName == "distance_and_recording_eclSeed") {
+  //  return std::make_unique<AndCDCStateFilter>(
+  //           std::make_unique<RecordingCDCfromEclStateFilter>("CDCfromECLStateFilter.root"),
+  //           std::make_unique<DistanceCDCStateFilter>()
+  //         );
   } else {
     return Super::create(filterName);
   }

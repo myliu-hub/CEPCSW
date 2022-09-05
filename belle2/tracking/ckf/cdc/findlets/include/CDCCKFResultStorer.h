@@ -9,7 +9,7 @@
 
 #include <tracking/trackFindingCDC/findlets/base/Findlet.h>
 #include <tracking/trackFindingCDC/numerics/EForwardBackward.h>
-#include <framework/datastore/StoreArray.h>
+//#include <framework/datastore/StoreArray.h>
 
 #include <tracking/ckf/cdc/entities/CDCCKFResult.h>
 #include <tracking/dataobjects/RecoTrack.h>
@@ -62,6 +62,6 @@ namespace Belle2 {
 
     // Store Arrays
     /// Output Reco Tracks Store Array
-    StoreArray<RecoTrack> m_outputRecoTracks;
+    //StoreArray<RecoTrack> m_outputRecoTracks;
   };
 }

@@ -1,24 +1,25 @@
 # belle2_pcore
 
-gaudi_add_module(pcore
+gaudi_add_library(pcore
         SOURCES
-            src/AsyncWrapper.cc
-            src/DataStoreStreamer.cc
-            src/EvtMessage.cc
-            src/GlobalProcHandler.cc
+        #src/AsyncWrapper.cc
+        #src/DataStoreStreamer.cc
+        #src/EvtMessage.cc
+        #src/GlobalProcHandler.cc
             src/Mergeable.cc
-            src/MsgHandler.cc
+            #src/MsgHandler.cc
             #src/PathUtils.cc
-            src/pEventProcessor.cc
+            #src/pEventProcessor.cc
             #src/ProcessMonitor.cc
-            src/ProcHandler.cc
-            src/RbTuple.cc
-            src/RingBuffer.cc
-            src/RxModule.cc
-            src/SemaphoreLocker.cc
-            src/SeqFile.cc
-            src/TxModule.cc
+            #src/ProcHandler.cc
+            #src/RbTuple.cc
+            #src/RingBuffer.cc
+            #src/RxModule.cc
+            #src/SemaphoreLocker.cc
+            #src/SeqFile.cc
+            #src/TxModule.cc
             #src/ZMQEventProcessor.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(pcore PUBLIC

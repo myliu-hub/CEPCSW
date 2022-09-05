@@ -9,6 +9,7 @@ gaudi_add_library(utilities
             src/ProcessingSignalListener.cc
         LINK
             Python::Python
+            core
             Boost::boost
 )
 

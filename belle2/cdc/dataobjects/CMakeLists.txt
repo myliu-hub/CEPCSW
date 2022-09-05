@@ -9,6 +9,7 @@ gaudi_add_library(cdcdataobjects
             src/CDCRecoHit.cc
             src/WireID.cc
         LINK GenFit::genfit2
+        logging
 )
 
 target_include_directories(cdcdataobjects PUBLIC

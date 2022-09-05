@@ -1,34 +1,26 @@
-# belle2_utilities
+# belle2_Futilities
 
-gaudi_add_module(utilities
+gaudi_add_library(Futilities
         SOURCES
-            src/ColorPalette.cc
             src/Conversion.cc
-            #src/EnvironmentVariables.cc
             src/FileSystem.cc
-            src/FormulaParser.cc
-            src/GeneralCut.cc
-            src/HTML.cc
-            src/IOIntercept.cc
-            src/KeyValuePrinter.cc
-            src/MakeROOTCompatible.cc
-            #src/MultivariateNormalGenerator.cc
-            src/NumberSequence.cc
-            src/RegisterPythonModule.cc
-            src/RootFileCreationManager.cc
-            src/Spline.cc
-            src/Stream.cc
-            src/TestHelpers.cc
             src/Utils.cc
+        LINK
+            ${ROOT_LIBRARIES}
+            Python::Python
+            Boost::boost
+            logging
+            boost_filesystem
+
 )
 
-target_include_directories(utilities PUBLIC
+target_include_directories(Futilities PUBLIC
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/include
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/../../include
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-install(TARGETS utilities
+install(TARGETS Futilities
             EXPORT CEPCSWTargets
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib

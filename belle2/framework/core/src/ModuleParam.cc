@@ -6,8 +6,10 @@
  * This file is licensed under LGPL-3.0, see LICENSE.md.                  *
  **************************************************************************/
 //#include <framework/core/ModuleParam.templateDetails.h>
-#include <framework/core/Path.h>
-//#include <boost/optional.hpp>
+#include <framework/core/ModuleParam.h>
+#include <vector>
+//#include <framework/core/Path.h>
+#include <boost/optional.hpp>
 
 template class Belle2::ModuleParam<bool>;
 template class Belle2::ModuleParam<char>;
@@ -43,4 +45,4 @@ template class Belle2::ModuleParam<boost::optional<int>>;
 template class Belle2::ModuleParam<boost::optional<double>>;
 template class Belle2::ModuleParam<boost::optional<std::string>>;
 
-template class Belle2::ModuleParam<std::shared_ptr<Belle2::Path>>;
+//template class Belle2::ModuleParam<std::shared_ptr<Belle2::Path>>;

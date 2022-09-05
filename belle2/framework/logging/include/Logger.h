@@ -18,6 +18,7 @@
  * \def _B2_DO_NOTHING()
  * Used when things are compiled out.
  */
+#define LOG_NO_B2DEBUG
 #define _B2_DO_NOTHING do { } while(false)
 
 /**

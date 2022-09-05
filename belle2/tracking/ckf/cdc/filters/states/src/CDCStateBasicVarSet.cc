@@ -25,7 +25,7 @@ bool CDCStateBasicVarSet::extract(const BaseCDCStateFilter::Object* pair)
   const auto* seedRecoTrack = seed.getSeed();
 
   // general stuff
-  var<named("eventNumber")>() = m_eventMetaData->getEvent();
+  //var<named("eventNumber")>() = m_eventMetaData->getEvent();
 
   // calculate the interesting quantities
   var<named("firstHit")>() = lastState.isSeed();

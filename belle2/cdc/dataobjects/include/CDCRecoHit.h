@@ -149,7 +149,7 @@ namespace Belle2 {
     signed char m_leftRight;
 
     /** ROOT Macro.*/
-    ClassDefOverride(CDCRecoHit, 10);
+    //ClassDefOverride(CDCRecoHit, 10);
     // Version history:
     // ver 10: ICalibrationParametersDerivatives interface moved to derived class.
     //         ClassDef -> ClassDefOverride + consistent override keyword usage.

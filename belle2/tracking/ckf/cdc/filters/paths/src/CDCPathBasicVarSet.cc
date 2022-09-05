@@ -58,7 +58,7 @@ bool CDCPathBasicVarSet::extract(const BaseCDCPathFilter::Object* path)
   }
 
   // general stuff
-  var<named("eventNumber")>() = m_eventMetaData->getEvent();
+  //var<named("eventNumber")>() = m_eventMetaData->getEvent();
 
   // track properties
   var<named("totalHits")>() = path->size() - 1;

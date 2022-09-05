@@ -1,29 +1,20 @@
 # belle2_core
 
-gaudi_add_module(core
+gaudi_add_library(core
         SOURCES
-            src/DataFlowVisualization.cc
-            src/Environment.cc
-            src/EventProcessor.cc
-            src/FileCatalog.cc
-            src/InputController.cc
-            src/MetadataService.cc
-            src/Module.cc
-            src/ModuleCondition.cc
-            src/ModuleManager.cc
+            include/ModuleParam.templateDetails.h
             src/ModuleParamBase.cc
+            #src/SubEventModule.cc
+            #src/ModuleParamInfoPython.cc 
             src/ModuleParam.cc
-            #src/ModuleParamInfoPython.cc
             src/ModuleParamList.cc
-            src/Path.cc
-            src/ProcessStatistics.cc
-            src/RandomGenerator.cc
-            #src/RandomNumbers.cc
-            src/SubEventModule.cc
-            src/SwitchDataStoreModule.cc
         LINK
             Python::Python
-            Boost::boost
+            Boost::boost Boost::python
+            gearbox
+            pcore
+            Futilities
+            logging
 )
 
 target_include_directories(core PUBLIC

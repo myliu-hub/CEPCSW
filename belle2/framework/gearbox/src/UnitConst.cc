@@ -9,7 +9,7 @@
 #include <framework/gearbox/Unit.h>
 #include <framework/gearbox/Const.h>
 #include <framework/logging/Logger.h>
-#include <framework/particledb/EvtGenDatabasePDG.h>
+//#include <framework/particledb/EvtGenDatabasePDG.h>
 
 #include <TMath.h>
 
@@ -310,20 +310,10 @@ Const::ParticleType Const::ParticleType::operator++(int)
   return p;
 }
 
-const TParticlePDG* Const::ParticleType::getParticlePDG() const
-{
-  return EvtGenDatabasePDG::Instance()->GetParticle(m_pdgCode);
-}
-
-double Const::ParticleType::getMass() const
-{
-  return getParticlePDG()->Mass();
-}
-
 std::string Const::ParticleType::__repr__() const
 {
   std::string result = "<type: ";
-  result += getParticlePDG()->GetName();
+  //result += getParticlePDG()->GetName();
   result += ">";
   return result;
 }
@@ -365,15 +355,15 @@ const Const::ParticleSet Const::finalStateParticlesSet =
   Const::chargedStableSet + Const::photon + Const::Kshort + Const::Klong
   + Const::Lambda + Const::antiLambda + Const::neutron;
 
-const double Const::electronMass = Const::electron.getMass();
-const double Const::muonMass = Const::muon.getMass();
-const double Const::pionMass = Const::pion.getMass();
-const double Const::kaonMass = Const::kaon.getMass();
-const double Const::protonMass = Const::proton.getMass();
-const double Const::deuteronMass = Const::deuteron.getMass();
-const double Const::pi0Mass = Const::pi0.getMass();
-const double Const::neutronMass = Const::neutron.getMass();
-const double Const::K0Mass = Const::Kshort.getMass();
+const double Const::electronMass = 0.000510999;//Const::electron.getMass();
+const double Const::muonMass = 0.1056584;//Const::muon.getMass();
+const double Const::pionMass = 0.139570;//Const::pion.getMass();
+const double Const::kaonMass = 0.49368;//Const::kaon.getMass();
+const double Const::protonMass = 0.9382723 ;//Const::proton.getMass();
+const double Const::deuteronMass = 1.8756134;//Const::deuteron.getMass();
+const double Const::pi0Mass = 0.1349766;//Const::pi0.getMass();
+const double Const::neutronMass = 0.9395656;//Const::neutron.getMass();
+const double Const::K0Mass = 0.4976;//Const::Kshort.getMass();
 
 void Const::ParticleSet::add(const Const::ParticleType& p)
 {

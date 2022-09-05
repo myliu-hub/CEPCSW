@@ -7,7 +7,7 @@
  **************************************************************************/
 #include <framework/core/ModuleParamList.templateDetails.h>
 
-#include <framework/core/ModuleParamInfoPython.h>
+//#include <framework/core/ModuleParamInfoPython.h>
 #include <framework/core/FrameworkExceptions.h>
 
 //#include <boost/python/object.hpp>
@@ -61,27 +61,27 @@ std::vector<std::string> ModuleParamList::getUnsetForcedParams() const
   return missingParam;
 }
 
-std::shared_ptr<boost::python::list> ModuleParamList::getParamInfoListPython() const
-{
-  std::shared_ptr<boost::python::list> returnList(new boost::python::list);
-  std::map<std::string, ModuleParamPtr>::const_iterator mapIter;
-
-  for (mapIter = m_paramMap.begin(); mapIter != m_paramMap.end(); ++mapIter) {
-    ModuleParamInfoPython newParamInfo;
-    ModuleParamPtr currParam = mapIter->second;
-
-    newParamInfo.m_name = mapIter->first;
-    newParamInfo.m_description = currParam->getDescription();
-    newParamInfo.m_typeName = currParam->getTypeInfo();
-    newParamInfo.m_setInSteering = currParam->isSetInSteering();
-    newParamInfo.m_forceInSteering = currParam->isForcedInSteering();
-    getParamValuesPython(mapIter->first, newParamInfo.m_defaultValues, true);
-    getParamValuesPython(mapIter->first, newParamInfo.m_values, false);
-
-    returnList->append(boost::python::object(newParamInfo));
-  }
-  return returnList;
-}
+//std::shared_ptr<boost::python::list> ModuleParamList::getParamInfoListPython() const
+//{
+//  std::shared_ptr<boost::python::list> returnList(new boost::python::list);
+//  std::map<std::string, ModuleParamPtr>::const_iterator mapIter;
+//
+//  for (mapIter = m_paramMap.begin(); mapIter != m_paramMap.end(); ++mapIter) {
+//    ModuleParamInfoPython newParamInfo;
+//    ModuleParamPtr currParam = mapIter->second;
+//
+//    newParamInfo.m_name = mapIter->first;
+//    newParamInfo.m_description = currParam->getDescription();
+//    newParamInfo.m_typeName = currParam->getTypeInfo();
+//    newParamInfo.m_setInSteering = currParam->isSetInSteering();
+//    newParamInfo.m_forceInSteering = currParam->isForcedInSteering();
+//    getParamValuesPython(mapIter->first, newParamInfo.m_defaultValues, true);
+//    getParamValuesPython(mapIter->first, newParamInfo.m_values, false);
+//
+//    returnList->append(boost::python::object(newParamInfo));
+//  }
+//  return returnList;
+//}
 
 void ModuleParamList::setParameters(const ModuleParamList& params)
 {

@@ -3,7 +3,7 @@
 gaudi_add_library(logging
         SOURCES
             src/LogConfig.cc
-            #src/LogConnectionConsole.cc
+            src/LogConnectionConsole.cc
             src/LogConnectionFilter.cc
             src/LogConnectionJSON.cc
             src/LogConnectionTxtFile.cc
@@ -12,7 +12,11 @@ gaudi_add_library(logging
             src/LogMethod.cc
             src/LogSystem.cc
             src/LogVariableStream.cc
-)
+        LINK gearbox
+             ${ROOT_LIBRARIES}
+             Boost::boost
+             boost_python
+            )
 
 target_include_directories(logging PUBLIC
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/include

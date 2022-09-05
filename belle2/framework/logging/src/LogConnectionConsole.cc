@@ -8,7 +8,7 @@
 
 #include <framework/logging/LogConnectionConsole.h>
 #include <framework/logging/LogMessage.h>
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <cstring> // strerror()
@@ -52,13 +52,13 @@ bool LogConnectionConsole::terminalSupportsColors(int fileDescriptor)
 
 void LogConnectionConsole::write(const std::string& message)
 {
-  if (s_pythonLoggingEnabled) {
-    auto pymessage = boost::python::import("sys").attr("stdout");
-    pymessage.attr("write")(message);
-    pymessage.attr("flush")();
-  } else {
-    ::write(m_fd, message.data(), message.size());
-  }
+//  if (s_pythonLoggingEnabled) {
+//    auto pymessage = boost::python::import("sys").attr("stdout");
+//    pymessage.attr("write")(message);
+//    pymessage.attr("flush")();
+//  } else {
+//    ::write(m_fd, message.data(), message.size());
+//  }
 }
 
 bool LogConnectionConsole::sendMessage(const LogMessage& message)
@@ -99,7 +99,7 @@ void LogConnectionConsole::finalizeOnAbort()
 {
   // If python logging is enabled we need to give jupyter some time to flush
   // the output as this happens only in the output thread. Seems flushing again is fine :D
-  if (LogConnectionConsole::getPythonLoggingEnabled()) {
-    boost::python::import("sys").attr("stdout").attr("flush")();
-  }
+//  if (LogConnectionConsole::getPythonLoggingEnabled()) {
+//    boost::python::import("sys").attr("stdout").attr("flush")();
+//  }
 }

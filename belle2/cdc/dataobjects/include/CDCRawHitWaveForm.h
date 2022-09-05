@@ -9,7 +9,7 @@
 #pragma once
 
 // Includes
-#include <framework/datastore/RelationsObject.h>
+//#include <framework/datastore/RelationsObject.h>
 
 namespace Belle2 {
 
@@ -17,7 +17,7 @@ namespace Belle2 {
    * The CDCRawHitWaveForm (Full output mode) class.
    *
    */
-  class CDCRawHitWaveForm : public RelationsObject {
+  class CDCRawHitWaveForm{
   public:
     /**
      * Default constructor.
@@ -144,7 +144,7 @@ namespace Belle2 {
     unsigned short m_tdc;
 
     /// To derive from TObject
-    ClassDef(CDCRawHitWaveForm, 1);
+    //ClassDef(CDCRawHitWaveForm, 1);
 
 
   };

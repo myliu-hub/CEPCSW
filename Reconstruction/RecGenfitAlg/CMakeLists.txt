@@ -12,7 +12,8 @@ gaudi_add_module(RecGenfitAlg
                 src/WireMeasurementDC
                 src/PlanarMeasurementSDT
                 src/MBg.cpp
-        LINK GearSvc
+                src/DCTrackFinding.cpp
+          LINK GearSvc
              Gaudi::GaudiAlgLib
              Gaudi::GaudiKernel
              ${GEAR_LIBRARIES}
@@ -24,11 +25,20 @@ gaudi_add_module(RecGenfitAlg
              EDM4HEP::edm4hep
              EDM4HEP::edm4hepDict
              GenFit::genfit2
+             cdcentities
+             hits
+             cdcdataobjects
+             findlets
+             pcore
+             core
+             Boost::boost Boost::python
+             #datastore
 )
 
 target_include_directories(RecGenfitAlg PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/include
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        
 )
 
 target_compile_definitions(RecGenfitAlg PRIVATE GENFIT_MY_DEBUG)

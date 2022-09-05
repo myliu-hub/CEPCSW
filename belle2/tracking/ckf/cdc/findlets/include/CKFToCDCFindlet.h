@@ -9,7 +9,7 @@
 
 #include <tracking/trackFindingCDC/findlets/base/Findlet.h>
 
-#include <tracking/ckf/general/findlets/TrackLoader.h>
+//#include <tracking/ckf/general/findlets/TrackLoader.h>
 #include <tracking/ckf/cdc/findlets/CDCCKFSeedCreator.h>
 #include <tracking/ckf/cdc/findlets/StackTreeSearcher.h>
 #include <tracking/ckf/cdc/findlets/CDCCKFResultFinalizer.h>
@@ -52,7 +52,7 @@ namespace Belle2 {
   private:
     // Findlets
     /// Findlet for retrieving the vxd tracks and writing the result out
-    TrackLoader m_trackHandler;
+    //TrackLoader m_trackHandler;
     /// Seed Creator
     CDCCKFSeedCreator m_seedCreator;
     /// Tree Searcher

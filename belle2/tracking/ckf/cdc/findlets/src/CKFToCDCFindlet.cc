@@ -18,7 +18,7 @@ CKFToCDCFindlet::~CKFToCDCFindlet() = default;
 
 CKFToCDCFindlet::CKFToCDCFindlet()
 {
-  addProcessingSignalListener(&m_trackHandler);
+  //addProcessingSignalListener(&m_trackHandler);
   addProcessingSignalListener(&m_seedCreator);
   addProcessingSignalListener(&m_treeSearcher);
   addProcessingSignalListener(&m_resultFinalizer);
@@ -29,7 +29,7 @@ void CKFToCDCFindlet::exposeParameters(ModuleParamList* moduleParamList, const s
 {
   Super::exposeParameters(moduleParamList, prefix);
 
-  m_trackHandler.exposeParameters(moduleParamList, prefix);
+  //m_trackHandler.exposeParameters(moduleParamList, prefix);
   m_seedCreator.exposeParameters(moduleParamList, prefix);
   m_treeSearcher.exposeParameters(moduleParamList, prefix);
   m_resultFinalizer.exposeParameters(moduleParamList, prefix);
@@ -51,30 +51,20 @@ void CKFToCDCFindlet::beginEvent()
   m_results.clear();
 }
 
-void CKFToCDCFindlet::apply(edm4hep::McParticle mcParticle, const std::vector<TrackFindingCDC::CDCWireHit>& wireHits)
+void CKFToCDCFindlet::apply(const std::vector<TrackFindingCDC::CDCWireHit>& wireHits)
 {
-  //m_trackHandler.apply(m_vxdRecoTrackVector);
-  //m_seedCreator.apply(m_vxdRecoTrackVector, m_seeds);
+    //m_trackHandler.apply(m_vxdRecoTrackVector);
+    m_seedCreator.apply(m_vxdRecoTrackVector, m_seeds);
 
-  /// from McParticle to m_seeds
-  createSeedFromMcParticle(mcParticle);
+    const auto& wireHitPtrs = TrackFindingCDC::as_pointers<const TrackFindingCDC::CDCWireHit>(wireHits);
 
-  const auto& wireHitPtrs = TrackFindingCDC::as_pointers<const TrackFindingCDC::CDCWireHit>(wireHits);
+    for (const auto& seed : m_seeds) {
+        B2DEBUG(29, "Starting new seed");
+        m_paths.clear();
+        m_paths.push_back(seed);
+        m_treeSearcher.apply(m_paths, wireHitPtrs);
+        m_resultFinalizer.apply(m_paths, m_results);
+    }
 
-  for (const auto& seed : m_seeds) {
-    B2DEBUG(29, "Starting new seed");
-    m_paths.clear();
-    m_paths.push_back(seed);
-    m_treeSearcher.apply(m_paths, wireHitPtrs);
-    m_resultFinalizer.apply(m_paths, m_results);
-  }
-
-
-  //FIXME
-  //m_resultStorer.apply(m_results);
-}
-
-//add one seed from a McParticle
-void CKFToCDCFindlet::createSeedFromMcParticle(const edm4hep::McParticle mcParticle){
-    //m_seeds
+    m_resultStorer.apply(m_results);
 }

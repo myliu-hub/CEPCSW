@@ -7,12 +7,12 @@
  **************************************************************************/
 
 #include <framework/logging/LogVariableStream.h>
-#include <framework/core/Environment.h>
+//#include <framework/core/Environment.h>
 
 LogVariableStream& LogVariableStream::operator<<(LogModRealm const& var)
 {
-  if (var.getRealm() == Belle2::Environment::Instance().getRealm()) {
-    m_logLevelOverride = var.getLogLevel();
-  }
+  //if (var.getRealm() == Belle2::Environment::Instance().getRealm()) {
+  //  m_logLevelOverride = var.getLogLevel();
+ // }
   return *this;
 }

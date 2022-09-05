@@ -6,6 +6,7 @@ gaudi_add_library(findlets
             src/CDCCKFResultStorer.cc
             src/CKFToCDCFindlet.cc
             #src/CKFToCDCFromEclFindlet.cc
+        LINK utilities
 )
 
 target_include_directories(findlets PUBLIC

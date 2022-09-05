@@ -64,12 +64,12 @@ void CDCCKFResultStorer::initialize()
     return;
   }
 
-  m_outputRecoTracks.registerInDataStore(m_param_outputRecoTrackStoreArrayName);
-  RecoTrack::registerRequiredRelations(m_outputRecoTracks);
+  //m_outputRecoTracks.registerInDataStore(m_param_outputRecoTrackStoreArrayName);
+  //RecoTrack::registerRequiredRelations(m_outputRecoTracks);
 
-  StoreArray<RecoTrack> relationRecoTracks(m_param_outputRelationRecoTrackStoreArrayName);
-  relationRecoTracks.registerRelationTo(m_outputRecoTracks);
-  m_outputRecoTracks.registerRelationTo(relationRecoTracks);
+  //StoreArray<RecoTrack> relationRecoTracks(m_param_outputRelationRecoTrackStoreArrayName);
+  //relationRecoTracks.registerRelationTo(m_outputRecoTracks);
+  //m_outputRecoTracks.registerRelationTo(relationRecoTracks);
 
   m_param_writeOutDirection = fromString(m_param_writeOutDirectionAsString);
 
@@ -111,7 +111,7 @@ void CDCCKFResultStorer::apply(const std::vector<CDCCKFResult>& results)
     const TVector3& trackMomentum = trackState->getMom();
     const double trackCharge = trackState->getCharge();
 
-    RecoTrack* newRecoTrack = m_outputRecoTracks.appendNew(trackPosition, trackMomentum, trackCharge);
+    //RecoTrack* newRecoTrack = m_outputRecoTracks.appendNew(trackPosition, trackMomentum, trackCharge);
 
     unsigned int sortingParameter = 0;
     for (const CDCCKFState& state : result) {
@@ -138,7 +138,7 @@ void CDCCKFResultStorer::apply(const std::vector<CDCCKFResult>& results)
       continue;
     }
 
-    seed->addRelationTo(newRecoTrack, m_param_writeOutDirection);
-    newRecoTrack->addRelationTo(seed, m_param_writeOutDirection);
+    //seed->addRelationTo(newRecoTrack, m_param_writeOutDirection);
+    //newRecoTrack->addRelationTo(seed, m_param_writeOutDirection);
   }
 }

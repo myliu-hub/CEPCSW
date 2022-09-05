@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <framework/datastore/StoreArray.h>
-#include <framework/datastore/RelationsObject.h>
-#include <framework/core/FrameworkExceptions.h>
+//#include <framework/datastore/StoreArray.h>
+//#include <framework/datastore/RelationsObject.h>
+//#include <framework/core/FrameworkExceptions.h>
 
 #include "Track.h"
 
@@ -30,7 +30,6 @@ namespace Belle2 {
 
   class RecoTrackGenfitAccess;
 
-  BELLE2_DEFINE_EXCEPTION(NoTrackFitResult, "No track fit result available for this hit (e.g. DAF has removed it).")
 
   /** This is the Reconstruction Event-Data Model Track.
    *
@@ -69,7 +68,8 @@ namespace Belle2 {
    *
    * See the recoTrack.cc test for an overview on the hit information accessor methods.
    */
-  class RecoTrack : public RelationsObject {
+  //class RecoTrack : public RelationsObject {
+  class RecoTrack {
     /// The RecoTrackGenfitAccess need to access the genfit track (which is intended)!
     friend class RecoTrackGenfitAccess;
 
@@ -118,14 +118,14 @@ namespace Belle2 {
      * @param eklmHitsStoreArrayName  name of the StoreArray holding the CDCHits lists
      * @param recoHitInformationStoreArrayName  name of the StoreArray holding RecoHitInformation lists
      */
-    static void registerRequiredRelations(
-      StoreArray<RecoTrack>& recoTracks,
-      //std::string const& pxdHitsStoreArrayName = "",
-      //std::string const& svdHitsStoreArrayName = "",
-      std::string const& cdcHitsStoreArrayName = "",
-      //std::string const& bklmHitsStoreArrayName = "",
-      //std::string const& eklmHitsStoreArrayName = "",
-      std::string const& recoHitInformationStoreArrayName = "");
+    //static void registerRequiredRelations(
+    //  //StoreArray<RecoTrack>& recoTracks,
+    //  //std::string const& pxdHitsStoreArrayName = "",
+    //  //std::string const& svdHitsStoreArrayName = "",
+    //  std::string const& cdcHitsStoreArrayName = "",
+    //  //std::string const& bklmHitsStoreArrayName = "",
+    //  //std::string const& eklmHitsStoreArrayName = "",
+    //  std::string const& recoHitInformationStoreArrayName = "");
 
     /// Empty constructor for ROOT. Do not use!
     RecoTrack() { }
@@ -171,16 +171,16 @@ namespace Belle2 {
      * @return The newly created reco track.
      * @todo Let the track finders determine the cov seed.
      */
-    static RecoTrack* createFromTrackCand(const genfit::TrackCand& trackCand,
-                                          const std::string& storeArrayNameOfRecoTracks = "",
-                                          const std::string& storeArrayNameOfCDCHits = "",
-                                          //const std::string& storeArrayNameOfSVDHits = "",
-                                          //const std::string& storeArrayNameOfPXDHits = "",
-                                          //const std::string& storeArrayNameOfBKLMHits = "",
-                                          //const std::string& storeArrayNameOfEKLMHits = "",
-                                          const std::string& storeArrayNameOfRecoHitInformation = "",
-                                          const bool recreateSortingParameters = false
-                                         );
+    //static RecoTrack* createFromTrackCand(const genfit::TrackCand& trackCand,
+    //                                      const std::string& storeArrayNameOfRecoTracks = "",
+    //                                      const std::string& storeArrayNameOfCDCHits = "",
+    //                                      //const std::string& storeArrayNameOfSVDHits = "",
+    //                                      //const std::string& storeArrayNameOfPXDHits = "",
+    //                                      //const std::string& storeArrayNameOfBKLMHits = "",
+    //                                      //const std::string& storeArrayNameOfEKLMHits = "",
+    //                                      const std::string& storeArrayNameOfRecoHitInformation = "",
+    //                                      const bool recreateSortingParameters = false
+    //                                     );
 
     /**
      * Create a genfit::TrackCand out of this reco track and copy all information to the track candidate.
@@ -219,8 +219,8 @@ namespace Belle2 {
      * @param optionalMinimalWeight : if set, do only copy hits with a weight above this (if fitted already with the DAF).
      * @return The number of hits copied.
      */
-    size_t addHitsFromRecoTrack(const RecoTrack* recoTrack, unsigned int sortingParameterOffset = 0,
-                                bool reversed = false, boost::optional<double> optionalMinimalWeight = boost::none);
+    //size_t addHitsFromRecoTrack(const RecoTrack* recoTrack, unsigned int sortingParameterOffset = 0,
+    //                            bool reversed = false, boost::optional<double> optionalMinimalWeight = boost::none);
 
     /**
      * Adds a cdc hit with the given information to the reco track.
@@ -568,7 +568,7 @@ namespace Belle2 {
      * @param getSorted if true, the list of RecoHitInformations will be returned sorted by the Sorting parameter
      * in an ascending order. If false, the hits will be returned unsorted.
      */
-    std::vector<RecoHitInformation*> getRecoHitInformations(bool getSorted = false) const;
+    //std::vector<RecoHitInformation*> getRecoHitInformations(bool getSorted = false) const;
 
     /** Return genfit's MeasuredStateOnPlane for the first hit in a fit
     * useful for extrapolation of measurements to other locations
@@ -598,7 +598,7 @@ namespace Belle2 {
     /** Prune the genfit track, e.g. remove all track points with measurements, but the first and the last one.
       * Also, set the flags of the corresponding RecoHitInformation to pruned. Only to be used in the prune module.
       */
-    void prune();
+    //void prune();
 
     /// Return a list of measurements and track points, which can be used e.g. to extrapolate. You are not allowed to modify or delete them!
     const std::vector<genfit::TrackPoint*>& getHitPointsWithMeasurement() const
@@ -648,21 +648,21 @@ namespace Belle2 {
      * @param mapFunction Call this function for every hit (with its reco hit information)
      * @param pickFunction Use only those hits where the function returns true.
      */
-    template<class HitType>
-    void mapOnHits(const std::string& storeArrayNameOfHits,
-                   std::function<void(RecoHitInformation&, HitType*)> const&   mapFunction,
-                   std::function<bool(const RecoHitInformation&, const HitType*)> const& pickFunction)
-    {
-      RelationVector<RecoHitInformation> relatedHitInformation = getRelationsTo<RecoHitInformation>
-                                                                 (m_storeArrayNameOfRecoHitInformation);
-
-      for (RecoHitInformation& hitInformation : relatedHitInformation) {
-        HitType* const hit = hitInformation.getRelatedTo<HitType>(storeArrayNameOfHits);
-        if (hit != nullptr && pickFunction(hitInformation, hit)) {
-          mapFunction(hitInformation, hit);
-        }
-      }
-    }
+//    template<class HitType>
+//    void mapOnHits(const std::string& storeArrayNameOfHits,
+//                   std::function<void(RecoHitInformation&, HitType*)> const&   mapFunction,
+//                   std::function<bool(const RecoHitInformation&, const HitType*)> const& pickFunction)
+//    {
+//      RelationVector<RecoHitInformation> relatedHitInformation = getRelationsTo<RecoHitInformation>
+//                                                                 (m_storeArrayNameOfRecoHitInformation);
+//
+//      for (RecoHitInformation& hitInformation : relatedHitInformation) {
+//        HitType* const hit = hitInformation.getRelatedTo<HitType>(storeArrayNameOfHits);
+//        if (hit != nullptr && pickFunction(hitInformation, hit)) {
+//          mapFunction(hitInformation, hit);
+//        }
+//      }
+//    }
 
     /**
      * Call a function on all hits of the given type in the store array, that are related to this track. Const version.
@@ -670,45 +670,45 @@ namespace Belle2 {
      * @param mapFunction Call this function for every hit (with its reco hit information)
      * @param pickFunction Use only those hits where the function returns true.
      */
-    template<class HitType>
-    void mapOnHits(const std::string& storeArrayNameOfHits,
-                   std::function<void(const RecoHitInformation&, const HitType*)> const& mapFunction,
-                   std::function<bool(const RecoHitInformation&, const HitType*)> const& pickFunction) const
-    {
-      RelationVector<RecoHitInformation> relatedHitInformation = getRelationsTo<RecoHitInformation>
-                                                                 (m_storeArrayNameOfRecoHitInformation);
-
-      for (const RecoHitInformation& hitInformation : relatedHitInformation) {
-        const HitType* const hit = hitInformation.getRelatedTo<HitType>(storeArrayNameOfHits);
-        if (hit != nullptr && pickFunction(hitInformation, hit)) {
-          mapFunction(hitInformation, hit);
-        }
-      }
-    }
-
-    /**
-     * Call a function on all hits of the given type in the store array, that are related to this track.
-     * @param storeArrayNameOfHits The store array the hits should come from.
-     * @param mapFunction Call this function for every hit (with its reco hit information)
-     */
-    template<class HitType>
-    void mapOnHits(const std::string& storeArrayNameOfHits,
-                   std::function<void(RecoHitInformation&, HitType*)> const& mapFunction)
-    {
-      mapOnHits<HitType>(storeArrayNameOfHits, mapFunction, [](const RecoHitInformation&, const HitType*) -> bool { return true; });
-    }
-
-    /**
-     * Call a function on all hits of the given type in the store array, that are related to this track. Const version.
-     * @param storeArrayNameOfHits The store array the hits should come from.
-     * @param mapFunction Call this function for every hit (with its reco hit information)
-     */
-    template<class HitType>
-    void mapOnHits(const std::string& storeArrayNameOfHits,
-                   std::function<void(const RecoHitInformation&, const HitType*)> const&   mapFunction) const
-    {
-      mapOnHits<HitType>(storeArrayNameOfHits, mapFunction, [](const RecoHitInformation&, const HitType*) -> bool { return true; });
-    }
+//    template<class HitType>
+//    void mapOnHits(const std::string& storeArrayNameOfHits,
+//                   std::function<void(const RecoHitInformation&, const HitType*)> const& mapFunction,
+//                   std::function<bool(const RecoHitInformation&, const HitType*)> const& pickFunction) const
+//    {
+//      RelationVector<RecoHitInformation> relatedHitInformation = getRelationsTo<RecoHitInformation>
+//                                                                 (m_storeArrayNameOfRecoHitInformation);
+//
+//      for (const RecoHitInformation& hitInformation : relatedHitInformation) {
+//        const HitType* const hit = hitInformation.getRelatedTo<HitType>(storeArrayNameOfHits);
+//        if (hit != nullptr && pickFunction(hitInformation, hit)) {
+//          mapFunction(hitInformation, hit);
+//        }
+//      }
+//    }
+//
+//    /**
+//     * Call a function on all hits of the given type in the store array, that are related to this track.
+//     * @param storeArrayNameOfHits The store array the hits should come from.
+//     * @param mapFunction Call this function for every hit (with its reco hit information)
+//     */
+//    template<class HitType>
+//    void mapOnHits(const std::string& storeArrayNameOfHits,
+//                   std::function<void(RecoHitInformation&, HitType*)> const& mapFunction)
+//    {
+//      mapOnHits<HitType>(storeArrayNameOfHits, mapFunction, [](const RecoHitInformation&, const HitType*) -> bool { return true; });
+//    }
+//
+//    /**
+//     * Call a function on all hits of the given type in the store array, that are related to this track. Const version.
+//     * @param storeArrayNameOfHits The store array the hits should come from.
+//     * @param mapFunction Call this function for every hit (with its reco hit information)
+//     */
+//    template<class HitType>
+//    void mapOnHits(const std::string& storeArrayNameOfHits,
+//                   std::function<void(const RecoHitInformation&, const HitType*)> const&   mapFunction) const
+//    {
+//      mapOnHits<HitType>(storeArrayNameOfHits, mapFunction, [](const RecoHitInformation&, const HitType*) -> bool { return true; });
+//    }
 
     // Matching status
     /// Return the matching status set by the TrackMatcher module
@@ -754,7 +754,7 @@ namespace Belle2 {
     void deleteFittedInformationForRepresentation(const genfit::AbsTrackRep* rep);
 
     /// Get useful information on EventDisplay
-    std::string getInfoHTML() const override;
+    //std::string getInfoHTML() const override;
 
   private:
     /// Internal storage for the genfit track.
@@ -817,76 +817,76 @@ namespace Belle2 {
     }
 
     /// Returns the reco hit information for a given hit or throws an exception if the hit is not related to the track.
-    template <class HitType>
-    RecoHitInformation* getRecoHitInformationSafely(HitType* hit) const
-    {
-      RecoHitInformation* recoHitInformation = getRecoHitInformation(hit);
-      if (recoHitInformation == nullptr) {
-        B2FATAL("Queried hit is not in the reco track! Did you prune it?");
-      } else {
-        return recoHitInformation;
-      }
-    }
+    //template <class HitType>
+    //RecoHitInformation* getRecoHitInformationSafely(HitType* hit) const
+    //{
+    //  RecoHitInformation* recoHitInformation = getRecoHitInformation(hit);
+    //  if (recoHitInformation == nullptr) {
+    //    B2FATAL("Queried hit is not in the reco track! Did you prune it?");
+    //  } else {
+    //    return recoHitInformation;
+    //  }
+    //}
 
     /**
      * Get the number of hits for the given hit type in the store array that are related to this track.
      * @param storeArrayNameOfHits The StoreArray to look for.
      */
-    template <class HitType>
-    unsigned int getNumberOfHitsOfGivenType(const std::string& storeArrayNameOfHits) const
-    {
-      return getRelationsFrom<HitType>(storeArrayNameOfHits).size();
-    }
+//    template <class HitType>
+//    unsigned int getNumberOfHitsOfGivenType(const std::string& storeArrayNameOfHits) const
+//    {
+//      return getRelationsFrom<HitType>(storeArrayNameOfHits).size();
+//    }
 
     /**
      * Return a sorted list of hits of the given type in the store array that are related to this track.
      * @param storeArrayNameOfHits The StoreArray to look for.
      */
-    template<class HitType>
-    std::vector<HitType*> getSortedHitList(const std::string& storeArrayNameOfHits) const
-    {
-      const RelationVector<RecoHitInformation>& relatedHitInformation = getRelationsTo<RecoHitInformation>
-          (m_storeArrayNameOfRecoHitInformation);
-
-      std::vector<const RecoHitInformation*> relatedHitInformationAsVector;
-      relatedHitInformationAsVector.reserve(relatedHitInformation.size());
-      for (const RecoHitInformation& hitInformation : relatedHitInformation) {
-        // cppcheck-suppress useStlAlgorithm
-        relatedHitInformationAsVector.push_back(&hitInformation);
-      }
-      std::sort(relatedHitInformationAsVector.begin(), relatedHitInformationAsVector.end(), [](const RecoHitInformation * a,
-      const RecoHitInformation * b) -> bool {
-        return a->getSortingParameter() < b->getSortingParameter();
-      });
-
-      std::vector<HitType*> hitList;
-      hitList.reserve(relatedHitInformationAsVector.size());
-      for (const RecoHitInformation* hitInformation : relatedHitInformationAsVector) {
-        HitType* relatedHit = hitInformation->getRelatedTo<HitType>(storeArrayNameOfHits);
-        if (relatedHit != nullptr) {
-          hitList.push_back(relatedHit);
-        }
-      }
-      return hitList;
-    }
+//    template<class HitType>
+//    std::vector<HitType*> getSortedHitList(const std::string& storeArrayNameOfHits) const
+//    {
+//      const RelationVector<RecoHitInformation>& relatedHitInformation = getRelationsTo<RecoHitInformation>
+//          (m_storeArrayNameOfRecoHitInformation);
+//
+//      std::vector<const RecoHitInformation*> relatedHitInformationAsVector;
+//      relatedHitInformationAsVector.reserve(relatedHitInformation.size());
+//      for (const RecoHitInformation& hitInformation : relatedHitInformation) {
+//        // cppcheck-suppress useStlAlgorithm
+//        relatedHitInformationAsVector.push_back(&hitInformation);
+//      }
+//      std::sort(relatedHitInformationAsVector.begin(), relatedHitInformationAsVector.end(), [](const RecoHitInformation * a,
+//      const RecoHitInformation * b) -> bool {
+//        return a->getSortingParameter() < b->getSortingParameter();
+//      });
+//
+//      std::vector<HitType*> hitList;
+//      hitList.reserve(relatedHitInformationAsVector.size());
+//      for (const RecoHitInformation* hitInformation : relatedHitInformationAsVector) {
+//        HitType* relatedHit = hitInformation->getRelatedTo<HitType>(storeArrayNameOfHits);
+//        if (relatedHit != nullptr) {
+//          hitList.push_back(relatedHit);
+//        }
+//      }
+//      return hitList;
+//    }
 
     /**
      * Return an unsorted list of hits of the given type in the store array that are related to this track.
      * @param storeArrayNameOfHits The StoreArray to look for.
      */
-    template<class HitType>
-    std::vector<HitType*> getHitList(const std::string& storeArrayNameOfHits) const
-    {
-      RelationVector<HitType> relatedHits = getRelationsFrom<HitType>(storeArrayNameOfHits);
-      std::vector<HitType*> hitList;
-      hitList.reserve(relatedHits.size());
-      for (HitType& hit : relatedHits) {
-        // cppcheck-suppress useStlAlgorithm
-        hitList.push_back(&hit);
-      }
-      // cppcheck-suppress returnDanglingLifetime
-      return hitList;
-    }
+//    template<class HitType>
+//    std::vector<HitType*> getHitList(const std::string& storeArrayNameOfHits) const
+//    {
+//      RelationVector<HitType> relatedHits = getRelationsFrom<HitType>(storeArrayNameOfHits);
+//      std::vector<HitType*> hitList;
+//      hitList.reserve(relatedHits.size());
+//      for (HitType& hit : relatedHits) {
+//        // cppcheck-suppress useStlAlgorithm
+//        hitList.push_back(&hit);
+//      }
+//      // cppcheck-suppress returnDanglingLifetime
+//      return hitList;
+//    }
 
     /// Helper: Check the dirty flag and produce a warning, whenever a fit result is accessed.
     void checkDirtyFlag() const
@@ -897,7 +897,7 @@ namespace Belle2 {
     }
 
     /** Making this class a ROOT class.*/
-    ClassDefOverride(RecoTrack, 9);
+    //ClassDefOverride(RecoTrack, 9);
   };
 
   /**

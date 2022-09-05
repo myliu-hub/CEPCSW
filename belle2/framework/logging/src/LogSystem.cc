@@ -11,7 +11,6 @@
 #include <framework/logging/LogConnectionBase.h>
 #include <framework/logging/LogConnectionFilter.h>
 #include <framework/logging/LogConnectionConsole.h>
-#include <framework/datastore/DataStore.h>
 
 #include <TROOT.h>
 #include <csignal>
@@ -123,7 +122,6 @@ bool LogSystem::sendMessage(LogMessage&& message)
     for (auto connection : m_logConnections) {
       connection->finalizeOnAbort();
     }
-    DataStore::Instance().reset(); // ensure we are executed before ROOT's exit handlers
 
     //in good tradition, ROOT signal handlers are unsafe.
     //this avoids a problem seen in ROOT's atexit() handler, which might crash

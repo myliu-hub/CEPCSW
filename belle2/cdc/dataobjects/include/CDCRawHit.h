@@ -9,7 +9,7 @@
 #pragma once
 
 // Includes
-#include <framework/datastore/RelationsObject.h>
+//#include <framework/datastore/RelationsObject.h>
 
 namespace Belle2 {
 
@@ -18,7 +18,8 @@ namespace Belle2 {
    * The CDCRawHit (suppressed mode) class.
    *
    */
-  class CDCRawHit : public RelationsObject {
+  //class CDCRawHit : public RelationsObject {
+  class CDCRawHit{
   public:
     /**
      * Default constructor.

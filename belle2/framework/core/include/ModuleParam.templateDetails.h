@@ -10,7 +10,7 @@
 
 #include <framework/core/ModuleParam.h>
 #include <framework/core/PyObjConvUtils.h>
-//#include <boost/python/object.hpp>
+#include <boost/python/object.hpp>
 #include <string>
 
 namespace Belle2 {

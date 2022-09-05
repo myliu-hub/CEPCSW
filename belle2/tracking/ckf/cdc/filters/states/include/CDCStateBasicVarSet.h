@@ -12,7 +12,7 @@
 
 #include <tracking/ckf/cdc/filters/states/BaseCDCStateFilter.h>
 
-#include <framework/datastore/StoreObjPtr.h>
+//#include <framework/datastore/StoreObjPtr.h>
 #include <framework/dataobjects/EventMetaData.h>
 
 namespace Belle2 {
@@ -85,6 +85,6 @@ namespace Belle2 {
 
   private:
     /// use this to get the eventNumber
-    StoreObjPtr<EventMetaData> m_eventMetaData;
+    //StoreObjPtr<EventMetaData> m_eventMetaData;
   };
 }

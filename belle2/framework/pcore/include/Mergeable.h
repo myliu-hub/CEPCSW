@@ -63,6 +63,6 @@ namespace Belle2 {
     /** Root-like SetDirectory function for "template compatibility" with ROOT objects. Does nothing. */
     virtual void SetDirectory(TDirectory*) {}
   private:
-    ClassDef(Mergeable, 0); /**< Abstract base class for objects that can be merged. */
+    //ClassDef(Mergeable, 0); /**< Abstract base class for objects that can be merged. */
   };
 }

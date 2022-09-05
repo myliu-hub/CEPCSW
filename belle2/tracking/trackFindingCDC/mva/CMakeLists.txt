@@ -4,7 +4,7 @@ gaudi_add_library(mva
         SOURCES
             #src/MVAExpert.cc
             src/PyEstimator.cc
-            src/Recorder.cc
+            #src/Recorder.cc
         LINK
             Python::Python
             Boost::boost

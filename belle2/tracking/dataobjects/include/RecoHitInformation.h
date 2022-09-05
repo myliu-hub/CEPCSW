@@ -14,7 +14,7 @@
 //#include <klm/dataobjects/bklm/BKLMHit2d.h>
 //#include <klm/dataobjects/eklm/EKLMAlignmentHit.h>
 
-#include <framework/datastore/RelationsObject.h>
+//#include <framework/datastore/RelationsObject.h>
 
 namespace Belle2 {
   /**
@@ -31,7 +31,8 @@ namespace Belle2 {
    * The stored information can be used when transforming a RecoTrack into a genfit::Track or genfit::TrackCand
    */
 
-  class RecoHitInformation : public RelationsObject {
+  //class RecoHitInformation : public RelationsObject {
+  class RecoHitInformation{
   public:
 
     /** Define, use of clusters or true hits for SVD.
