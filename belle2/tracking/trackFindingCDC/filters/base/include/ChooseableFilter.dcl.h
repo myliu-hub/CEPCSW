@@ -9,7 +9,7 @@
 
 #include <tracking/trackFindingCDC/filters/base/FilterFactory.fwd.h>
 
-#include <tracking/trackFindingCDC/filters/base/FilterParamMap.h>
+//#include <tracking/trackFindingCDC/filters/base/FilterParamMap.h>
 
 #include <tracking/trackFindingCDC/numerics/Weight.h>
 
@@ -17,7 +17,6 @@
 #include <memory>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   namespace TrackFindingCDC {
     /// Filter can delegate to a filter chosen and set up at run time by parameters
@@ -41,7 +40,7 @@ namespace Belle2 {
                  const std::string& filterName);
 
       /// Expose the set of parameters of the filter to the module parameter list.
-      void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) final;
+      //void exposeParameters( const std::string& prefix) final;
 
       /// Initialize before event processing.
       void initialize() override;
@@ -74,7 +73,7 @@ namespace Belle2 {
       std::string m_param_filterName;
 
       /// Parameter: Parameter keys and values to be forwarded to the chosen filter
-      FilterParamMap m_param_filterParameters;
+      //FilterParamMap m_param_filterParameters;
       // std::map<std::string, FilterParamVariant> m_param_filterParameters;
 
       /// Filter factor to construct a chosen filter

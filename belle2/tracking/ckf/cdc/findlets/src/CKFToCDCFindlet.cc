@@ -10,7 +10,6 @@
 
 #include <tracking/trackFindingCDC/utilities/Algorithms.h>
 
-#include <framework/core/ModuleParamList.h>
 
 using namespace Belle2;
 
@@ -25,21 +24,21 @@ CKFToCDCFindlet::CKFToCDCFindlet()
   addProcessingSignalListener(&m_resultStorer);
 }
 
-void CKFToCDCFindlet::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-{
-  Super::exposeParameters(moduleParamList, prefix);
-
-  //m_trackHandler.exposeParameters(moduleParamList, prefix);
-  m_seedCreator.exposeParameters(moduleParamList, prefix);
-  m_treeSearcher.exposeParameters(moduleParamList, prefix);
-  m_resultFinalizer.exposeParameters(moduleParamList, prefix);
-  m_resultStorer.exposeParameters(moduleParamList, prefix);
-
-  moduleParamList->getParameter<std::string>("statePreFilter").setDefaultValue("all");
-  moduleParamList->getParameter<std::string>("stateBasicFilter").setDefaultValue("rough");
-  moduleParamList->getParameter<std::string>("stateExtrapolationFilter").setDefaultValue("extrapolate_and_update");
-  moduleParamList->getParameter<std::string>("stateFinalFilter").setDefaultValue("distance");
-}
+//void CKFToCDCFindlet::exposeParameters( const std::string& prefix)
+//{
+//  Super::exposeParameters(moduleParamList, prefix);
+//
+//  //m_trackHandler.exposeParameters(moduleParamList, prefix);
+//  m_seedCreator.exposeParameters(moduleParamList, prefix);
+//  m_treeSearcher.exposeParameters(moduleParamList, prefix);
+//  m_resultFinalizer.exposeParameters(moduleParamList, prefix);
+//  m_resultStorer.exposeParameters(moduleParamList, prefix);
+//
+//  moduleParamList->getParameter<std::string>("statePreFilter").setDefaultValue("all");
+//  moduleParamList->getParameter<std::string>("stateBasicFilter").setDefaultValue("rough");
+//  moduleParamList->getParameter<std::string>("stateExtrapolationFilter").setDefaultValue("extrapolate_and_update");
+//  moduleParamList->getParameter<std::string>("stateFinalFilter").setDefaultValue("distance");
+//}
 
 void CKFToCDCFindlet::beginEvent()
 {

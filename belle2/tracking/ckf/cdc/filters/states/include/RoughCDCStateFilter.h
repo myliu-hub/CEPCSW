@@ -13,7 +13,6 @@
 #include <string>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   /// A very rough filter for all CDC states.
   class RoughCDCStateFilter : public BaseCDCStateFilter {
@@ -22,7 +21,7 @@ namespace Belle2 {
     TrackFindingCDC::Weight operator()(const BaseCDCStateFilter::Object& pair) final;
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override;
+    //void exposeParameters( const std::string& prefix) override;
 
   private:
     /// maximal distance from track to trajectory (in XY)

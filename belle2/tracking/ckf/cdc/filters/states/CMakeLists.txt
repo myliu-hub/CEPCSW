@@ -9,7 +9,7 @@ gaudi_add_library(states
             src/ExtrapolateAndUpdateCDCStateFilter.cc
             #src/MCTruthCDCStateFilter.cc
             #src/MCTruthEclSeedFilter.cc
-            src/RoughCDCfromEclStateFilter.cc
+            #src/RoughCDCfromEclStateFilter.cc
             src/RoughCDCStateFilter.cc
         LINK
             GenFit::genfit2

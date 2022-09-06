@@ -9,7 +9,6 @@
 #include <tracking/ckf/general/utilities/Advancer.h>
 #include <tracking/ckf/general/utilities/SearchDirection.h>
 
-#include <framework/core/ModuleParamList.templateDetails.h>
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
 #include <framework/logging/Logger.h>
@@ -49,16 +48,16 @@ void Advancer::resetMaterialEffects() const
   genfit::MaterialEffects::getInstance()->setNoEffects(false);
 }
 
-void Advancer::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-{
-  moduleParamList->addParameter(prefixed(prefix, "useMaterialEffects"),
-                                m_param_useMaterialEffects,
-                                "Use the material effects during extrapolation.",
-                                m_param_useMaterialEffects);
-
-  moduleParamList->addParameter(prefixed(prefix, "direction"), m_param_directionAsString,
-                                "The direction where the extrapolation will happen.");
-}
+//void Advancer::exposeParameters( const std::string& prefix)
+//{
+//  moduleParamList->addParameter(prefixed(prefix, "useMaterialEffects"),
+//                                m_param_useMaterialEffects,
+//                                "Use the material effects during extrapolation.",
+//                                m_param_useMaterialEffects);
+//
+//  moduleParamList->addParameter(prefixed(prefix, "direction"), m_param_directionAsString,
+//                                "The direction where the extrapolation will happen.");
+//}
 
 void Advancer::initialize()
 {

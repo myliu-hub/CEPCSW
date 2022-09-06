@@ -15,7 +15,6 @@
 #include <cmath>
 
 namespace Belle2 {
-  class ModuleParamList;
 }
 
 namespace Belle2 {
@@ -26,12 +25,6 @@ namespace Belle2 {
 
     template<class AObject>
     Filter<AObject>::~Filter() = default;
-
-    template <class AObject>
-    void Filter<AObject>::exposeParameters(ModuleParamList* moduleParamListw __attribute__((unused)),
-                                           const std::string& prefix  __attribute__((unused)))
-    {
-    }
 
     template <class AObject>
     bool Filter<AObject>::needsTruthInformation()

@@ -30,7 +30,6 @@ gaudi_add_module(RecGenfitAlg
              cdcdataobjects
              findlets
              pcore
-             core
              Boost::boost Boost::python
              #datastore
 )

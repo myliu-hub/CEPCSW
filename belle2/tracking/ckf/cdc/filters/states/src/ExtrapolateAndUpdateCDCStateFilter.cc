@@ -14,7 +14,6 @@
 #include <tracking/ckf/cdc/entities/CDCCKFPath.h>
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/core/ModuleParamList.h>
 
 using namespace Belle2;
 
@@ -40,12 +39,12 @@ ExtrapolateAndUpdateCDCStateFilter::ExtrapolateAndUpdateCDCStateFilter()
   addProcessingSignalListener(&m_extrapolator);
 }
 
-void ExtrapolateAndUpdateCDCStateFilter::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-{
-  m_extrapolator.exposeParameters(moduleParamList, prefix);
-
-  moduleParamList->getParameter<std::string>(TrackFindingCDC::prefixed(prefix, "direction")).setDefaultValue("forward");
-}
+//void ExtrapolateAndUpdateCDCStateFilter::exposeParameters( const std::string& prefix)
+//{
+//  m_extrapolator.exposeParameters(moduleParamList, prefix);
+//
+//  moduleParamList->getParameter<std::string>(TrackFindingCDC::prefixed(prefix, "direction")).setDefaultValue("forward");
+//}
 
 TrackFindingCDC::Weight ExtrapolateAndUpdateCDCStateFilter::operator()(const BaseCDCStateFilter::Object& pair)
 {

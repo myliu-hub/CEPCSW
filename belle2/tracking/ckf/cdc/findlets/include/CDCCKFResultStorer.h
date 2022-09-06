@@ -18,7 +18,6 @@
 #include <vector>
 
 namespace Belle2 {
-  class ModuleParamInfo;
 
   /// Store resutling tracks and relations on the dataStore
   class CDCCKFResultStorer : public TrackFindingCDC::Findlet<const CDCCKFResult> {
@@ -27,7 +26,7 @@ namespace Belle2 {
 
   public:
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override;
+    //void exposeParameters( const std::string& prefix) override;
 
     /// Do the track/hit finding/merging.
     void apply(const std::vector<CDCCKFResult>& results) override;

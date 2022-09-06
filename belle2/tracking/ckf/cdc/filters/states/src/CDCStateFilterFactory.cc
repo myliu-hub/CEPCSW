@@ -20,7 +20,7 @@
 
 #include <tracking/ckf/cdc/filters/states/MCTruthCDCStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/RoughCDCStateFilter.h>
-#include <tracking/ckf/cdc/filters/states/RoughCDCfromEclStateFilter.h>
+//#include <tracking/ckf/cdc/filters/states/RoughCDCfromEclStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/ExtrapolateAndUpdateCDCStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/DistanceCDCStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/MCTruthEclSeedFilter.h>
@@ -85,8 +85,8 @@ CDCStateFilterFactory::create(const std::string& filterName) const
     return std::make_unique<TrackFindingCDC::AllFilter<BaseCDCStateFilter>>();
   } else if (filterName == "rough") {
     return std::make_unique<RoughCDCStateFilter>();
-  } else if (filterName == "rough_eclSeed") {
-    return std::make_unique<RoughCDCfromEclStateFilter>();
+  //} else if (filterName == "rough_eclSeed") {
+  //  return std::make_unique<RoughCDCfromEclStateFilter>();
   } else if (filterName == "mc_truth") {
     return std::make_unique<MCTruthCDCStateFilter>();
   } else if (filterName == "mc_truth_eclSeed") {

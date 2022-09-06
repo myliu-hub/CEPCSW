@@ -16,7 +16,6 @@
 #include <tracking/spacePointCreation/SpacePoint.h>
 #include <tracking/dataobjects/RecoTrack.h>
 
-#include <framework/core/ModuleParamList.h>
 
 namespace Belle2 {
   template <class AllStateFilter>
@@ -63,12 +62,12 @@ namespace Belle2 {
     return 1.0;
   }
 
-  template <class AllStateFilter>
-  void NonIPCrossingStateFilter<AllStateFilter>::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-  {
-    moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "direction"), m_param_directionAsString,
-                                  "The direction where the extrapolation will happen.");
-  }
+//  template <class AllStateFilter>
+//  void NonIPCrossingStateFilter<AllStateFilter>::exposeParameters( const std::string& prefix)
+//  {
+//    moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "direction"), m_param_directionAsString,
+//                                  "The direction where the extrapolation will happen.");
+//  }
 
   template <class AllStateFilter>
   void NonIPCrossingStateFilter<AllStateFilter>::initialize()

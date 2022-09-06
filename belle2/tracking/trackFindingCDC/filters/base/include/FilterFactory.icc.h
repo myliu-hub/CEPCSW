@@ -14,7 +14,6 @@
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
 
-#include <framework/core/ModuleParamList.h>
 
 #include <framework/logging/Logger.h>
 
@@ -100,41 +99,41 @@ namespace Belle2 {
     {
       // Compose description for the filter parameters
       std::ostringstream oss;
-      oss << "Key -- value pairs depending on the filter." << std::endl;
-      for (const auto& filterNameAndDescription : this->getValidFilterNamesAndDescriptions()) {
+      //oss << "Key -- value pairs depending on the filter." << std::endl;
+      //for (const auto& filterNameAndDescription : this->getValidFilterNamesAndDescriptions()) {
 
-        const std::string& filterName = filterNameAndDescription.first;
-        // const std::string& filterDescription = filterNameAndDescription.second;
+      //  const std::string& filterName = filterNameAndDescription.first;
+      //  // const std::string& filterDescription = filterNameAndDescription.second;
 
-        std::unique_ptr<AFilter> filter = this->create(filterName);
-        if (not filter) {
-          B2WARNING("Could not create a filter for name " << filterName);
-          continue;
-        }
+      //  std::unique_ptr<AFilter> filter = this->create(filterName);
+      //  if (not filter) {
+      //    B2WARNING("Could not create a filter for name " << filterName);
+      //    continue;
+      //  }
 
-        ModuleParamList moduleParamList;
-        const std::string prefix = "";
-        filter->exposeParameters(&moduleParamList, prefix);
+      //  //ModuleParamList moduleParamList;
+      //  //const std::string prefix = "";
+      //  //filter->exposeParameters(&moduleParamList, prefix);
+      //  //
+      //  //std::map<std::string, std::string> filterParameters;
+      //  //for (auto && name : moduleParamList.getParameterNames()) {
+      //  //  filterParameters[name] = moduleParamList.getParameterDescription(name);
+      //  //}
 
-        std::map<std::string, std::string> filterParameters;
-        for (auto && name : moduleParamList.getParameterNames()) {
-          filterParameters[name] = moduleParamList.getParameterDescription(name);
-        }
-
-        oss << quoted(filterName) << " :\n";
-        if (filterParameters.empty()) {
-          oss << "(no parameters)";
-        } else {
-          std::vector<std::string> parameterDescriptions;
-          for (const auto& parameterNameAndDescription : filterParameters) {
-            const std::string& parameterName = parameterNameAndDescription.first;
-            const std::string& parameterDescription = parameterNameAndDescription.second;
-            parameterDescriptions.push_back(parameterName + " -- " + parameterDescription);
-          }
-          oss << join(",\n", parameterDescriptions);
-        }
-        oss << ";\n";
-      }
+      //  oss << quoted(filterName) << " :\n";
+      //  if (filterParameters.empty()) {
+      //    oss << "(no parameters)";
+      //  } else {
+      //    std::vector<std::string> parameterDescriptions;
+      //    for (const auto& parameterNameAndDescription : filterParameters) {
+      //      const std::string& parameterName = parameterNameAndDescription.first;
+      //      const std::string& parameterDescription = parameterNameAndDescription.second;
+      //      parameterDescriptions.push_back(parameterName + " -- " + parameterDescription);
+      //    }
+      //    oss << join(",\n", parameterDescriptions);
+      //  }
+      //  oss << ";\n";
+      //}
       return oss.str();
     }
 

@@ -47,13 +47,13 @@ namespace Belle2 {
     }
 
     /// Expose the parameters
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "minFractionSharedHits"),
-                                    m_minFractionSharedHits,
-                                    "Fraction of shared hits to distinguish photon conversion/Bremsstahlung",
-                                    m_minFractionSharedHits);
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "minFractionSharedHits"),
+    //                                m_minFractionSharedHits,
+    //                                "Fraction of shared hits to distinguish photon conversion/Bremsstahlung",
+    //                                m_minFractionSharedHits);
+    //}
 
   private:
     /// minimal fraction of shared hits

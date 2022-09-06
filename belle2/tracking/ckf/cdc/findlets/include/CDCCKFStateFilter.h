@@ -24,7 +24,6 @@
 #include <tracking/trackFindingCDC/filters/base/ChooseableFilter.h>
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/core/ModuleParamList.h>
 
 namespace Belle2 {
   /// A stack of pre-, helix-extrapolation- , Kalman-extrapolation- and Kalman-update-filters.
@@ -41,16 +40,16 @@ namespace Belle2 {
 
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalHitCandidates"),
-                                    m_maximalHitCandidates, "Maximal hit candidates to test",
-                                    m_maximalHitCandidates);
-      m_preFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "pre"));
-      m_basicFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "basic"));
-      m_extrapolationFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "extrapolation"));
-      m_finalSelection.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "final"));
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalHitCandidates"),
+    //                                m_maximalHitCandidates, "Maximal hit candidates to test",
+    //                                m_maximalHitCandidates);
+    //  m_preFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "pre"));
+    //  m_basicFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "basic"));
+    //  m_extrapolationFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "extrapolation"));
+    //  m_finalSelection.exposeParameters(moduleParamList, TrackFindingCDC::prefixed(prefix, "final"));
+    //}
 
     /// Apply the findlet and do the state selection
     void apply(const CDCCKFPath& path, std::vector<CDCCKFState>& nextStates) override

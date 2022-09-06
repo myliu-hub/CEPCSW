@@ -14,7 +14,6 @@
 #include <tracking/ckf/cdc/filters/pathPairs/CDCPathPairFilterFactory.h>
 #include <tracking/trackFindingCDC/filters/base/ChooseableFilter.icc.h>
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/core/ModuleParamList.h>
 
 namespace Belle2 {
   /// Select the m_maximalCandidatesInFlight paths for further processing
@@ -26,13 +25,13 @@ namespace Belle2 {
     }
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalCandidatesInFlight"),
-                                    m_maximalCandidatesInFlight,
-                                    "Maximal candidates in flight", m_maximalCandidatesInFlight);
-      m_filter.exposeParameters(moduleParamList, prefix);
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalCandidatesInFlight"),
+    //                                m_maximalCandidatesInFlight,
+    //                                "Maximal candidates in flight", m_maximalCandidatesInFlight);
+    //  m_filter.exposeParameters(moduleParamList, prefix);
+    //}
 
     /// main method of the findlet, out of all paths "newPaths" select the best N=m_maximalCandidatesInFlight
     void apply(std::vector<CDCCKFPath>& newPaths) override

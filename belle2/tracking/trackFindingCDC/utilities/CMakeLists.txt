@@ -4,12 +4,11 @@ gaudi_add_library(utilities
         SOURCES
             src/Backtrace.cc
             src/CompositeProcessingSignalListener.cc
-            src/ModuleParamInstances.cc
-            src/ParameterVariant.cc
+            #src/ModuleParamInstances.cc
+            #src/ParameterVariant.cc
             src/ProcessingSignalListener.cc
         LINK
             Python::Python
-            core
             Boost::boost
 )
 

@@ -19,7 +19,6 @@
 #include <tracking/trackFindingCDC/topology/CDCWireTopology.h>
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/core/ModuleParamList.h>
 #include <tracking/trackFindingCDC/numerics/Angle.h>
 
 
@@ -45,17 +44,17 @@ namespace Belle2 {
   public:
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalLayerJump"),
-                                    m_maximalLayerJump, "Maximal jump over N layers", m_maximalLayerJump);
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalLayerJumpBackwardSeed"),
-                                    m_maximalLayerJump_backwardSeed, "Maximal jump over N layers", m_maximalLayerJump_backwardSeed);
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalDeltaPhi"),
-                                    m_maximalDeltaPhi, "Maximal distance in phi between wires for Z=0 plane", m_maximalDeltaPhi);
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "hitFindingDirection"),
-                                    m_param_writeOutDirectionAsString, "Start from innermost/outermost CDC layers", m_param_writeOutDirectionAsString);
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalLayerJump"),
+    //                                m_maximalLayerJump, "Maximal jump over N layers", m_maximalLayerJump);
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalLayerJumpBackwardSeed"),
+    //                                m_maximalLayerJump_backwardSeed, "Maximal jump over N layers", m_maximalLayerJump_backwardSeed);
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalDeltaPhi"),
+    //                                m_maximalDeltaPhi, "Maximal distance in phi between wires for Z=0 plane", m_maximalDeltaPhi);
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "hitFindingDirection"),
+    //                                m_param_writeOutDirectionAsString, "Start from innermost/outermost CDC layers", m_param_writeOutDirectionAsString);
+    //}
 
     /// Clear the wireHit cache
     void beginEvent() override

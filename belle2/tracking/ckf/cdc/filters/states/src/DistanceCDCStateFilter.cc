@@ -12,11 +12,11 @@
 
 using namespace Belle2;
 
-void DistanceCDCStateFilter::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-{
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalDistance"),
-                                m_maximalDistance, "Maximal distance  between track and hit post kalman update", m_maximalDistance);
-}
+//void DistanceCDCStateFilter::exposeParameters( const std::string& prefix)
+//{
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "maximalDistance"),
+//                                m_maximalDistance, "Maximal distance  between track and hit post kalman update", m_maximalDistance);
+//}
 
 
 TrackFindingCDC::Weight DistanceCDCStateFilter::operator()(const BaseCDCStateFilter::Object& pair)

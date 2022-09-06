@@ -19,7 +19,6 @@
 #include <string>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   /**
    * Filter which can be used on a pair of path (vector of states) and states,
@@ -49,10 +48,10 @@ namespace Belle2 {
     }
 
     /// Expose the parameters of the advancer.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      m_advancer.exposeParameters(moduleParamList, prefix);
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  m_advancer.exposeParameters(moduleParamList, prefix);
+    //}
 
     /// Extrapolate and return the result. Update the mSoP of the new state.
     TrackFindingCDC::Weight operator()(const std::pair<const std::vector<TrackFindingCDC::WithWeight<const AState*>>, AState*>& pair)

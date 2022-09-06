@@ -14,7 +14,6 @@
 #include <string>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   namespace TrackFindingCDC {
     /// Interface for a minimal algorithm part that wants to expose some parameters to a module
@@ -62,10 +61,6 @@ namespace Belle2 {
        *  Forward prefixed parameters of this findlet to the module parameter list.
        *
        */
-      virtual void exposeParameters(ModuleParamList* moduleParamList __attribute__((unused)),
-                                    const std::string& prefix __attribute__((unused)))
-      {
-      }
 
       /// Main function executing the algorithm
       virtual void apply(ToVector<AIOTypes>& ... ioVectors) = 0;

@@ -32,22 +32,22 @@ namespace Belle2 {
     }
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      m_filter_badTracks.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("badTracks", prefix));
-      m_filter_duplicateTrack.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("duplicateTrack", prefix));
-      m_filter_duplicateSeed.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("duplicateSeed", prefix));
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  m_filter_badTracks.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("badTracks", prefix));
+    //  m_filter_duplicateTrack.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("duplicateTrack", prefix));
+    //  m_filter_duplicateSeed.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("duplicateSeed", prefix));
 
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "duplicateSeed_maxPhi"),
-                                    duplicateSeed_maxPhi,
-                                    "Seeds within this dPhi can be considered as duplicates (-1 to neglect)",
-                                    duplicateSeed_maxPhi);
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "duplicateSeed_maxPhi"),
+    //                                duplicateSeed_maxPhi,
+    //                                "Seeds within this dPhi can be considered as duplicates (-1 to neglect)",
+    //                                duplicateSeed_maxPhi);
 
-      moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "duplicateSeed_maxTheta"),
-                                    duplicateSeed_maxTheta,
-                                    "Seeds within this dTheta can be considered as duplicates (-1 to neglect)",
-                                    duplicateSeed_maxTheta);
-    }
+    //  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "duplicateSeed_maxTheta"),
+    //                                duplicateSeed_maxTheta,
+    //                                "Seeds within this dTheta can be considered as duplicates (-1 to neglect)",
+    //                                duplicateSeed_maxTheta);
+    //}
 
     /// main method of the findlet, merges and filters paths
     void apply(std::vector<CDCCKFResult>& results) override

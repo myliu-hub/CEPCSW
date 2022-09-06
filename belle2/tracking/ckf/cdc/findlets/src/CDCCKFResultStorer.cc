@@ -12,49 +12,48 @@
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
 #include <tracking/dataobjects/RecoTrack.h>
 
-#include <framework/core/ModuleParamList.h>
 
 using namespace Belle2;
 
-void CDCCKFResultStorer::exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix)
-{
-  Super::exposeParameters(moduleParamList, prefix);
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "exportTracks"), m_param_exportTracks,
-                                "Export the result tracks into a StoreArray.",
-                                m_param_exportTracks);
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "outputRecoTrackStoreArrayName"),
-                                m_param_outputRecoTrackStoreArrayName,
-                                "StoreArray name of the output Track Store Array.");
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "outputRelationRecoTrackStoreArrayName"),
-                                m_param_outputRelationRecoTrackStoreArrayName,
-                                "StoreArray name of the tracks, the output reco tracks should be related to.");
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "writeOutDirection"),
-                                m_param_writeOutDirectionAsString,
-                                "Write out the relations with the direction of the CDC part as weight");
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "trackFindingDirection"),
-                                m_param_trackFindingDirectionAsString,
-                                "Direction in which the track is reconstructed (SVD/ECL seed)",
-                                m_param_trackFindingDirectionAsString);
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "exportAllTracks"),
-                                m_param_exportAllTracks,
-                                "Export all tracks, even if they did not reach the center of the CDC",
-                                m_param_exportAllTracks);
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "seedComponent"),
-                                m_seedComponentString,
-                                "Where does the seed track come from (typically SVD, ECL)",
-                                m_seedComponentString);
-
-  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "setTakenFlag"),
-                                m_param_setTakenFlag,
-                                "Set flag that hit is taken",
-                                m_param_setTakenFlag);
-}
+//void CDCCKFResultStorer::exposeParameters( const std::string& prefix)
+//{
+//  Super::exposeParameters(moduleParamList, prefix);
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "exportTracks"), m_param_exportTracks,
+//                                "Export the result tracks into a StoreArray.",
+//                                m_param_exportTracks);
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "outputRecoTrackStoreArrayName"),
+//                                m_param_outputRecoTrackStoreArrayName,
+//                                "StoreArray name of the output Track Store Array.");
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "outputRelationRecoTrackStoreArrayName"),
+//                                m_param_outputRelationRecoTrackStoreArrayName,
+//                                "StoreArray name of the tracks, the output reco tracks should be related to.");
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "writeOutDirection"),
+//                                m_param_writeOutDirectionAsString,
+//                                "Write out the relations with the direction of the CDC part as weight");
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "trackFindingDirection"),
+//                                m_param_trackFindingDirectionAsString,
+//                                "Direction in which the track is reconstructed (SVD/ECL seed)",
+//                                m_param_trackFindingDirectionAsString);
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "exportAllTracks"),
+//                                m_param_exportAllTracks,
+//                                "Export all tracks, even if they did not reach the center of the CDC",
+//                                m_param_exportAllTracks);
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "seedComponent"),
+//                                m_seedComponentString,
+//                                "Where does the seed track come from (typically SVD, ECL)",
+//                                m_seedComponentString);
+//
+//  moduleParamList->addParameter(TrackFindingCDC::prefixed(prefix, "setTakenFlag"),
+//                                m_param_setTakenFlag,
+//                                "Set flag that hit is taken",
+//                                m_param_setTakenFlag);
+//}
 
 void CDCCKFResultStorer::initialize()
 {

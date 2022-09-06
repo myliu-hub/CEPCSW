@@ -24,7 +24,6 @@
 namespace Belle2 {
   class RecoTrack;
 
-  class ModuleParamList;
 
   /// Main findlet of the ToCDCCKF module
   class CKFToCDCFindlet : public TrackFindingCDC::Findlet<const TrackFindingCDC::CDCWireHit> {
@@ -39,7 +38,7 @@ namespace Belle2 {
     ~CKFToCDCFindlet() override;
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override;
+    //void exposeParameters( const std::string& prefix) override;
 
     /// Do the track/hit finding/merging.
     void apply(const std::vector<TrackFindingCDC::CDCWireHit>& wireHits) override;

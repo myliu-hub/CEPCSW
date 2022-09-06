@@ -16,7 +16,6 @@
 #include <string>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   namespace TrackFindingCDC {
 
@@ -45,7 +44,7 @@ namespace Belle2 {
        *
        *  This method is deprecated as the exposeParams below uses a less compile heavy equivalent.
        */
-      virtual void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix);
+      //virtual void exposeParameters( const std::string& prefix);
 
       /// Indicates if the filter requires Monte Carlo information.
       virtual bool needsTruthInformation();

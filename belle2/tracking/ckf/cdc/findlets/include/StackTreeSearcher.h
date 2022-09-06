@@ -18,7 +18,6 @@
 #include <tracking/ckf/cdc/entities/CDCCKFPath.h>
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/core/ModuleParamList.h>
 
 
 namespace Belle2 {
@@ -35,13 +34,13 @@ namespace Belle2 {
     }
 
     /// Expose the parameters of the sub findlets.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override
-    {
-      m_stateCreator.exposeParameters(moduleParamList, prefix);
-      m_stateFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("state", prefix));
-      m_pathMerger.exposeParameters(moduleParamList, prefix);
-      m_pathSelector.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("path", prefix));
-    }
+    //void exposeParameters( const std::string& prefix) override
+    //{
+    //  m_stateCreator.exposeParameters(moduleParamList, prefix);
+    //  m_stateFilter.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("state", prefix));
+    //  m_pathMerger.exposeParameters(moduleParamList, prefix);
+    //  m_pathSelector.exposeParameters(moduleParamList, TrackFindingCDC::prefixed("path", prefix));
+    //}
 
     /// Main method to update the paths. Input: vector of the selected paths and a vector of CDC wirehits to be considered.
     void apply(std::vector<CDCCKFPath>& paths,

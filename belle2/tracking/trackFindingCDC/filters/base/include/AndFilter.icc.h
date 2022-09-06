@@ -29,13 +29,13 @@ namespace Belle2 {
     template <class AFilter>
     AndFilter<AFilter>::~AndFilter() = default;
 
-    template <class AFilter>
-    void AndFilter<AFilter>::exposeParameters(ModuleParamList* moduleParamList,
-                                              const std::string& prefix)
-    {
-      if (m_lhsFilter) m_lhsFilter->exposeParameters(moduleParamList, prefix);
-      if (m_rhsFilter) m_rhsFilter->exposeParameters(moduleParamList, prefix);
-    }
+    //template <class AFilter>
+    //void AndFilter<AFilter>::exposeParameters(
+    //                                          const std::string& prefix)
+    //{
+    //  if (m_lhsFilter) m_lhsFilter->exposeParameters(moduleParamList, prefix);
+    //  if (m_rhsFilter) m_rhsFilter->exposeParameters(moduleParamList, prefix);
+    //}
 
     template<class AFilter>
     Weight AndFilter<AFilter>::operator()(const typename AFilter::Object& obj)

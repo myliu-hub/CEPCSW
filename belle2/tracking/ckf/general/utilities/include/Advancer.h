@@ -20,7 +20,6 @@ namespace genfit {
 }
 
 namespace Belle2 {
-  class ModuleParamList;
 
   /**
    * Helper findlet for performing an extrapolation of a mSoP of one plane to another plane
@@ -37,7 +36,7 @@ namespace Belle2 {
                               const genfit::SharedPlanePtr& plane) const;
 
     /// Expose the parameters.
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix);
+    //void exposeParameters( const std::string& prefix);
 
     /// Call this to set the material effects handling accorinf to the given parameters.
     void setMaterialEffectsToParameterValue() const;

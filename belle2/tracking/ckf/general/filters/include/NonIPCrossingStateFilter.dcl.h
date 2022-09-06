@@ -12,7 +12,6 @@
 #include <string>
 
 namespace Belle2 {
-  class ModuleParamList;
 
   /**
    * Reusable filter for checking the direction of a new state if it is in the correct orientation
@@ -35,7 +34,7 @@ namespace Belle2 {
     TrackFindingCDC::Weight operator()(const Object& pair) final;
 
     /// Expose the direction parameter
-    void exposeParameters(ModuleParamList* moduleParamList, const std::string& prefix) override;
+    //void exposeParameters( const std::string& prefix) override;
 
     /// Copy the string direction parameter to the enum.
     void initialize() final;
