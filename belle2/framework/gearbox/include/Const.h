@@ -371,15 +371,15 @@ namespace Belle2 {
      * Allows easy iteration over a set of particles, e.g. to print indices and PDG codes:
      *
         \code
-        B2INFO("index -> PDG code");
+        //B2INFO("index -> PDG code");
         const Const::ParticleSet set = Const::chargedStableSet;
         //via range-based for
         for(const Const::ChargedStable& pdgIter : set) {
-          B2INFO(pdgIter.getIndex() << " -> " << pdgIter.getPDGCode());
+          //B2INFO(pdgIter.getIndex() << " -> " << pdgIter.getPDGCode());
         }
         //or, using iterator syntax:
         for(Const::ChargedStable pdgIter = set.begin(); pdgIter != set.end(); ++pdgIter) {
-          B2INFO(pdgIter.getIndex() << " -> " << pdgIter.getPDGCode());
+          //B2INFO(pdgIter.getIndex() << " -> " << pdgIter.getPDGCode());
         }
         \endcode
      *

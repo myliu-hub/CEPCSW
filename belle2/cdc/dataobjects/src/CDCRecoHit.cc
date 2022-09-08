@@ -54,7 +54,7 @@ CDCRecoHit::CDCRecoHit(const CDCHit* cdcHit, const genfit::TrackCandHit* trackCa
   : genfit::AbsMeasurement(1), m_cdcHit(cdcHit), m_leftRight(0)
 {
   if (s_adcCountTranslator == 0 || s_cdcGeometryTranslator == 0 || s_tdcCountTranslator == 0) {
-    B2FATAL("Can't produce CDCRecoHits without setting of the translators.");
+    //B2FATAL("Can't produce CDCRecoHits without setting of the translators.");
   }
 
   // get information from cdcHit into local variables.
@@ -66,7 +66,7 @@ CDCRecoHit::CDCRecoHit(const CDCHit* cdcHit, const genfit::TrackCandHit* trackCa
   const genfit::WireTrackCandHit* aTrackCandHitPtr =  dynamic_cast<const genfit::WireTrackCandHit*>(trackCandHit);
   if (aTrackCandHitPtr) {
     signed char lrInfo = aTrackCandHitPtr->getLeftRightResolution();
-    B2DEBUG(250, "l/r: " << int(lrInfo));
+    //B2DEBUG(250, "l/r: " << int(lrInfo));
     setLeftRightResolution(lrInfo);
   }
 }
@@ -239,7 +239,7 @@ std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlan
   // Ignore hits with negative drift times.  For these, the
   // TDCCountTranslator returns a negative drift length.
   if (mL < 0. || mR < 0.) {
-    B2DEBUG(150, "Ignoring hit with negative drift time.");
+    //B2DEBUG(150, "Ignoring hit with negative drift time.");
     mopL->setWeight(0);
     mopR->setWeight(0);
   }
@@ -251,7 +251,7 @@ std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlan
 const genfit::HMatrixU* CDCRecoHit::constructHMatrix(const genfit::AbsTrackRep* rep) const
 {
   if (!dynamic_cast<const genfit::RKTrackRep*>(rep)) {
-    B2FATAL("CDCRecoHit can only handle state vectors of type RKTrackRep!");
+    //B2FATAL("CDCRecoHit can only handle state vectors of type RKTrackRep!");
   }
 
   return new genfit::HMatrixU();
@@ -372,12 +372,12 @@ bool CDCRecoHit::getFlyByDistanceVector(B2Vector3D& pointingVector,
 {
   const genfit::TrackPoint* tp = this->getTrackPoint();
   if (!tp) {
-    B2ERROR("No genfit::TrackPoint for CDCRecoHit.");
+    //B2ERROR("No genfit::TrackPoint for CDCRecoHit.");
     return false;
   }
   const genfit::AbsFitterInfo* fi = tp->getFitterInfo(rep);
   if (!fi) {
-    B2DEBUG(200, "No genfit::AbsFitterInfo for this CDCRecoHit.");
+    //B2DEBUG(200, "No genfit::AbsFitterInfo for this CDCRecoHit.");
     return false;
   }
 

@@ -64,7 +64,7 @@ TrackFindingCDC::Weight ExtrapolateAndUpdateCDCStateFilter::operator()(const Bas
     }
 
     const auto& measurements = recoHit.constructMeasurementsOnPlane(mSoP);
-    B2ASSERT("Should be exactly two measurements", measurements.size() == 2);
+    //B2ASSERT("Should be exactly two measurements", measurements.size() == 2);
 
     const auto& rightLeft = setRLInfo(mSoP, state);
 

@@ -8,6 +8,7 @@ gaudi_add_library(mva
         LINK
             Python::Python
             Boost::boost
+            boost_python
 )
 
 target_include_directories(mva PUBLIC

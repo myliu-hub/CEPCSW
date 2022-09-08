@@ -11,6 +11,7 @@ gaudi_add_library(topology
             src/ISuperLayer.cc
             src/WireLine.cc
             src/WireNeighborPair.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(topology PUBLIC

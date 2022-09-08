@@ -5,6 +5,7 @@ gaudi_add_library(paths
             src/CDCPathBasicVarSet.cc
             src/CDCPathFilterFactory.cc
             src/CDCPathTruthVarSet.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(paths PUBLIC

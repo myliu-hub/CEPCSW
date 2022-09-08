@@ -8,7 +8,7 @@
 #pragma once
 
 #include <tracking/trackFindingCDC/numerics/EForwardBackward.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <string>
 
@@ -40,8 +40,8 @@ namespace Belle2 {
     } else if (directionString == "none" or directionString == "invalid") {
       return TrackFindingCDC::EForwardBackward::c_Invalid;
     } else {
-      B2FATAL("Do not understand direction " << directionString << ". Valid names are " <<
-              "forward/above/after, backward/below/before, both/unknown, none/invalid");
+      //B2FATAL("Do not understand direction " << directionString << ". Valid names are " <<
+      //        "forward/above/after, backward/below/before, both/unknown, none/invalid");
     }
   }
 }

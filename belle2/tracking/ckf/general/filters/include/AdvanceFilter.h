@@ -13,7 +13,7 @@
 
 #include <genfit/MeasuredStateOnPlane.h>
 #include <genfit/Exception.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <vector>
 #include <string>
@@ -60,12 +60,12 @@ namespace Belle2 {
       m_advancer.setMaterialEffectsToParameterValue();
 
       const std::vector<TrackFindingCDC::WithWeight<const AState*>>& previousStates = pair.first;
-      B2ASSERT("Can not extrapolate with nothing", not previousStates.empty());
+      //B2ASSERT("Can not extrapolate with nothing", not previousStates.empty());
 
       const AState* lastState = previousStates.back();
       AState* currentState = pair.second;
 
-      B2ASSERT("Can not extrapolate with nothing", lastState->mSoPSet());
+      //B2ASSERT("Can not extrapolate with nothing", lastState->mSoPSet());
       genfit::MeasuredStateOnPlane mSoP = lastState->getMeasuredStateOnPlane();
 
       double returnValue = NAN;
@@ -73,7 +73,7 @@ namespace Belle2 {
         genfit::SharedPlanePtr plane = currentState->getPlane(mSoP);
         returnValue = m_advancer.extrapolateToPlane(mSoP, plane);
       } catch (genfit::Exception& e) {
-        B2DEBUG(29, "Plane extraction failed: " << e.what());
+        //B2DEBUG(29, "Plane extraction failed: " << e.what());
       }
 
       if (not std::isnan(returnValue)) {

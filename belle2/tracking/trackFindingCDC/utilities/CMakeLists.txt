@@ -2,7 +2,6 @@
 
 gaudi_add_library(utilities
         SOURCES
-            src/Backtrace.cc
             src/CompositeProcessingSignalListener.cc
             #src/ModuleParamInstances.cc
             #src/ParameterVariant.cc

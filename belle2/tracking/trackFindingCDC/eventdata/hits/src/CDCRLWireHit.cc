@@ -22,7 +22,7 @@
 
 //#include <cdc/dataobjects/CDCSimHit.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <TVector3.h>
 
@@ -56,11 +56,11 @@ CDCRLWireHit::CDCRLWireHit(const CDCWireHit* wireHit,
 CDCRLWireHit CDCRLWireHit::average(const CDCRLWireHit& rlWireHit1,
                                    const CDCRLWireHit& rlWireHit2)
 {
-  B2ASSERT("Average of two CDCRLWireHits with different wire hits requested.",
-           rlWireHit1.getWireHit() == rlWireHit2.getWireHit());
+  //B2ASSERT("Average of two CDCRLWireHits with different wire hits requested.",
+  //         rlWireHit1.getWireHit() == rlWireHit2.getWireHit());
 
-  B2ASSERT("Average of two CDCRLWireHits with different right left passage information requested.",
-           rlWireHit1.getRLInfo() == rlWireHit2.getRLInfo());
+  //B2ASSERT("Average of two CDCRLWireHits with different right left passage information requested.",
+  //         rlWireHit1.getRLInfo() == rlWireHit2.getRLInfo());
 
   ERightLeft rlInfo = rlWireHit1.getRLInfo();
   const CDCWireHit& wireHit = rlWireHit1.getWireHit();
@@ -79,13 +79,13 @@ CDCRLWireHit CDCRLWireHit::average(const CDCRLWireHit& rlWireHit1,
                                    const CDCRLWireHit& rlWireHit2,
                                    const CDCRLWireHit& rlWireHit3)
 {
-  B2ASSERT("Average of three CDCRLWireHits with different wire hits requested.",
-           rlWireHit1.getWireHit() == rlWireHit2.getWireHit() and
-           rlWireHit2.getWireHit() == rlWireHit3.getWireHit());
+  //B2ASSERT("Average of three CDCRLWireHits with different wire hits requested.",
+  //         rlWireHit1.getWireHit() == rlWireHit2.getWireHit() and
+  //         rlWireHit2.getWireHit() == rlWireHit3.getWireHit());
 
-  B2ASSERT("Average of three CDCRLWireHits with different right left passage information requested.",
-           rlWireHit1.getRLInfo() == rlWireHit2.getRLInfo() and
-           rlWireHit2.getRLInfo() == rlWireHit3.getRLInfo());
+  //B2ASSERT("Average of three CDCRLWireHits with different right left passage information requested.",
+  //         rlWireHit1.getRLInfo() == rlWireHit2.getRLInfo() and
+  //         rlWireHit2.getRLInfo() == rlWireHit3.getRLInfo());
 
 
   ERightLeft rlInfo = rlWireHit1.getRLInfo();

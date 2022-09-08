@@ -26,7 +26,7 @@ namespace Belle2 {
       //, m_param_filterParameters()
       , m_filterFactory(std::move(filterFactory))
     {
-      B2ASSERT("Constructing a chooseable filter with no factory", m_filterFactory);
+      //B2ASSERT("Constructing a chooseable filter with no factory", m_filterFactory);
     }
 
     template <class AFilter>
@@ -36,7 +36,7 @@ namespace Belle2 {
       //, m_param_filterParameters()
       , m_filterFactory(std::move(filterFactory))
     {
-      B2ASSERT("Constructing a chooseable filter with no factory", m_filterFactory);
+      //B2ASSERT("Constructing a chooseable filter with no factory", m_filterFactory);
     }
 
     //template <class AFilter>
@@ -67,7 +67,7 @@ namespace Belle2 {
     {
       m_filter = m_filterFactory->create(m_param_filterName);
       if (not m_filter) {
-        B2ERROR("Could not create filter with name " << m_param_filterName);
+        //B2ERROR("Could not create filter with name " << m_param_filterName);
         return;
       }
 

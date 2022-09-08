@@ -9,7 +9,7 @@
 #pragma once
 
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <TVector3.h>
 #include <string>
@@ -164,7 +164,7 @@ namespace Belle2 {
     {
       double factor = Mag();
       if (factor == 0) {
-        B2WARNING(name() << "::SetMag: zero vector can't be stretched");
+        ////B2WARNING(name() << "::SetMag: zero vector can't be stretched");
       } else {
         factor = mag / factor;
         SetX(X()*factor);
@@ -213,7 +213,7 @@ namespace Belle2 {
     static DataType Mpi_pi(DataType angle)
     {
       if (std::isnan(angle)) {
-        B2ERROR(name() << "::Mpi_pi: function called with NaN");
+        //B2ERROR(name() << "::Mpi_pi: function called with NaN");
         return angle;
       }
       angle = std::remainder(angle, 2 * M_PI);
@@ -302,7 +302,7 @@ namespace Belle2 {
       const double cosTheta = CosTheta();
       if (std::abs(cosTheta) < 1) return -0.5 * std::log((1.0 - cosTheta) / (1.0 + cosTheta));
       if (Z()  == 0) return 0;
-      //B2WARNING(name() << "::PseudoRapidity: transverse momentum = 0! return +/- 10e10");
+      //////B2WARNING(name() << "::PseudoRapidity: transverse momentum = 0! return +/- 10e10");
       if (Z() > 0) return 10e10;
       else        return -10e10;
     }
@@ -653,7 +653,7 @@ namespace Belle2 {
       case 2:
         return B2Vector3<DataType>::m_coordinates[2];
     }
-    B2FATAL(this->name() << "::access operator: given index (i=" << i << ") is out of bounds!");
+    //B2FATAL(this->name() << "::access operator: given index (i=" << i << ") is out of bounds!");
     return 0.;
   }
 

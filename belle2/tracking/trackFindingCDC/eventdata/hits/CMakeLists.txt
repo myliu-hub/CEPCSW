@@ -10,6 +10,7 @@ gaudi_add_library(hits
             src/CDCRLWireHitTriple.cc
             src/CDCTangent.cc
             src/CDCWireHit.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(hits PUBLIC

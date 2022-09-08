@@ -88,8 +88,8 @@ WireNeighborPair CDCWireSuperLayer::getNeighborsInwards(ILayer iLayer, IWire iWi
     return WireNeighborPair(&(neighborLayer.getWireWrappedAround(iWire + 1)),
                             &(neighborLayer.getWireWrappedAround(iWire)));
   } else {
-    B2WARNING("Wire numbering shift bigger than one in magnitude. Adjust getNeighbor functions " << static_cast<int>(deltaShift));
-    B2WARNING("From iLayer " << iLayer << " and wire " << iWire << " to iLayer " << iLayer - 1);
+    //B2WARNING("Wire numbering shift bigger than one in magnitude. Adjust getNeighbor functions " << static_cast<int>(deltaShift));
+    //B2WARNING("From iLayer " << iLayer << " and wire " << iWire << " to iLayer " << iLayer - 1);
     return WireNeighborPair(nullptr , nullptr);
   }
 
@@ -110,8 +110,8 @@ WireNeighborPair CDCWireSuperLayer::getNeighborsOutwards(ILayer iLayer, IWire iW
     return WireNeighborPair(&(neighborLayer.getWireWrappedAround(iWire + 1)),
                             &(neighborLayer.getWireWrappedAround(iWire)));
   } else {
-    B2WARNING("Wire numbering shift bigger than one in magnitude. Adjust getNeighbor functions " << static_cast<int>(deltaShift));
-    B2WARNING("From iLayer " << iLayer << " and wire " << iWire << " to iLayer " << iLayer + 1);
+    //B2WARNING("Wire numbering shift bigger than one in magnitude. Adjust getNeighbor functions " << static_cast<int>(deltaShift));
+    //B2WARNING("From iLayer " << iLayer << " and wire " << iWire << " to iLayer " << iLayer + 1);
     return WireNeighborPair(nullptr , nullptr);
   }
 

@@ -19,7 +19,7 @@ using namespace TrackFindingCDC;
 //  } else if (wirePosition == EWirePosition::c_Aligned) {
 //    return CDC::CDCGeometryPar::EWirePosition::c_Aligned;
 //  }
-//  B2ERROR("Unexpected EWirePosition");
+//  //B2ERROR("Unexpected EWirePosition");
 //  return CDC::CDCGeometryPar::EWirePosition::c_Base;
 //}
 //
@@ -32,6 +32,6 @@ using namespace TrackFindingCDC;
 //  } else if (wirePosSet == CDC::CDCGeometryPar::EWirePosition::c_Aligned) {
 //    return EWirePosition::c_Aligned;
 //  }
-//  B2ERROR("Unexpected EWirePosition");
+//  //B2ERROR("Unexpected EWirePosition");
 //  return EWirePosition::c_Base;
 //}

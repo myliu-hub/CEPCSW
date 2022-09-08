@@ -29,16 +29,16 @@ namespace Belle2 {
     auto* state = pair.second;
 
     const RecoTrack* cdcTrack = previousStates.front()->getSeed();
-    B2ASSERT("Path without seed?", cdcTrack);
+    //B2ASSERT("Path without seed?", cdcTrack);
 
     const SpacePoint* spacePoint = state->getHit();
-    B2ASSERT("Path without hit?", spacePoint);
+    //B2ASSERT("Path without hit?", spacePoint);
 
     const genfit::MeasuredStateOnPlane& firstMeasurement = [&state, &previousStates]() {
       if (state->mSoPSet()) {
         return state->getMeasuredStateOnPlane();
       } else {
-        B2ASSERT("Previous state was not fitted?", previousStates.back()->mSoPSet());
+        //B2ASSERT("Previous state was not fitted?", previousStates.back()->mSoPSet());
         return previousStates.back()->getMeasuredStateOnPlane();
       }
     }();

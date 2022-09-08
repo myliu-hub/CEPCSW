@@ -10,7 +10,7 @@
 #include <tracking/trackFindingCDC/ca/AutomatonCell.h>
 
 #include <genfit/MeasuredStateOnPlane.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <vxd/dataobjects/VxdID.h>
 
@@ -67,7 +67,7 @@ namespace Belle2 {
     /// Return the chi2 set during fitting. Is only valid after fitting.
     double getChi2() const
     {
-      B2ASSERT("Chi2 is not set", isFitted());
+      //B2ASSERT("Chi2 is not set", isFitted());
       return m_chi2;
     }
 
@@ -88,7 +88,7 @@ namespace Belle2 {
     /// Get the mSoP if already set during extrapolation (or fitting)
     const genfit::MeasuredStateOnPlane& getMeasuredStateOnPlane() const
     {
-      B2ASSERT("You are asking for an invalid variable!", mSoPSet());
+      //B2ASSERT("You are asking for an invalid variable!", mSoPSet());
       return m_measuredStateOnPlane;
     }
 

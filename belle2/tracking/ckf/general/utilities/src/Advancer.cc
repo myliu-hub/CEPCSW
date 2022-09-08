@@ -11,7 +11,7 @@
 
 
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <MaterialEffects.h>
 #include <Exception.h>
 
@@ -31,7 +31,7 @@ double Advancer::extrapolateToPlane(genfit::MeasuredStateOnPlane& measuredStateO
       returnValue = m_param_direction * extrapolatedS;
     }
   } catch (const genfit::Exception& e) {
-    B2DEBUG(29, "Extrapolation failed: " << e.what());
+    //B2DEBUG(29, "Extrapolation failed: " << e.what());
   }
 
   resetMaterialEffects();

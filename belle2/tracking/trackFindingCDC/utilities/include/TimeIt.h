@@ -11,7 +11,7 @@
 #include <valgrind/callgrind.h>
 #endif
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <vector>
 #include <functional>
@@ -52,9 +52,9 @@ namespace Belle2 {
       /// Print a summary of the collected time to the console
       void printSummary() const
       {
-        B2INFO("First execution took " << getSeconds(0) << " seconds ");
-        B2INFO("On average execution took " << getAverageSeconds() << " seconds " <<
-               "in " << getNExecutions() << " executions.");
+        //B2INFO("First execution took " << getSeconds(0) << " seconds ");
+        //B2INFO("On average execution took " << getAverageSeconds() << " seconds " <<
+        //       "in " << getNExecutions() << " executions.");
       }
 
     private:

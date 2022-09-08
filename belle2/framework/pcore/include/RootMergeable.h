@@ -9,7 +9,7 @@
 #pragma once
 
 #include <framework/pcore/Mergeable.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -94,7 +94,7 @@ namespace Belle2 {
     void write(TDirectory* file)
     {
       if (m_wrapped->GetDirectory() != nullptr and m_wrapped->GetDirectory() != file) {
-        B2ERROR("RootMergeable: wrapped object belongs to other file, Write() might crash. Make sure your histogram/ntuple already belongs to the file you want to save it to before filling (e.g. in initialize())");
+        //B2ERROR("RootMergeable: wrapped object belongs to other file, Write() might crash. Make sure your histogram/ntuple already belongs to the file you want to save it to before filling (e.g. in initialize())");
       }
       file->cd();
       m_wrapped->Write(nullptr, TObject::kOverwrite);

@@ -7,7 +7,7 @@
  **************************************************************************/
 #include <tracking/trackFindingCDC/numerics/SinEqLine.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <cmath>
 
@@ -74,7 +74,7 @@ double SinEqLine::computeRootInInterval(double lowerX, double upperX) const
   /// Checks if convergence criterium has been met. For instance if one bound is already exactly at
   /// the root.
   if (isConverged(lower, upper)) {
-    B2INFO("Coverage early");
+    //B2INFO("Coverage early");
     return getConvergedBound(lower, upper);
   }
 

@@ -35,21 +35,21 @@ const CDCWire* CDCWire::getInstance(const CDCHit& hit)
 {
   if (not CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID()))) {
     WireID wireID(hit.getID());
-    B2ERROR("Invalid encoded wire id of cdc hit " << wireID);
-    B2ERROR("Superlayer id: " << wireID.getISuperLayer());
-    B2ERROR("Layer cid: " << wireID.getICLayer());
-    B2ERROR("Layer id: " << wireID.getILayer());
-    B2ERROR("Wire id: " << wireID.getIWire());
-    B2FATAL("Do not continue with wrong wire id");
+    //B2ERROR("Invalid encoded wire id of cdc hit " << wireID);
+    //B2ERROR("Superlayer id: " << wireID.getISuperLayer());
+    //B2ERROR("Layer cid: " << wireID.getICLayer());
+    //B2ERROR("Layer id: " << wireID.getILayer());
+    //B2ERROR("Wire id: " << wireID.getIWire());
+    //B2FATAL("Do not continue with wrong wire id");
     return nullptr;
   }
 
   const CDCWire& wire = CDCWireTopology::getInstance().getWire(WireID(hit.getID()));
 
   if (wire.getEWire() != hit.getID()) {
-    B2ERROR("WireID.getEWire() differs from CDCHit.getID()");
-    B2ERROR("WireID.getEWire() : " << wire.getEWire());
-    B2ERROR("CDCHit.getEWire() : " << hit.getID());
+    //B2ERROR("WireID.getEWire() differs from CDCHit.getID()");
+    //B2ERROR("WireID.getEWire() : " << wire.getEWire());
+    //B2ERROR("CDCHit.getEWire() : " << hit.getID());
   }
   return &wire;
 }
@@ -83,13 +83,13 @@ void CDCWire::initialize(EWirePosition wirePosition, bool ignoreWireSag)
 
   /// used to check for odd stereo wires -- did not trigger in ages
   if (not isAxial() and (m_wireLine.tanTheta() == 0)) {
-    //B2WARNING("Odd wire " << *this);
-    //B2WARNING("wireForwardPosition  " << forwardPos);
-    //B2WARNING("wireBackwardPosition " << backwardPos);
-    //B2WARNING("forward              " << m_wireLine.forward3D());
-    //B2WARNING("backward             " << m_wireLine.backward3D());
-    //B2WARNING("ref                  " << m_wireLine.refPos3D());
-    //B2WARNING("tan theta            " << m_wireLine.tanTheta());
+    //////B2WARNING("Odd wire " << *this);
+    //////B2WARNING("wireForwardPosition  " << forwardPos);
+    //////B2WARNING("wireBackwardPosition " << backwardPos);
+    //////B2WARNING("forward              " << m_wireLine.forward3D());
+    //////B2WARNING("backward             " << m_wireLine.backward3D());
+    //////B2WARNING("ref                  " << m_wireLine.refPos3D());
+    //////B2WARNING("tan theta            " << m_wireLine.tanTheta());
   }
 }
 

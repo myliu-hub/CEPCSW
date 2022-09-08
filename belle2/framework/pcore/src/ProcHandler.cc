@@ -8,7 +8,7 @@
 
 #include <framework/pcore/ProcHandler.h>
 #include <framework/core/InputController.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <framework/core/EventProcessor.h>
 #include <framework/pcore/GlobalProcHandler.h>
 
@@ -52,7 +52,7 @@ namespace {
 
     if (!found_gap) {
       if (s_pidVector.size() == s_pidVector.capacity()) {
-        B2FATAL("PID vector at capacity. This produces a race condition, make sure ProcHandler is created early.");
+        //B2FATAL("PID vector at capacity. This produces a race condition, make sure ProcHandler is created early.");
       }
       s_pidVector.push_back(pid);
     }
@@ -165,10 +165,10 @@ bool ProcHandler::startProc(std::set<int>* processList, const std::string& procT
       pid = -pid;
     processList->insert(pid);
     addPID(pid);
-    B2INFO("ProcHandler: " << procType << " process forked. pid = " << pid);
+    //B2INFO("ProcHandler: " << procType << " process forked. pid = " << pid);
     fflush(stdout);
   } else if (pid < 0) {
-    B2FATAL("fork() failed: " << strerror(errno));
+    //B2FATAL("fork() failed: " << strerror(errno));
   } else {
     //do NOT handle SIGCHLD in forked processes!
     EventProcessor::installSignalHandler(SIGCHLD, SIG_IGN);
@@ -193,7 +193,7 @@ ProcHandler::ProcHandler(unsigned int nWorkerProc, bool markChildrenAsLocal):
     s_numEventProcesses = nWorkerProc;
 
   if (!pidListEmpty())
-    B2FATAL("Constructing ProcHandler after forking is not allowed!");
+    //B2FATAL("Constructing ProcHandler after forking is not allowed!");
 
   //s_pidVector size shouldn't be changed once processes are forked (race condition)
   s_pidVector.reserve(s_pidVector.size() + nWorkerProc + 2);

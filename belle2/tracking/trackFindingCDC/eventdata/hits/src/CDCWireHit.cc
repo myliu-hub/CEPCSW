@@ -28,7 +28,7 @@
 
 #include <cdc/dataobjects/CDCHit.h>
 #include <cdc/dataobjects/WireID.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <ostream>
 
@@ -73,7 +73,7 @@ CDCWireHit::CDCWireHit(const CDCHit* const ptrHit,
   , m_hit(ptrHit)
 {
   if (not ptrHit) {
-    B2ERROR("CDCWireHit constructor invoked with nullptr CDCHit");
+    //B2ERROR("CDCWireHit constructor invoked with nullptr CDCHit");
     return;
   }
   const CDCHit& hit = *ptrHit;

@@ -822,7 +822,7 @@ namespace Belle2 {
     //{
     //  RecoHitInformation* recoHitInformation = getRecoHitInformation(hit);
     //  if (recoHitInformation == nullptr) {
-    //    B2FATAL("Queried hit is not in the reco track! Did you prune it?");
+    //    //B2FATAL("Queried hit is not in the reco track! Did you prune it?");
     //  } else {
     //    return recoHitInformation;
     //  }
@@ -892,7 +892,7 @@ namespace Belle2 {
     void checkDirtyFlag() const
     {
       if (m_dirtyFlag) {
-        B2DEBUG(100, "Dirty flag is set. The result may not be in sync with the latest changes. Refit the track to be sure.");
+        //B2DEBUG(100, "Dirty flag is set. The result may not be in sync with the latest changes. Refit the track to be sure.");
       }
     }
 

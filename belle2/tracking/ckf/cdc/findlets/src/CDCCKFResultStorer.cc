@@ -79,7 +79,7 @@ void CDCCKFResultStorer::initialize()
   } else if (m_seedComponentString == "ECL") {
     m_trackFinderType = RecoHitInformation::c_ECLtoCDCCKF;
   } else {
-    B2FATAL("CDCCKFResultStorer: No valid seed component specified. Please use SVD/ECL.");
+    //B2FATAL("CDCCKFResultStorer: No valid seed component specified. Please use SVD/ECL.");
   }
 }
 
@@ -96,7 +96,7 @@ void CDCCKFResultStorer::apply(const std::vector<CDCCKFResult>& results)
     } else if (m_param_trackFindingDirection == TrackFindingCDC::EForwardBackward::c_Backward) {
       trackState = &result.back().getTrackState();
     } else {
-      B2FATAL("CDCCKFResultStorer: No valid direction specified. Please use forward/backward.");
+      //B2FATAL("CDCCKFResultStorer: No valid direction specified. Please use forward/backward.");
     }
 
     // only accept paths that reached the center of the CDC (for ECL seeding)

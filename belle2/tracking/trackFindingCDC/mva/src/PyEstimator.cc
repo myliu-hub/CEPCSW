@@ -13,7 +13,7 @@
 #include <boost/python/list.hpp>
 #include <boost/python/tuple.hpp>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <cstdio>
 
 using namespace Belle2;
@@ -35,7 +35,7 @@ PyEstimator::PyEstimator(const std::string& pickleFileName)
     unpickleEstimator(pickleFileName);
   } catch (const boost::python::error_already_set&) {
     PyErr_Print();
-    B2ERROR("Could not construct PyEstimator from " << pickleFileName);
+    //B2ERROR("Could not construct PyEstimator from " << pickleFileName);
   }
 }
 
@@ -84,7 +84,7 @@ double PyEstimator::predict(boost::python::object& array)
     }
   } catch (const boost::python::error_already_set&) {
     PyErr_Print();
-    B2ERROR("Estimation failed in python object");
+    //B2ERROR("Estimation failed in python object");
   }
   return NAN;
 }
@@ -100,7 +100,7 @@ void PyEstimator::unpickleEstimator(const std::string& pickleFileName)
     m_estimator = estimator;
   } catch (const boost::python::error_already_set&) {
     PyErr_Print();
-    B2ERROR("Could not open pickle file " << pickleFileName);
+    //B2ERROR("Could not open pickle file " << pickleFileName);
   }
 
   try {
@@ -110,13 +110,13 @@ void PyEstimator::unpickleEstimator(const std::string& pickleFileName)
     // AttributeError occured, but this is allowed to fail
     // Clear the exception and carry on.
     PyErr_Clear();
-    B2INFO("Estimator in " << m_pickleFileName << " is not a binary classifier. Trying as regressor");
+    //B2INFO("Estimator in " << m_pickleFileName << " is not a binary classifier. Trying as regressor");
     try {
       m_predict = m_estimator.attr("predict");
       m_is_binary_classification = false;
     } catch (const boost::python::error_already_set&) {
       PyErr_Print();
-      B2ERROR("Could neither find 'predict' not 'predict_proba' in python estimator from file " << pickleFileName);
+      //B2ERROR("Could neither find 'predict' not 'predict_proba' in python estimator from file " << pickleFileName);
     }
   }
 }
@@ -131,6 +131,6 @@ void PyEstimator::expand(size_t nVars)
     m_array = numpy.attr("resize")(m_array, shape);
   } catch (const boost::python::error_already_set&) {
     PyErr_Print();
-    B2ERROR("Resize failed");
+    //B2ERROR("Resize failed");
   }
 }

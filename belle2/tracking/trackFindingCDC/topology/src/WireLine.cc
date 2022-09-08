@@ -7,7 +7,7 @@
  **************************************************************************/
 #include <tracking/trackFindingCDC/topology/WireLine.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 using namespace Belle2;
 using namespace TrackFindingCDC;
@@ -21,7 +21,7 @@ WireLine::WireLine(const Vector3D& forward,
   , m_backwardZ{backward.z()}
   , m_sagCoeff(sagCoeff)
 {
-  B2ASSERT("Wire reference position is not at 0", m_refPos3D.z() == 0);
+  //B2ASSERT("Wire reference position is not at 0", m_refPos3D.z() == 0);
 }
 
 WireLine WireLine::movedBy(const Vector3D& offset) const

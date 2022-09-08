@@ -60,7 +60,7 @@ namespace Belle2 {
 #include <mva/interface/Interface.h>
 
 #include <framework/utilities/FileSystem.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <algorithm>
 
@@ -107,14 +107,14 @@ void MVAExpert::Impl::beginRun()
         });
 
         if (itNamedVariable == m_allNamedVariables.end()) {
-          B2ERROR("Variable name " << iVar << " mismatch for FastBDT. " <<
+          //B2ERROR("Variable name " << iVar << " mismatch for FastBDT. " <<
                   "Could not find expected variable '" << expectedName << "'");
         }
         m_selectedNamedVariables.push_back(*itNamedVariable);
       }
-      B2ASSERT("Number of variables mismatch", nExpectedVars == static_cast<int>(m_selectedNamedVariables.size()));
+      //B2ASSERT("Number of variables mismatch", nExpectedVars == static_cast<int>(m_selectedNamedVariables.size()));
     } else {
-      B2WARNING("Unpacked new kind of classifier. Consider to extend the feature variable check. Identifier name: " << m_identifier
+      //B2WARNING("Unpacked new kind of classifier. Consider to extend the feature variable check. Identifier name: " << m_identifier
                 << "; method name: " << weightfile->getElement<std::string>("method"));
       m_selectedNamedVariables = m_allNamedVariables;
     }
@@ -130,7 +130,7 @@ void MVAExpert::Impl::beginRun()
     dummy.resize(m_selectedNamedVariables.size(), 0);
     m_dataset = std::make_unique<MVA::SingleDataset>(generalOptions, std::move(dummy), 0);
   } else {
-    B2ERROR("Could not find weight file for identifier " << m_identifier);
+    //B2ERROR("Could not find weight file for identifier " << m_identifier);
   }
 }
 
@@ -148,7 +148,7 @@ std::unique_ptr<MVA::Weightfile> MVAExpert::Impl::getWeightFile()
 double MVAExpert::Impl::predict()
 {
   if (not m_expert) {
-    B2ERROR("MVA Expert is not loaded! I will return 0");
+    //B2ERROR("MVA Expert is not loaded! I will return 0");
     return NAN;
   }
 

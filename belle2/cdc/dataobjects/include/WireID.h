@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <TObject.h>
 
 namespace Belle2 {
@@ -107,7 +107,7 @@ namespace Belle2 {
     /** Setter using official numbering. */
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
-      B2DEBUG(250, "setWireID called with " << iSuperLayer << ", " << iLayer << ", " << iWire);
+      //B2DEBUG(250, "setWireID called with " << iSuperLayer << ", " << iLayer << ", " << iWire);
       m_eWire = iWire + 512 * iLayer + 4096 * iSuperLayer;
     }
 
@@ -117,7 +117,7 @@ namespace Belle2 {
     /** Setter using the encoded wire number. */
     void setWireID(unsigned short eWire)
     {
-      B2DEBUG(250, "setWireID called with " << eWire);
+      //B2DEBUG(250, "setWireID called with " << eWire);
       m_eWire = eWire;
     }
 

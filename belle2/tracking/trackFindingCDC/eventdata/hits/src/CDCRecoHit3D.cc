@@ -27,7 +27,7 @@
 
 //#include <cdc/dataobjects/CDCSimHit.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <cmath>
 
@@ -130,7 +130,7 @@ CDCRecoHit3D CDCRecoHit3D::reconstruct(const CDCRecoHit2D& recoHit2D,
 CDCRecoHit3D CDCRecoHit3D::reconstructNearest(const CDCWireHit* axialWireHit,
                                               const CDCTrajectory2D& trajectory2D)
 {
-  B2ASSERT("This function can only be used with axial hits.", axialWireHit->isAxial());
+  //B2ASSERT("This function can only be used with axial hits.", axialWireHit->isAxial());
   ERightLeft rlInfo = trajectory2D.isRightOrLeft(axialWireHit->getRefPos2D());
   CDCRLWireHit rlWireHit(axialWireHit, rlInfo);
   return CDCRecoHit3D::reconstruct(rlWireHit, trajectory2D);
@@ -143,8 +143,8 @@ CDCRecoHit3D CDCRecoHit3D::average(const CDCRecoHit3D& first, const CDCRecoHit3D
                         Vector3D::average(first.getRecoPos3D(), second.getRecoPos3D()),
                         (first.getArcLength2D() + second.getArcLength2D()) / 2);
   } else {
-    B2ERROR("Averaging three dimensional hits which are on different oriented wire hits. Return "
-            "first one unchanged");
+    //B2ERROR("Averaging three dimensional hits which are on different oriented wire hits. Return "
+    //        "first one unchanged");
     return first;
   }
 }

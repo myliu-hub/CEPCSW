@@ -32,7 +32,7 @@ namespace Belle2 {
       // We don't want tracks that flipped charge
       if (path.front().getSeed()->getChargeSeed() != path.back().getTrackState().getCharge())
       {
-        B2DEBUG(29, "Flipped charge: " << path.front().getSeed()->getChargeSeed() << "->" << path.back().getTrackState().getCharge());
+        //B2DEBUG(29, "Flipped charge: " << path.front().getSeed()->getChargeSeed() << "->" << path.back().getTrackState().getCharge());
         return NAN;
       }
 

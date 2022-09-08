@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <cdc/dataobjects/WireID.h>
 //#include <framework/dataobjects/DigitBase.h>
 
@@ -40,7 +40,7 @@ namespace Belle2 {
     CDCHit() :
       m_eWire(65535), m_tdcCount(0), m_adcCount(0), m_status(0), m_tot(0), m_otherHitIndex(-1), m_adcCountAtLeadingEdge(0)
     {
-      B2DEBUG(29, "Empty CDCHit Constructor called.");
+      //B2DEBUG(29, "Empty CDCHit Constructor called.");
     }
 
     /** Constructor to set all internal variables.
@@ -86,7 +86,7 @@ namespace Belle2 {
      */
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
-      B2DEBUG(29, "setWireId called with" << iSuperLayer << ", " << iLayer << ", " << iWire);
+      //B2DEBUG(29, "setWireId called with" << iSuperLayer << ", " << iLayer << ", " << iWire);
       m_eWire = WireID(iSuperLayer, iLayer, iWire).getEWire();
     }
 
@@ -102,7 +102,7 @@ namespace Belle2 {
      */
     void setStatus(unsigned short status)
     {
-      B2DEBUG(29, "setStatus called with " << status);
+      //B2DEBUG(29, "setStatus called with " << status);
       m_status = status;
     }
 
@@ -124,7 +124,7 @@ namespace Belle2 {
      */
     void setTDCCount(short tdcCount)
     {
-      B2DEBUG(29, "setTDCCount called with " << tdcCount);
+      //B2DEBUG(29, "setTDCCount called with " << tdcCount);
       m_tdcCount = tdcCount;
     }
 

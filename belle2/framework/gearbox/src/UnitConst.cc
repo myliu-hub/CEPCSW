@@ -8,7 +8,7 @@
 
 #include <framework/gearbox/Unit.h>
 #include <framework/gearbox/Const.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 //#include <framework/particledb/EvtGenDatabasePDG.h>
 
 #include <TMath.h>
@@ -126,7 +126,7 @@ namespace Belle2 {
   {
     auto it = s_conversionFactors.find(unitString);
     if (it == s_conversionFactors.end()) {
-      B2ERROR("Could not find conversion factor for unit " << unitString << ", assuming 1.0");
+      //B2ERROR("Could not find conversion factor for unit " << unitString << ", assuming 1.0");
       return value;
     }
     return it->second * value;
@@ -136,7 +136,7 @@ namespace Belle2 {
   {
     auto it = s_conversionFactors.find(unitString);
     if (it == s_conversionFactors.end()) {
-      B2ERROR("Could not find conversion factor for unit " << unitString << ", assuming 1.0");
+      //B2ERROR("Could not find conversion factor for unit " << unitString << ", assuming 1.0");
       return value;
     }
     return value / it->second;
@@ -145,7 +145,7 @@ namespace Belle2 {
   double Unit::registerConversion(const string& name, double value)
   {
     if (!s_conversionFactors.insert(make_pair(name, value)).second) {
-      B2ERROR("Conversion factor for unit " << name << " already exists, ignoring");
+      //B2ERROR("Conversion factor for unit " << name << " already exists, ignoring");
     }
     return value;
   }
@@ -170,7 +170,7 @@ std::string Const::parseDetectors(EDetector det)
   else if (det == Const::DAQ)   return "DAQ";
   else if (det == Const::BEAST) return "BEAST";
   else if (det == Const::TEST)  return "TEST";
-  else B2FATAL("Unknown detector component: " << det);
+  else //B2FATAL("Unknown detector component: " << det);
   return "INVALID";
 }
 
@@ -198,12 +198,12 @@ Const::DetectorSet operator + (Const::EDetector firstDet, Const::EDetector secon
 unsigned short Const::DetectorSet::getBit(Const::EDetector det)
 {
   if (det == 0 || det > 0x100) {
-    B2ERROR("Const::DetectorSet::getBit() called for an invalid detector "
-            "identifier (possibly a subdetector):" << det);
+    //B2ERROR("Const::DetectorSet::getBit() called for an invalid detector "
+            //"identifier (possibly a subdetector):" << det);
     return 0;
   }
   if (det > TEST) {
-    B2ERROR("Const::DetectorSet::getBit(): Invalid detector ID");
+    //B2ERROR("Const::DetectorSet::getBit(): Invalid detector ID");
   }
   return (1 << (det - 1));
 }

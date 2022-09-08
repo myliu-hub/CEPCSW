@@ -9,7 +9,6 @@ gaudi_add_library(Futilities
             ${ROOT_LIBRARIES}
             Python::Python
             Boost::boost
-            logging
             boost_filesystem
 
 )

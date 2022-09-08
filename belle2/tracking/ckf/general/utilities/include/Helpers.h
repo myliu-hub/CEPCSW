@@ -20,7 +20,7 @@ namespace Belle2 {
   {
 
     if (vectorToCheck.capacity() > limit) {
-      B2DEBUG(29, "Capacity of vector too large, create fresh vector and swap.");
+      //B2DEBUG(29, "Capacity of vector too large, create fresh vector and swap.");
       std::vector<T> tmp;
       std::swap(vectorToCheck, tmp);
       tmp.clear();

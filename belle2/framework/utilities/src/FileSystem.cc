@@ -8,7 +8,7 @@
 
 #include <framework/utilities/FileSystem.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -63,11 +63,11 @@ bool FileSystem::loadLibrary(std::string library, bool fullname)
 {
   if (!fullname) library = "lib" + library + ".so";
 
-  B2DEBUG(100, "Loading shared library " << library);
+  //B2DEBUG(100, "Loading shared library " << library);
   void* libPointer = dlopen(library.c_str() , RTLD_LAZY | RTLD_GLOBAL);
 
   if (libPointer == nullptr) {
-    B2ERROR("Could not open shared library file (error in dlopen) : " << dlerror());
+    //B2ERROR("Could not open shared library file (error in dlopen) : " << dlerror());
     return false;
   }
 
@@ -138,7 +138,7 @@ std::string FileSystem::findFile(const string& path, const std::vector<std::stri
 
   // nothing found
   if (!silent)
-    B2ERROR("findFile(): Could not find file." << LogVar("path", path));
+    //B2ERROR("findFile(): Could not find file." << LogVar("path", path));
   return string("");
 }
 
@@ -163,8 +163,8 @@ std::string FileSystem::findFile(const string& path, const std::string& dataType
   }
   std::string result = findFile(path, dirs, true);
   if (result.empty() && !silent)
-    B2ERROR("findFile(): Could not find data file. You may want to use the 'b2install-data' tool to get the file."
-            << LogVar("path", path) << LogVar("data type", dataType));
+    //B2ERROR("findFile(): Could not find data file. You may want to use the 'b2install-data' tool to get the file."
+            //<< LogVar("path", path) << LogVar("data type", dataType));
   return result;
 }
 
@@ -210,7 +210,7 @@ bool FileSystem::Lock::lock(int timeout, bool ignoreErrors)
     if (errno != EAGAIN && errno != EACCES && errno != EINTR) break;
     usleep(uniform(random) * 1000);
   }
-  if (!ignoreErrors) B2ERROR("Locking failed: " << strerror(errno));
+  if (!ignoreErrors) //B2ERROR("Locking failed: " << strerror(errno));
   return false;
 }
 
@@ -220,7 +220,7 @@ FileSystem::TemporaryFile::TemporaryFile(std::ios_base::openmode mode): std::fst
   m_filename = filename.native();
   open(m_filename.c_str(), mode);
   if (!is_open()) {
-    B2ERROR("Cannot create temporary file: " << strerror(errno));
+    //B2ERROR("Cannot create temporary file: " << strerror(errno));
   }
 }
 

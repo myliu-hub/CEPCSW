@@ -14,7 +14,7 @@
 #include <framework/utilities/Utils.h>
 
 #include <framework/gearbox/Unit.h>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <boost/process.hpp>
 
@@ -93,7 +93,7 @@ namespace Belle2::Utils {
   Timer::~Timer()
   {
     double elapsed = (getClock() - m_startTime) / Unit::ms;
-    B2INFO(m_text << " " << std::fixed << std::setprecision(3) << elapsed << " ms");
+    //B2INFO(m_text << " " << std::fixed << std::setprecision(3) << elapsed << " ms");
   }
 
   std::string getCommandOutput(const std::string& command, const std::vector<std::string>& arguments,

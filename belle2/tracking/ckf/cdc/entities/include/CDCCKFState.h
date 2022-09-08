@@ -32,14 +32,14 @@ namespace Belle2 {
     /// Get CDCWireHit corresponding to the state
     const TrackFindingCDC::CDCWireHit* getWireHit() const
     {
-      B2ASSERT("State does not represent a wire hit", static_cast<bool>(m_cdcWireHit));
+      //B2ASSERT("State does not represent a wire hit", static_cast<bool>(m_cdcWireHit));
       return *m_cdcWireHit;
     }
 
     /// Get RecoTrack seed corresponding to the state
     const RecoTrack* getSeed() const
     {
-      B2ASSERT("State does not represent a seed", static_cast<bool>(m_seed));
+      //B2ASSERT("State does not represent a seed", static_cast<bool>(m_seed));
       return *m_seed;
     }
 
@@ -60,7 +60,7 @@ namespace Belle2 {
     /// Get genfit track state (but first check if already present)
     const genfit::MeasuredStateOnPlane& getTrackState() const
     {
-      B2ASSERT("State does not have a track state (yet)", static_cast<bool>(m_trackState));
+      //B2ASSERT("State does not have a track state (yet)", static_cast<bool>(m_trackState));
       return *m_trackState;
     }
 
@@ -79,7 +79,7 @@ namespace Belle2 {
     /// Return right-left info (check if present first)
     TrackFindingCDC::ERightLeft getRLinfo() const
     {
-      B2ASSERT("LR info is not present yet", m_rl != TrackFindingCDC::ERightLeft::c_Unknown);
+      //B2ASSERT("LR info is not present yet", m_rl != TrackFindingCDC::ERightLeft::c_Unknown);
       return m_rl;
     }
 

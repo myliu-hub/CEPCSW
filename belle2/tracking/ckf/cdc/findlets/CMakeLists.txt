@@ -7,6 +7,8 @@ gaudi_add_library(findlets
             src/CKFToCDCFindlet.cc
             #src/CKFToCDCFromEclFindlet.cc
         LINK utilities
+             ${ROOT_LIBRARIES}
+             GenFit::genfit2
 )
 
 target_include_directories(findlets PUBLIC

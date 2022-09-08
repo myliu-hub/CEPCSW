@@ -9,7 +9,7 @@
 #pragma once
 
 #include <vector>
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 #include <framework/geometry/B2Vector3.h>
 #include <framework/gearbox/Unit.h>
 //#include <framework/database/DBObjPtr.h>
@@ -89,7 +89,7 @@ namespace Belle2 {
 
 //  inline B2Vector3D BFieldManager::calculate(const B2Vector3D& pos) const
 //  {
-//    if (!m_magfield) B2FATAL("Could not load magnetic field configuration from database");
+//    if (!m_magfield) //B2FATAL("Could not load magnetic field configuration from database");
 //    return m_magfield->getField(pos);
 //  };
 

@@ -11,7 +11,7 @@
 
 #include <tracking/trackFindingCDC/utilities/Named.h>
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <RtypesCore.h>
 
@@ -28,7 +28,7 @@ namespace Belle2 {
     OnVarSet<AFilter>::OnVarSet(std::unique_ptr<AVarSet> varSet)
       : m_varSet(std::move(varSet))
     {
-      B2ASSERT("Varset initialised as nullptr", m_varSet);
+      //B2ASSERT("Varset initialised as nullptr", m_varSet);
     }
 
     template <class AFilter>

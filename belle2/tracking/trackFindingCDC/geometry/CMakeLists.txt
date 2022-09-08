@@ -21,6 +21,7 @@ gaudi_add_library(geometry
             src/Vector3D.cc
         LINK
             Eigen3::Eigen
+            ${ROOT_LIBRARIES}
 )
 
 target_include_directories(geometry PUBLIC

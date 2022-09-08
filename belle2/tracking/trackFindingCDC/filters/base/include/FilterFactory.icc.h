@@ -15,7 +15,7 @@
 #include <tracking/trackFindingCDC/utilities/StringManipulation.h>
 
 
-#include <framework/logging/Logger.h>
+//#include <framework/logging/Logger.h>
 
 #include <map>
 #include <vector>
@@ -63,7 +63,7 @@ namespace Belle2 {
       }
 
       // Filter not valid
-      B2ERROR("Could not create filter with name " << filterName);
+      //B2ERROR("Could not create filter with name " << filterName);
       std::ostringstream message;
       message << "Known filter names are: ";
       std::vector<std::string> quotedFilterNames;
@@ -73,7 +73,7 @@ namespace Belle2 {
       }
       message << join(", ", quotedFilterNames);
       message << ".";
-      B2ERROR(message.str());
+      //B2ERROR(message.str());
       return std::unique_ptr<AFilter>(nullptr);
     }
 
@@ -107,7 +107,7 @@ namespace Belle2 {
 
       //  std::unique_ptr<AFilter> filter = this->create(filterName);
       //  if (not filter) {
-      //    B2WARNING("Could not create a filter for name " << filterName);
+      //    //B2WARNING("Could not create a filter for name " << filterName);
       //    continue;
       //  }
 

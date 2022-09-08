@@ -15,6 +15,7 @@ gaudi_add_library(dataobjects
             #src/RelationContainer.cc
             #src/RelationElement.cc
             #src/UncertainHelix.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(dataobjects PUBLIC

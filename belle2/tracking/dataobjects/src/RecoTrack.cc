@@ -144,7 +144,7 @@ RecoTrack::RecoTrack(const TVector3& seedPosition, const TVector3& seedMomentum,
 ////      // Special case for CDC hits, we add a right-left information
 ////      const genfit::WireTrackCandHit* wireHit = dynamic_cast<const genfit::WireTrackCandHit*>(trackCandHit);
 ////      if (not wireHit) {
-////        B2FATAL("CDC hit is not a wire hit. The RecoTrack can not handle such a case.");
+////        //B2FATAL("CDC hit is not a wire hit. The RecoTrack can not handle such a case.");
 ////      }
 ////      //if (wireHit->getLeftRightResolution() > 0) {
 ////      //  newRecoTrack->addCDCHit(cdcHit, sortingParameter, RecoHitInformation::RightLeftInformation::c_right);
@@ -362,7 +362,7 @@ bool RecoTrack::wasFitSuccessful(const genfit::AbsTrackRep* representation) cons
       m_genfitTrack.getFittedState(i, representation);
       return true;
     } catch (const genfit::Exception& exception) {
-      B2DEBUG(100, "Can not get mSoP because of: " << exception.what());
+      //B2DEBUG(100, "Can not get mSoP because of: " << exception.what());
     }
   }
 
@@ -436,7 +436,7 @@ const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneClosestTo(
         minimalDistance2 = currentDistance2;
       }
     } catch (const genfit::Exception& exception) {
-      B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
+      //B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
       continue;
     }
   }
@@ -460,7 +460,7 @@ void RecoTrack::deleteFittedInformationForRepresentation(const genfit::AbsTrackR
 genfit::AbsTrackRep* RecoTrack::getTrackRepresentationForPDG(int pdgCode)
 {
   if (pdgCode < 0) {
-    B2FATAL("Only positive pdgCode is possible when calling getTrackRepresentationForPDG, got " << pdgCode);
+    //B2FATAL("Only positive pdgCode is possible when calling getTrackRepresentationForPDG, got " << pdgCode);
   }
 
   const std::vector<genfit::AbsTrackRep*>& trackRepresentations = getRepresentations();
@@ -564,16 +564,16 @@ const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromRecoHi
   checkDirtyFlag();
 
   if (!hasTrackFitStatus(representation)) {
-    B2FATAL("MeasuredStateOnPlane can not be retrieved for RecoTracks where no fit has been attempted.");
+    //B2FATAL("MeasuredStateOnPlane can not be retrieved for RecoTracks where no fit has been attempted.");
   }
 
   if (!recoHitInfo->useInFit()) {
-    B2FATAL("MeasuredStateOnPlane cannot be provided for RecoHit which was not used in the fit.");
+    //B2FATAL("MeasuredStateOnPlane cannot be provided for RecoHit which was not used in the fit.");
   }
 
   const auto* hitTrackPoint = getCreatedTrackPoint(recoHitInfo);
   if (not hitTrackPoint) {
-    B2FATAL("TrackPoint was requested which has not been created");
+    //B2FATAL("TrackPoint was requested which has not been created");
   }
 
   const auto* fittedResult = hitTrackPoint->getFitterInfo(representation);
@@ -591,11 +591,11 @@ const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromFirstH
     try {
       return m_genfitTrack.getFittedState(i, representation);
     } catch (const genfit::Exception& exception) {
-      B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
+      //B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
     }
   }
 
-  B2FATAL("There is no single hit with a valid mSoP in this track! Check if the fit failed with wasFitSuccessful before");
+  //B2FATAL("There is no single hit with a valid mSoP in this track! Check if the fit failed with wasFitSuccessful before");
 }
 
 const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromLastHit(const genfit::AbsTrackRep* representation) const
@@ -605,11 +605,11 @@ const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromLastHi
     try {
       return m_genfitTrack.getFittedState(i, representation);
     } catch (const genfit::Exception& exception) {
-      B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
+      //B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
     }
   }
 
-  B2FATAL("There is no single hit with a valid mSoP in this track!");
+  //B2FATAL("There is no single hit with a valid mSoP in this track!");
 }
 
 //std::string RecoTrack::getInfoHTML() const

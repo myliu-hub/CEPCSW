@@ -95,12 +95,6 @@ namespace Belle2 {
    * Care should be taken not to define variables in this call since they will
    * be scoped and thus unavaiable after the macro
    */
-#define B2INFO_MEASURE_TIME(txt, ...) {\
-    std::stringstream __b2_timer_str__;\
-    __b2_timer_str__ << txt;\
-    ::Belle2::Utils::Timer __b2_timer__(__b2_timer_str__.str());\
-    {__VA_ARGS__;}\
-  }
 
   /** \def branch_unlikely(x)
    * \brief A macro to tell the compiler that the argument x will be very
