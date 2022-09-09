@@ -6,6 +6,12 @@ gaudi_add_library(paths
             src/CDCPathFilterFactory.cc
             src/CDCPathTruthVarSet.cc
         LINK ${ROOT_LIBRARIES}
+            varsets
+            hits
+            cdcdataobjects
+            utilities
+            topology
+            geometry
 )
 
 target_include_directories(paths PUBLIC

@@ -9,6 +9,14 @@ gaudi_add_library(findlets
         LINK utilities
              ${ROOT_LIBRARIES}
              GenFit::genfit2
+             trajectories
+             topology
+             pathPairs
+             geometry
+             trackingdataobjects
+             states
+             paths
+             cdcdataobjects
 )
 
 target_include_directories(findlets PUBLIC

@@ -16,14 +16,14 @@
 #include <tracking/trackFindingCDC/varsets/VariadicUnionVarSet.h>
 
 #include <tracking/ckf/cdc/filters/states/CDCStateBasicVarSet.h>
-#include <tracking/ckf/cdc/filters/states/CDCfromEclStateTruthVarSet.h>
+//#include <tracking/ckf/cdc/filters/states/CDCfromEclStateTruthVarSet.h>
 
-#include <tracking/ckf/cdc/filters/states/MCTruthCDCStateFilter.h>
+//#include <tracking/ckf/cdc/filters/states/MCTruthCDCStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/RoughCDCStateFilter.h>
 //#include <tracking/ckf/cdc/filters/states/RoughCDCfromEclStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/ExtrapolateAndUpdateCDCStateFilter.h>
 #include <tracking/ckf/cdc/filters/states/DistanceCDCStateFilter.h>
-#include <tracking/ckf/cdc/filters/states/MCTruthEclSeedFilter.h>
+//#include <tracking/ckf/cdc/filters/states/MCTruthEclSeedFilter.h>
 
 using namespace Belle2;
 using namespace TrackFindingCDC;
@@ -87,10 +87,10 @@ CDCStateFilterFactory::create(const std::string& filterName) const
     return std::make_unique<RoughCDCStateFilter>();
   //} else if (filterName == "rough_eclSeed") {
   //  return std::make_unique<RoughCDCfromEclStateFilter>();
-  } else if (filterName == "mc_truth") {
-    return std::make_unique<MCTruthCDCStateFilter>();
-  } else if (filterName == "mc_truth_eclSeed") {
-    return std::make_unique<MCTruthEclSeedFilter>();
+  //} else if (filterName == "mc_truth") {
+  //  return std::make_unique<MCTruthCDCStateFilter>();
+  //} else if (filterName == "mc_truth_eclSeed") {
+  //  return std::make_unique<MCTruthEclSeedFilter>();
   } else if (filterName == "extrapolate_and_update") {
     return std::make_unique<ExtrapolateAndUpdateCDCStateFilter>();
   } else if (filterName == "distance") {

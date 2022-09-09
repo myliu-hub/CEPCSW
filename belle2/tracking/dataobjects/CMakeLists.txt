@@ -4,7 +4,8 @@ if (GenFit_FOUND)
 gaudi_add_library(trackingdataobjects
         SOURCES
             src/RecoTrack.cc
-        LINK GenFit::genfit2
+        LINK 
+            GenFit::genfit2
             Python::Python
             Boost::boost
 )

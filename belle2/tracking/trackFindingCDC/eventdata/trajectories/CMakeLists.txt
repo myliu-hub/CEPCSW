@@ -9,6 +9,8 @@ gaudi_add_library(trajectories
         LINK
             GenFit::genfit2
             Eigen3::Eigen
+            geometry
+            topology
 )
 
 target_include_directories(trajectories PUBLIC

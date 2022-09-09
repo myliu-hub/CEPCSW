@@ -3,7 +3,8 @@
 gaudi_add_library(pathPairs
         SOURCES
             src/CDCPathPairFilterFactory.cc
-            #src/MCTruthCDCPathPairFilter.cc
+        LINK utilities
+            ${ROOT_LIBRARIES}
 )
 
 target_include_directories(pathPairs PUBLIC

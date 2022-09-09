@@ -26,7 +26,7 @@ bool CDCBFieldUtil::isOff()
 {
   B2Vector3D origin(0, 0, 0);
   double b = 3;//BFieldManager::getField(origin).Mag();
-  double c_EarthMagneticField = 3.2e-5 * Unit::T;
+  double c_EarthMagneticField = 3.2e-5 * 1e-4;//Unit::T;
   return not(b > 5 * c_EarthMagneticField);
 }
 

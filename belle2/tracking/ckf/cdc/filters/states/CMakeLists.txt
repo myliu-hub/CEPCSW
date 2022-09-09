@@ -2,19 +2,20 @@
 
 gaudi_add_library(states
         SOURCES
-            src/CDCfromEclStateTruthVarSet.cc
             src/CDCStateBasicVarSet.cc
             src/CDCStateFilterFactory.cc
             src/DistanceCDCStateFilter.cc
             src/ExtrapolateAndUpdateCDCStateFilter.cc
-            #src/MCTruthCDCStateFilter.cc
-            #src/MCTruthEclSeedFilter.cc
-            #src/RoughCDCfromEclStateFilter.cc
             src/RoughCDCStateFilter.cc
         LINK
             GenFit::genfit2
             Eigen3::Eigen
-
+            generalutilities
+            cdcdataobjects
+            varsets
+            hits
+            geometry
+            topology
 )
 
 target_include_directories(states PUBLIC

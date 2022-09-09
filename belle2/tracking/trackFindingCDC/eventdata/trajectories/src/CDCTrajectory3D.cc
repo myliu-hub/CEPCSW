@@ -35,7 +35,7 @@
 
 //#include <mdst/dataobjects/MCParticle.h>
 
-#include <framework/gearbox/Const.h>
+//#include <framework/gearbox/Const.h>
 
 #include <TMatrixDSym.h>
 #include <TVector3.h>
@@ -327,7 +327,8 @@ double CDCTrajectory3D::getAbsMom3D() const
 double CDCTrajectory3D::shiftPeriod(int nPeriods)
 {
   double arcLength2D = m_localHelix.shiftPeriod(nPeriods);
-  m_flightTime += arcLength2D / Const::speedOfLight;
+  const double speedOfLight   = 29.9792458;
+  m_flightTime += arcLength2D / speedOfLight;
   return arcLength2D;
 }
 
@@ -369,7 +370,8 @@ double CDCTrajectory3D::setLocalOrigin(const Vector3D& localOrigin)
   double arcLength2D = calcArcLength2D(localOrigin);
   double factor2DTo3D = hypot2(1, getTanLambda());
   double arcLength3D = arcLength2D * factor2DTo3D;
-  m_flightTime += arcLength3D / Const::speedOfLight;
+  const double speedOfLight   = 29.9792458;
+  m_flightTime += arcLength3D / speedOfLight;
   m_localHelix.passiveMoveBy(localOrigin - m_localOrigin);
   m_localOrigin = localOrigin;
   return arcLength2D;

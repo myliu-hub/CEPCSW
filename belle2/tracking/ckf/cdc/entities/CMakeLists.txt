@@ -6,6 +6,8 @@ gaudi_add_library(cdcentities
             src/CDCCKFPath.cc
             src/CDCCKFState.cc
         LINK GenFit::genfit2
+            hits
+            cdcdataobjects
 )
 
 target_include_directories(cdcentities PUBLIC

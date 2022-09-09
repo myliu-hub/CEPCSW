@@ -23,7 +23,7 @@
 #include <tracking/trackFindingCDC/numerics/ESign.h>
 #include <tracking/trackFindingCDC/numerics/Quadratic.h>
 
-#include <framework/gearbox/Const.h>
+//#include <framework/gearbox/Const.h>
 
 #include <vector>
 #include <utility>
@@ -355,7 +355,8 @@ void CDCTrajectory2D::setPosMom2D(const Vector2D& pos2D,
 double CDCTrajectory2D::setLocalOrigin(const Vector2D& localOrigin)
 {
   double arcLength2D = calcArcLength2D(localOrigin);
-  m_flightTime += arcLength2D / Const::speedOfLight;
+  const double speedOfLight   = 29.9792458;
+  m_flightTime += arcLength2D / speedOfLight;
   m_localPerigeeCircle.passiveMoveBy(localOrigin - m_localOrigin);
   m_localOrigin = localOrigin;
   return arcLength2D;

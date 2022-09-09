@@ -13,7 +13,7 @@
 #include <tracking/ckf/cdc/filters/paths/BaseCDCPathFilter.h>
 
 //#include <framework/datastore/StoreObjPtr.h>
-#include <framework/dataobjects/EventMetaData.h>
+//#include <framework/dataobjects/EventMetaData.h>
 
 namespace Belle2 {
   /// Names of the variables to be generated.

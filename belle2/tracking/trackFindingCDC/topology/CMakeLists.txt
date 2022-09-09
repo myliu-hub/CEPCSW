@@ -12,6 +12,7 @@ gaudi_add_library(topology
             src/WireLine.cc
             src/WireNeighborPair.cc
         LINK ${ROOT_LIBRARIES}
+            cdcdataobjects
 )
 
 target_include_directories(topology PUBLIC

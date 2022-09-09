@@ -9,6 +9,7 @@ gaudi_add_library(mva
             Python::Python
             Boost::boost
             boost_python
+            Futilities
 )
 
 target_include_directories(mva PUBLIC

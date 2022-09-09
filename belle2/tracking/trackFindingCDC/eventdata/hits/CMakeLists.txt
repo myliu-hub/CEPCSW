@@ -11,6 +11,9 @@ gaudi_add_library(hits
             src/CDCTangent.cc
             src/CDCWireHit.cc
         LINK ${ROOT_LIBRARIES}
+            topology
+            geometry
+            trajectories
 )
 
 target_include_directories(hits PUBLIC

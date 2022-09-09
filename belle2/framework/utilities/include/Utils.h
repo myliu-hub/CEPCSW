@@ -50,14 +50,14 @@ namespace Belle2 {
      * @note See getCPUClock() for a higher-resolution clock unaffected by wait times.
      * @return Clock value in default time unit (ns)
      */
-    double getClock();
+//    double getClock();
 
     /**
      * Return current value of the per-thread CPU clock.
      *
      * @return CPU clock value in default time unit (ns)
      */
-    double getCPUClock();
+//    double getCPUClock();
 
     /**
      * Returns currently used virtual memory in KB, includes swapped and not occupied memory

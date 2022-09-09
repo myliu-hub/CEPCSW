@@ -13,7 +13,7 @@
 
 #include <framework/utilities/Utils.h>
 
-#include <framework/gearbox/Unit.h>
+//#include <framework/gearbox/Unit.h>
 //#include <framework/logging/Logger.h>
 
 #include <boost/process.hpp>
@@ -62,18 +62,18 @@ namespace {
 
 namespace Belle2::Utils {
 
-  double getClock()
-  {
-    timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return (ts.tv_sec * Unit::s) + (ts.tv_nsec * Unit::ns);
-  }
-  double getCPUClock()
-  {
-    timespec ts;
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    return (ts.tv_sec * Unit::s) + (ts.tv_nsec * Unit::ns);
-  }
+//  double getClock()
+//  {
+//    timespec ts;
+//    clock_gettime(CLOCK_REALTIME, &ts);
+//    return (ts.tv_sec * Unit::s) + (ts.tv_nsec * Unit::ns);
+//  }
+//  double getCPUClock()
+//  {
+//    timespec ts;
+//    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+//    return (ts.tv_sec * Unit::s) + (ts.tv_nsec * Unit::ns);
+//  }
 
   unsigned long getVirtualMemoryKB()
   {
@@ -86,13 +86,14 @@ namespace Belle2::Utils {
   }
 
   Timer::Timer(std::string  text):
-    m_startTime(getClock()),
+    m_startTime(0),
+    //m_startTime(getClock()),
     m_text(std::move(text))
   { }
 
   Timer::~Timer()
   {
-    double elapsed = (getClock() - m_startTime) / Unit::ms;
+    //double elapsed = (getClock() - m_startTime) / Unit::ms;
     //B2INFO(m_text << " " << std::fixed << std::setprecision(3) << elapsed << " ms");
   }
 

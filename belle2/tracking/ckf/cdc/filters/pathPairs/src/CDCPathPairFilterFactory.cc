@@ -15,7 +15,7 @@
 #include <tracking/ckf/cdc/filters/pathPairs/HitDistanceBasedCDCPathPairFilter.h>
 #include <tracking/ckf/cdc/filters/pathPairs/ArcLengthBasedCDCPathPairFilter.h>
 #include <tracking/ckf/cdc/filters/pathPairs/ArcLengthBasedCDCfromEclPathPairFilter.h>
-#include <tracking/ckf/cdc/filters/pathPairs/MCTruthCDCPathPairFilter.h>
+//#include <tracking/ckf/cdc/filters/pathPairs/MCTruthCDCPathPairFilter.h>
 
 #include <tracking/trackFindingCDC/filters/base/AllFilter.icc.h>
 #include <tracking/trackFindingCDC/filters/base/NoneFilter.icc.h>
@@ -75,8 +75,8 @@ CDCPathPairFilterFactory::create(const std::string& filterName) const
     return std::make_unique<ArcLengthBasedCDCPathPairFilter>();
   } else if (filterName == "arc_length_fromEcl") {
     return std::make_unique<ArcLengthBasedCDCfromEclPathPairFilter>();
-  } else if (filterName == "mc_truth") {
-    return std::make_unique<MCTruthCDCPathPairFilter>();
+  //} else if (filterName == "mc_truth") {
+  //  return std::make_unique<MCTruthCDCPathPairFilter>();
   } else {
     return Super::create(filterName);
   }

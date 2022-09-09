@@ -7,6 +7,7 @@ gaudi_add_library(generalutilities
         LINK
             GenFit::genfit2
             Eigen3::Eigen
+            utilities
 )
 
 target_include_directories(generalutilities PUBLIC

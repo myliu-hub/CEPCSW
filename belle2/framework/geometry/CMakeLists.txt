@@ -3,6 +3,7 @@
 gaudi_add_library(frameworkgeometry
         SOURCES
             src/BFieldManager.cc
+        LINK ${ROOT_LIBRARIES}
 )
 
 target_include_directories(frameworkgeometry PUBLIC
