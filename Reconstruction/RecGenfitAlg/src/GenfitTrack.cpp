@@ -1482,6 +1482,35 @@ void GenfitTrack::getTrackFromEDMTrack(const edm4hep::Track& edm4HepTrack,
     }
 }
 
+void GenfitTrack::getTrackFromEDMTrackFinding(const edm4hep::Track& edm4HepTrack,
+        double& charge, TVectorD& trackParam, TMatrixDSym& cov,TVector3& pos,
+        TVector3& mom){
+    //double Bz=m_genfitField->getBz(TVector3{0.,0.,0.})/GenfitUnit::tesla;
+    // FIXME
+    //double BZ=GenfitField::getBzFinding(TVector3{0.,0.,0.});
+    double Bz=3*GenfitUnit::tesla;
+    double charge_double;
+    CEPC::getPosMomFromTrackState(edm4HepTrack.getTrackStates(1),Bz,pos,mom,charge_double,cov);
+
+    //std::cout<<__LINE__<<" Bz "<<Bz<<" charge "<<charge_double<<std::endl;
+    //pos.Print();
+    //mom.Print();
+    charge=(int) charge_double;
+    trackParam[0]=pos[0]*GenfitUnit::mm;
+    trackParam[1]=pos[1]*GenfitUnit::mm;
+    trackParam[2]=pos[2]*GenfitUnit::mm;
+    trackParam[3]=mom[0]*GenfitUnit::GeV;
+    trackParam[4]=mom[1]*GenfitUnit::GeV;
+    trackParam[5]=mom[2]*GenfitUnit::GeV;
+
+    //cov unit conversion
+    for(int i=0;i<6;i++){
+        for(int j=0;j<6;j++){
+            cov(i,j) = cov(i,j)*GenfitUnit::mm;
+        }
+    }
+}
+
 //to genfit unit
 void GenfitTrack::getISurfaceOUV(const dd4hep::rec::ISurface* iSurface,TVector3& o,
         TVector3& u,TVector3& v, double& lengthU,double& lengthV){

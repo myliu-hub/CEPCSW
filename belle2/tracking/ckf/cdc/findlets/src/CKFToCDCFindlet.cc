@@ -44,26 +44,41 @@ void CKFToCDCFindlet::beginEvent()
 {
   Super::beginEvent();
 
-  m_vxdRecoTrackVector.clear();
+  //m_vxdRecoTrackVector.clear();
   m_paths.clear();
   m_seeds.clear();
   m_results.clear();
 }
 
+std::vector<RecoTrack*> CKFToCDCFindlet::m_vxdRecoTrackVector;
+
+
 void CKFToCDCFindlet::apply(const std::vector<TrackFindingCDC::CDCWireHit>& wireHits)
 {
     //m_trackHandler.apply(m_vxdRecoTrackVector);
+    std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     m_seedCreator.apply(m_vxdRecoTrackVector, m_seeds);
+    std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
 
     const auto& wireHitPtrs = TrackFindingCDC::as_pointers<const TrackFindingCDC::CDCWireHit>(wireHits);
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
 
     for (const auto& seed : m_seeds) {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
         //B2DEBUG(29, "Starting new seed");
         m_paths.clear();
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
         m_paths.push_back(seed);
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
         m_treeSearcher.apply(m_paths, wireHitPtrs);
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
         m_resultFinalizer.apply(m_paths, m_results);
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     }
 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     m_resultStorer.apply(m_results);
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
 }

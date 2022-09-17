@@ -221,6 +221,10 @@ class GenfitTrack {
 
     /// Get a hit according to index
     GenfitHit* GetHit(long unsigned int i) const;
+    
+    static void getTrackFromEDMTrackFinding(const edm4hep::Track& edm4HepTrack,
+            double& charge, TVectorD& trackParam, TMatrixDSym& cov,TVector3& pos,
+            TVector3& mom);
     protected:
     //genfit::Track* getTrack() {return m_track;}
 

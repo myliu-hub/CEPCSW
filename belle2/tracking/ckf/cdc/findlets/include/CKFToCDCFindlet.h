@@ -46,7 +46,15 @@ namespace Belle2 {
     /// Clear the object pools
     void beginEvent() override;
 
-    void createSeedFromMcParticle();
+    static void addSeedRecoTrack(RecoTrack* recoTrack){
+        m_vxdRecoTrackVector.push_back(recoTrack);
+        std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
+    }
+
+    static void clearSeedRecoTrack(){
+        m_vxdRecoTrackVector.clear();
+    }
+
 
   private:
     // Findlets
@@ -63,7 +71,7 @@ namespace Belle2 {
 
     // Object pools
     /// Pointers to the CDC Reco tracks as a vector
-    std::vector<RecoTrack*> m_vxdRecoTrackVector;
+    static std::vector<RecoTrack*> m_vxdRecoTrackVector;
     /// Current list of paths
     std::vector<CDCCKFPath> m_paths;
     /// Current list of seeds
