@@ -69,6 +69,9 @@ namespace dd4hep {
 class GenfitTrack {
     friend int GenfitFitter::processTrack(
             GenfitTrack* track, bool resort=true);
+    
+    friend int GenfitFitter::processTrack(
+            genfit::Track* track, bool resort=true);
 
     friend int GenfitFitter::processTrackWithRep(
             GenfitTrack* track, int repID, bool resort=true);

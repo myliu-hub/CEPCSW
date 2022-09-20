@@ -38,7 +38,8 @@ namespace Belle2 {
     template <class AFilter>
     std::unique_ptr<AFilter> FilterFactory<AFilter>::create(const std::string& filterName) const
     {
-      // Check whether false positive or false negative filter are requested
+        std::cout << __FILE__ << " " << __LINE__ <<  " filterName = " << filterName << std::endl;
+        // Check whether false positive or false negative filter are requested
       while (filterName == "false_positive" or filterName == "false_negative") {
         std::string truthFilterName = "truth";
         std::unique_ptr<AFilter> truthFilter = this->create(truthFilterName);

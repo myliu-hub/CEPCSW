@@ -38,28 +38,46 @@ namespace Belle2 {
     /// main method of the findlet, for a list of paths create a list of results.
     void apply(const std::vector<CDCCKFPath>& paths, std::vector<CDCCKFResult>& results) override
     {
-      if (paths.empty()) {
-        return;
-      }
-
-      const CDCCKFPath* bestElement = nullptr;
-      TrackFindingCDC::Weight bestWeight = -NAN;
-
-      for (const CDCCKFPath& path : paths) {
-        const TrackFindingCDC::Weight weight = m_filter(path);
-        if (weight <= bestWeight) {
-          continue;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        if (paths.empty()) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            return;
         }
-        bestWeight = weight;
-        bestElement = &path;
-      }
 
-      if (bestElement and not std::isnan(bestWeight)) {
-        results.push_back(*bestElement);
-      }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        const CDCCKFPath* bestElement = nullptr;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        TrackFindingCDC::Weight bestWeight = -NAN;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+
+
+        for (const CDCCKFPath& path : paths) {
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            m_filter.initialize();
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            const TrackFindingCDC::Weight weight = m_filter(path);
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            if (weight <= bestWeight) {
+                std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+                continue;
+            }
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            bestWeight = weight;
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            bestElement = &path;
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        }
+
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        if (bestElement and not std::isnan(bestWeight)) {
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+            results.push_back(*bestElement);
+            std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+        }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     }
 
-  private:
+      private:
     /// Filter to weigth the best path
     TrackFindingCDC::ChooseableFilter<CDCPathFilterFactory> m_filter;
   };

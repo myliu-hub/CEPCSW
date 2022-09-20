@@ -11,6 +11,7 @@
 
 //#include <framework/logging/Logger.h>
 
+#include <iostream>
 #include <typeinfo>
 
 using namespace Belle2;
@@ -27,12 +28,17 @@ ProcessingSignalListener::~ProcessingSignalListener()
 
 void ProcessingSignalListener::initialize()
 {
-  if (m_initialized) {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    if (m_initialized) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
     //B2DEBUG(20, typeid(*this).name() << " has been initialized before");
     //printBacktrace(LogConfig::c_Debug, 10);
   }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
   m_initializedAs = typeid(*this).name();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
   m_initialized = true;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 }
 
 void ProcessingSignalListener::beginRun()

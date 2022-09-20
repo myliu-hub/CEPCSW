@@ -231,12 +231,17 @@ namespace Belle2 {
      * @param foundByTrackFinder Which track finder has found the hit?
      * @return True if the hit was not already added to the track.
      */
-//    bool addCDCHit(const UsedCDCHit* cdcHit, const unsigned int sortingParameter,
-//                   RightLeftInformation rightLeftInformation = RightLeftInformation::c_undefinedRightLeftInformation,
-//                   OriginTrackFinder foundByTrackFinder = OriginTrackFinder::c_undefinedTrackFinder)
-//    {
-//      return addHit(cdcHit, rightLeftInformation, foundByTrackFinder, sortingParameter);
-//    }
+    //bool addCDCHit(const UsedCDCHit* cdcHit, const unsigned int sortingParameter,
+    //               RightLeftInformation rightLeftInformation = RightLeftInformation::c_undefinedRightLeftInformation,
+    //               OriginTrackFinder foundByTrackFinder = OriginTrackFinder::c_undefinedTrackFinder)
+    //{
+    //  return addHit(cdcHit, rightLeftInformation, foundByTrackFinder, sortingParameter);
+    //}
+
+    //bool addCDCHit()
+    //{
+
+    //}
 
     /**
      * Adds a pxd hit with the given information to the reco track.
@@ -380,6 +385,7 @@ namespace Belle2 {
      * Also, pruning a RecoTrack will also delete most of the TrackPoints.
      */
     const genfit::TrackPoint* getCreatedTrackPoint(const RecoHitInformation* recoHitInformation) const;
+    
 
     // Hits Added Questioning
     /// Returns true if the track has cdc hits.
@@ -932,6 +938,7 @@ namespace Belle2 {
      * the charge of the hypothesis particle.
      */
     static genfit::AbsTrackRep* createOrReturnRKTrackRep(RecoTrack& recoTrack, int PDGcode);
+    static bool InsertTrackPoint(RecoTrack& recoTrack,genfit::TrackPoint* trackPoint);
   };
 
 }

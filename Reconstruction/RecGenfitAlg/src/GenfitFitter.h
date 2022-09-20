@@ -31,6 +31,7 @@ namespace genfit{
     class KalmanFitterRefTrack;
     class DAF;
     class MaterialEffects;
+    class Track;
 }
 namespace dd4hep{
     class OverlayedField;
@@ -54,6 +55,7 @@ class GenfitFitter{
 
         /// Main fitting function
         int processTrack(GenfitTrack* track, bool resort=true);
+        int processTrack(genfit::Track* track, bool resort=true);
 
         /// fitting with rep
         int processTrackWithRep(GenfitTrack* track,int repID=0,

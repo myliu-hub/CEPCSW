@@ -8,16 +8,21 @@
 #include <tracking/trackFindingCDC/utilities/CompositeProcessingSignalListener.h>
 
 #include <tracking/trackFindingCDC/utilities/ReversedRange.h>
+#include <iostream>
 
 using namespace Belle2;
 using namespace TrackFindingCDC;
 
 void CompositeProcessingSignalListener::initialize()
 {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   Super::initialize();
-  for (ProcessingSignalListener* psl : m_subordinaryProcessingSignalListeners) {
-    psl->initialize();
-  }
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+  //for (ProcessingSignalListener* psl : m_subordinaryProcessingSignalListeners) {
+  //  std::cout << __FILE__ << " " << __LINE__ << std::endl;
+  //  psl->initialize();
+  //}
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 }
 
 void CompositeProcessingSignalListener::beginRun()

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <tracking/trackFindingCDC/utilities/FunctorTag.h>
+#include <iostream>
 
 namespace Belle2 {
   namespace TrackFindingCDC {
@@ -24,7 +25,8 @@ namespace Belle2 {
       template<class T, class SFINAE = decltype(&T::getWeight)>
       Weight operator()(const T& t) const
       {
-        return t.getWeight();
+          std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          return t.getWeight();
       }
     };
   }
