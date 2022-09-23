@@ -167,6 +167,7 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
 
     /// - construct layers
     int chamber_id = 0;
+    int iWire=0;
     for(int layer_id = 0; layer_id < DC_layer_number; layer_id++) {
         dd4hep::Volume* current_vol_ptr = nullptr;
         double layer_rmin = chamber_radius_min+(layer_id*layer_width);
@@ -175,7 +176,8 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
         double rmid_zEnd = rmid_zZero/std::cos(alpha/2);  //  z=endcap
         int nCell = floor((2. * M_PI * rmid_zZero) / layer_width);
         int nWire = nCell;
-//std::cout << " Simulation layer = " << layer_id << " nWire = " << nWire << std::endl;
+        iWire = iWire+nWire;
+        std::cout << " Simulation layer = " << layer_id << " nWire = " << nWire << std::endl;
         if(!DC_construct_wire) nWire =0;
         double cell_phi = 2*M_PI / nCell;
         double offset=0;//phi offset of first cell in each layer
@@ -212,7 +214,6 @@ static dd4hep::Ref_t create_detector(dd4hep::Detector& theDetector,
         current_vol_ptr = &layer_vol;
 
         if ( x_det.isSensitive() )   {
-std::cout << " isSensitive = " << x_det.isSensitive() << std::endl;
             layer_vol.setRegion(theDetector,x_det.regionStr());
             layer_vol.setLimitSet(theDetector,x_det.limitsStr());
             layer_vol.setSensitiveDetector(sens);
@@ -263,6 +264,8 @@ std::cout << " isSensitive = " << x_det.isSensitive() << std::endl;
         layer_phy.addPhysVolID("layer", layer_id);
     }//end of loop over layers
 
+    std::cout << " DC_layer_number = " << DC_layer_number << std::endl;
+    std::cout << "iWire = " << iWire << std::endl;
 
     // - place in det
     // - chamber

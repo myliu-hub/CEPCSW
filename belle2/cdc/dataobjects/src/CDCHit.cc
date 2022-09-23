@@ -7,6 +7,7 @@
  **************************************************************************/
 
 #include <cdc/dataobjects/CDCHit.h>
+#include <iostream>
 //#include <cdc/dataobjects/CDCSimHit.h>
 //#include <mdst/dataobjects/MCParticle.h>
 //#include <framework/datastore/RelationVector.h>
@@ -19,6 +20,7 @@ CDCHit::CDCHit(unsigned short tdcCount, unsigned short charge,
                unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire, unsigned short status, unsigned short tot,
                signed short otherHitIndex, unsigned short leadingEdgeCharge)
 {
+  std::cout << " CDCHit tdcCount = " << tdcCount << " charge = " << charge << " iSuperLayer = " << iSuperLayer << " iLayer = " << iLayer << " iWire = " << iWire << std::endl;
   setTDCCount(tdcCount);
   setADCCount(charge);
   setWireID(iSuperLayer, iLayer, iWire);

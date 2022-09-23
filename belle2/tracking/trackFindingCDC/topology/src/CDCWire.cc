@@ -23,6 +23,7 @@ using namespace TrackFindingCDC;
 
 const CDCWire* CDCWire::getInstance(const WireID& wireID)
 {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   return &(CDCWireTopology::getInstance().getWire(wireID));
 }
 
@@ -33,8 +34,12 @@ const CDCWire* CDCWire::getInstance(ISuperLayer iSuperLayer, ILayer iLayer, IWir
 
 const CDCWire* CDCWire::getInstance(const CDCHit& hit)
 {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    std::cout << " CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID())) = " << CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID())) << std::endl;
   if (not CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID()))) {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     WireID wireID(hit.getID());
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     //B2ERROR("Invalid encoded wire id of cdc hit " << wireID);
     //B2ERROR("Superlayer id: " << wireID.getISuperLayer());
     //B2ERROR("Layer cid: " << wireID.getICLayer());
@@ -44,13 +49,17 @@ const CDCWire* CDCWire::getInstance(const CDCHit& hit)
     return nullptr;
   }
 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   const CDCWire& wire = CDCWireTopology::getInstance().getWire(WireID(hit.getID()));
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
   if (wire.getEWire() != hit.getID()) {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     //B2ERROR("WireID.getEWire() differs from CDCHit.getID()");
     //B2ERROR("WireID.getEWire() : " << wire.getEWire());
     //B2ERROR("CDCHit.getEWire() : " << hit.getID());
   }
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   return &wire;
 }
 

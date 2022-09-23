@@ -10,6 +10,7 @@
 
 //#include <framework/logging/Logger.h>
 #include <cdc/dataobjects/WireID.h>
+#include <iostream>
 //#include <framework/dataobjects/DigitBase.h>
 
 namespace Belle2 {
@@ -87,7 +88,8 @@ namespace Belle2 {
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
       //B2DEBUG(29, "setWireId called with" << iSuperLayer << ", " << iLayer << ", " << iWire);
-      m_eWire = WireID(iSuperLayer, iLayer, iWire).getEWire();
+        std::cout << " CDCHit setWireID = " << iSuperLayer << " , "<< iLayer << " , " << iWire << std::endl;
+        m_eWire = WireID(iSuperLayer, iLayer, iWire).getEWire();
     }
 
     /** Setter for Wire ID using the WireID object directly. */

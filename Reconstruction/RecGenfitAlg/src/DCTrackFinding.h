@@ -93,6 +93,10 @@ class DCTrackFinding:public GaudiAlgorithm {
         Gaudi::Property<int> m_maxIteration{this,"maxIteration",20};
         Gaudi::Property<std::string> m_genfitHistRootName{this,
             "genfitHistRootName",""};
+        Gaudi::Property<double> m_driftVelocity{this,"drift_velocity",40};//um/ns
+        Gaudi::Property<double> m_sigma{this,"sigmaL",0.00011};//0.00011m=110um
+        Gaudi::Property<std::string> m_readout_name{this,
+            "readout", "DriftChamberHitsCollection"};
 
         // Rec Si Track
         DataHandle<edm4hep::TrackCollection> m_siSubsetTrackCol{
@@ -114,9 +118,9 @@ class DCTrackFinding:public GaudiAlgorithm {
         //VXD SimTrackHit DCHitAssociation 
         DataHandle<edm4hep::SimTrackerHitCollection> m_simVXDHitCol{
             "VXDCollection", Gaudi::DataHandle::Reader, this};
-        DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
-            m_VXDHitAssociationCol{"VXDTrackerHitAssociation",
-                Gaudi::DataHandle::Reader, this};
+        //DataHandle<edm4hep::MCRecoTrackerAssociationCollection>
+        //    m_VXDHitAssociationCol{"VXDTrackerHitAssociation",
+        //        Gaudi::DataHandle::Reader, this};
         //FTD SimTrackHit DCHitAssociation 
         DataHandle<edm4hep::SimTrackerHitCollection> m_simFTDHitCol{
             "FTDCollection", Gaudi::DataHandle::Reader, this};

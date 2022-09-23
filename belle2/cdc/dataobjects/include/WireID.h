@@ -10,6 +10,7 @@
 
 //#include <framework/logging/Logger.h>
 #include <TObject.h>
+#include <iostream>
 
 namespace Belle2 {
 
@@ -21,8 +22,8 @@ namespace Belle2 {
    *  - Layer as continuous counted through all Super-Layers, Wire within the Layer, <br>
    *  - Wire number encoded into a single unsigned short. This works as following: <br>
    *  SuperLayer: bits 1 -  4 (/4096)           <br>
-   *  Layer:      bits 5 -  7 (% 4096, / 512)   <br>
-   *  Wire:       bits 8 - 16 (% 512)           <br>
+   *  Layer:      bits 5 -  7 (% 4096, / 1024)   <br>
+   *  Wire:       bits 8 - 16 (% 1024)           <br>
    *  Note: These operations could as well be achieved by bit-shifting operations.
    *
    *  @todo WireID : Rootification might not be necessary; On the other hand, it opens as well the use via Python.
@@ -108,7 +109,9 @@ namespace Belle2 {
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
       //B2DEBUG(250, "setWireID called with " << iSuperLayer << ", " << iLayer << ", " << iWire);
-      m_eWire = iWire + 512 * iLayer + 4096 * iSuperLayer;
+        std::cout << " WireID setWireID = " << iSuperLayer << " , "<< iLayer << " , " << iWire << std::endl;
+        m_eWire = iWire + 1024 * iLayer + 1000000000 * iSuperLayer;
+        std::cout << " WireID m_eWire = "  << m_eWire << std::endl;
     }
 
     /** Setter using numbering of geometry build-up. */
@@ -125,13 +128,15 @@ namespace Belle2 {
     /** Getter for Super-Layer. */
     unsigned short getISuperLayer() const
     {
-      return (m_eWire / 4096);
+        std::cout << " WireID getISuperLayer = " << m_eWire / 1000000000 << std::endl;
+        return (m_eWire / 1000000000);
     }
 
     /** Getter for layer within the Super-Layer. */
     unsigned short getILayer() const
     {
-      return ((m_eWire % 4096) / 512);
+        std::cout << " WireID  getILayer:  (m_eWire % 1000000000) = " << m_eWire % 1000000000 << "  , ((m_eWire % 1000000000) / 1024) = " << ((m_eWire % 1000000000) / 1024) << std::endl;
+      return ((m_eWire % 1000000000) / 1024);
     }
 
     /** Getter for wire within the layer.
@@ -140,7 +145,8 @@ namespace Belle2 {
      */
     unsigned short getIWire() const
     {
-      return (m_eWire % 512);
+        std::cout << " WireID  getIWire = " << m_eWire % 1024 << std::endl;
+      return (m_eWire % 1024);
     }
 
     /** Getter for continuous layer numbering. */

@@ -164,7 +164,11 @@ namespace Belle2 {
       const CDCWire& getWire() const
       {
         // if (not m_wire) return attachWire();
+          std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          std::cout << " m_wire = " << m_wire << std::endl;
+          std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (not m_wire) return attachWire();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         return *m_wire;
       }
 

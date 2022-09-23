@@ -111,7 +111,9 @@ namespace Belle2 {
 
       /// Getter for the wire id
       const WireID& getWireID() const
-      { return m_wireID; }
+      { 
+          std::cout << __FILE__ << " " << __LINE__ << " WireID = " << m_wireID.getISuperLayer() << std::endl;
+          return m_wireID; }
 
       /**
       *  Getter for the encoded wire number.

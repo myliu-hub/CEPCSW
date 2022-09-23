@@ -158,8 +158,11 @@ bool TrackFindingCDC::operator<(const CDCHit& hit, const CDCWireHit& wireHit)
 
 const CDCWire& CDCWireHit::attachWire() const
 {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   m_wire = CDCWire::getInstance(m_wireID);
+  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   assert(m_wire);
+  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   return *m_wire;
 }
 

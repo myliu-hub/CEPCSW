@@ -14,11 +14,11 @@ using namespace std;
 void WireID::setWireID(const unsigned short iCLayer, const unsigned short iWire)
 {
   //B2DEBUG(250, "setWireID called with " << iCLayer << ", " << iWire);
-  if (iCLayer < 8) {
-    setWireID(0, iCLayer, iWire);
-  } else {
-    setWireID(((iCLayer - 8) / 6) + 1, (iCLayer - 2) % 6, iWire);
-  }
+  //if (iCLayer < 8) {
+  setWireID(0, iCLayer, iWire);
+  //} else {
+  //  setWireID(((iCLayer - 8) / 6) + 1, (iCLayer - 2) % 6, iWire);
+  //}
 }
 
 unsigned short WireID::getICLayer() const
