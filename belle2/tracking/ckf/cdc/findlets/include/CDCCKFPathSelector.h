@@ -36,12 +36,19 @@ namespace Belle2 {
     /// main method of the findlet, out of all paths "newPaths" select the best N=m_maximalCandidatesInFlight
     void apply(std::vector<CDCCKFPath>& newPaths) override
     {
-      const auto pathComparison = [&](const CDCCKFPath & lhs, const CDCCKFPath & rhs) {
+        m_filter.setFilterName("arc_length");
+        m_filter.initialize();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+        const auto pathComparison = [&](const CDCCKFPath & lhs, const CDCCKFPath & rhs) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         return m_filter({&lhs, &rhs}) > 0;
       };
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       std::sort(newPaths.begin(), newPaths.end(), pathComparison);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
       TrackFindingCDC::only_best_N(newPaths, m_maximalCandidatesInFlight);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
     }
 
   private:

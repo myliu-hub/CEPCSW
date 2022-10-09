@@ -56,13 +56,14 @@ namespace Belle2 {
 
     public:
       /// Total number of wires
-      static const IWire c_NWires = 14336;
+      //static const IWire c_NWires = 14336;
+      static const IWire c_NWires = 25357;
 
       /// Total number of layers
-      static const ILayer c_NLayers = 56;
+      static const ILayer c_NLayers = 55;
 
       /// Total number of superlayers
-      static const ISuperLayer c_NSuperLayers = 9;
+      static const ISuperLayer c_NSuperLayers = 0;
 
     private:
       /**
@@ -95,8 +96,8 @@ namespace Belle2 {
       { return isValidISuperLayer(iSuperLayer) and getWireSuperLayer(iSuperLayer).isValidIWire(iLayer, iWire); }
 
       /// Getter for wire getter by wireID object.
-      const CDCWire& getWire(const WireID& wireId) const
-      { return getWireLayer(wireId.getICLayer()).getWire(wireId.getIWire()) ; }
+      const CDCWire& getWire(const WireID& wireId) const{
+          return getWireLayer(wireId.getICLayer()).getWire(wireId.getIWire()) ; }
 
       /// Getter for wire getter by continuous layer id and wire id.
       const CDCWire& getWire(ILayer iCLayer, IWire iWire) const

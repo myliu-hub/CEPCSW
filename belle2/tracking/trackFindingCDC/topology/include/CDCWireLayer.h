@@ -134,7 +134,7 @@ namespace Belle2 {
       const CDCWire& getWire(IWire iWire) const
       {
         // cppcheck-suppress returnTempReference
-        return at(iWire);
+          return at(iWire);
       }
 
       /// Gets the wire in this layer that is closest to the given position

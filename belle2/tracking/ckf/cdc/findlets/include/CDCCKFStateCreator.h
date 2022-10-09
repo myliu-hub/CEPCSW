@@ -82,186 +82,111 @@ namespace Belle2 {
       // TODO: precalculate everything in here
 
       // Create cache over wirehits, if empty:
+        TrackFindingCDC::CDCWireTopology * cdcWireTopology = new TrackFindingCDC::CDCWireTopology();
         std::cout << " wireHits size = " << wireHits.size() << std::endl;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         std::cout << " m_wireHitCache size = " << m_wireHitCache.size() << std::endl;
       if (m_wireHitCache.empty()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        const size_t nHits = wireHits.size();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        m_wireHitCache.reserve(nHits);
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        for (auto  hitPtr : wireHits) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        std::cout << " hitPtr = " << hitPtr << std::endl;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          // to speed things up, don't consider background/taken hits at all (and not just in the loop below).
-          // I can't just remove them from the list, otherwise the relation to the wireHits is broken
-          // so set the layer index to a high number.
-          if (hitPtr->getAutomatonCell().hasBackgroundFlag() || hitPtr->getAutomatonCell().hasTakenFlag()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            m_wireHitCache.push_back(CDCCKFWireHitCache{99999, 0.});
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          } else {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        std::cout << " hitPtr->getWire() = " << hitPtr->getWire() << std::endl;
-        std::cout << " hitPtr->getWire().getICLayer() = " << hitPtr->getWire().getICLayer() << std::endl;
-        std::cout << " hitPtr->getRefPos2D().phi() = " << hitPtr->getRefPos2D().phi() << std::endl;
-            m_wireHitCache.push_back(CDCCKFWireHitCache{hitPtr->getWire().getICLayer(), hitPtr->getRefPos2D().phi()});
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          const size_t nHits = wireHits.size();
+          m_wireHitCache.reserve(nHits);
+          for (auto  hitPtr : wireHits) {
+              std::cout << " hitPtr = " << hitPtr << std::endl;
+              // to speed things up, don't consider background/taken hits at all (and not just in the loop below).
+              // I can't just remove them from the list, otherwise the relation to the wireHits is broken
+              // so set the layer index to a high number.
+              if (hitPtr->getAutomatonCell().hasBackgroundFlag() || hitPtr->getAutomatonCell().hasTakenFlag()) {
+                  m_wireHitCache.push_back(CDCCKFWireHitCache{99999, 0.});
+              } else {
+                  m_wireHitCache.push_back(CDCCKFWireHitCache{hitPtr->getWire().getICLayer(), hitPtr->getRefPos2D().phi()});
+              }
           }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
       // Cache last-on-the-path state info too:
       const auto& lastState = path.back();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       double lastPhi = 0;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       double lastICLayer = -1;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       if (lastState.isSeed()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        if (doForward) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          lastICLayer = 0;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        } else {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          const auto& wireTopology = TrackFindingCDC::CDCWireTopology::getInstance();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          const auto& wires = wireTopology.getWires();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          const float maxForwardZ = wires.back().getForwardZ();     // 157.615
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          const float maxBackwardZ = wires.back().getBackwardZ();   // -72.0916
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-
-          const TrackFindingCDC::Vector3D seedPos(lastState.getSeed()->getPositionSeed());
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          const float seedPosZ = seedPos.z();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-
-          if (seedPosZ < maxForwardZ && seedPosZ > maxBackwardZ) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            lastICLayer = 56;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          if (doForward) {
+              lastICLayer = 0;
           } else {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            // do straight extrapolation of seed momentum to CDC outer walls
-            TrackFindingCDC::Vector3D seedMomZOne(lastState.getSeed()->getMomentumSeed());
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            seedMomZOne = seedMomZOne / seedMomZOne.z();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            // const float maxZ = seedPosZ > 0 ? maxForwardZ : maxBackwardZ;
-            // const TrackFindingCDC::Vector3D extrapolatedPos = seedPos - seedMom / seedMom.norm() * (seedPosZ - maxZ);
+              const auto& wireTopology = TrackFindingCDC::CDCWireTopology::getInstance();
+              const auto& wires = wireTopology.getWires();
+              const float maxForwardZ = wires.back().getForwardZ();     // 157.615
+              const float maxBackwardZ = wires.back().getBackwardZ();   // -72.0916
 
-            // find closest iCLayer
-            float minDist = 99999;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            for (const auto& wire : wires) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-              const float maxZ = seedPosZ > 0 ? wire.getForwardZ() : wire.getBackwardZ();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-              const TrackFindingCDC::Vector3D extrapolatedPos = seedPos - seedMomZOne * (seedPosZ - maxZ);
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+              const TrackFindingCDC::Vector3D seedPos(lastState.getSeed()->getPositionSeed());
+              const float seedPosZ = seedPos.z();
 
-              const auto distance = wire.getDistance(extrapolatedPos);
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-              if (distance < minDist) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-                minDist = distance;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-                lastICLayer = wire.getICLayer();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+              if (seedPosZ < maxForwardZ && seedPosZ > maxBackwardZ) {
+                  lastICLayer = 54;
+              } else {
+                  // do straight extrapolation of seed momentum to CDC outer walls
+                  TrackFindingCDC::Vector3D seedMomZOne(lastState.getSeed()->getMomentumSeed());
+                  seedMomZOne = seedMomZOne / seedMomZOne.z();
+                  // const float maxZ = seedPosZ > 0 ? maxForwardZ : maxBackwardZ;
+                  // const TrackFindingCDC::Vector3D extrapolatedPos = seedPos - seedMom / seedMom.norm() * (seedPosZ - maxZ);
+
+                  // find closest iCLayer
+                  float minDist = 99999;
+                  for (const auto& wire : wires) {
+                      const float maxZ = seedPosZ > 0 ? wire.getForwardZ() : wire.getBackwardZ();
+                      const TrackFindingCDC::Vector3D extrapolatedPos = seedPos - seedMomZOne * (seedPosZ - maxZ);
+
+                      const auto distance = wire.getDistance(extrapolatedPos);
+                      if (distance < minDist) {
+                          minDist = distance;
+                          lastICLayer = wire.getICLayer();
+                      }
+                  }
+                  //B2DEBUG(29, lastICLayer << " (d=" << minDist << ")");
               }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            //B2DEBUG(29, lastICLayer << " (d=" << minDist << ")");
           }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       } else {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        lastPhi = lastState.getWireHit()->getRefPos2D().phi();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        lastICLayer = lastState.getWireHit()->getWire().getICLayer();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          lastPhi = lastState.getWireHit()->getRefPos2D().phi();
+          lastICLayer = lastState.getWireHit()->getWire().getICLayer();
       }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
       // Get sorted vector of wireHits on the path for faster search
       std::vector<const TrackFindingCDC::CDCWireHit*> wireHitsOnPath;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       for (auto const& state : path) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        if (! state.isSeed()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          wireHitsOnPath.push_back(state.getWireHit());
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          if (! state.isSeed()) {
+              wireHitsOnPath.push_back(state.getWireHit());
+          }
       }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       std::sort(wireHitsOnPath.begin(), wireHitsOnPath.end());
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
       size_t nHits = wireHits.size();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       for (size_t i = 0; i < nHits; i++) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        // adjust direction of loop (minimal speed gain)
-        int idx = doForward ? i : nHits - i - 1;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          // adjust direction of loop (minimal speed gain)
+          int idx = doForward ? i : nHits - i - 1;
 
-        const auto iCLayer =  m_wireHitCache[idx].icLayer; // wireHit->getWire().getICLayer();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        if (m_param_writeOutDirection == TrackFindingCDC::EForwardBackward::c_Backward && lastState.isSeed()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          if (std::abs(lastICLayer - iCLayer) > m_maximalLayerJump_backwardSeed) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            continue;
+          const auto iCLayer =  m_wireHitCache[idx].icLayer; // wireHit->getWire().getICLayer();
+          if (m_param_writeOutDirection == TrackFindingCDC::EForwardBackward::c_Backward && lastState.isSeed()) {
+              if (std::abs(lastICLayer - iCLayer) > m_maximalLayerJump_backwardSeed) {
+                  continue;
+              }
+          } else if (std::abs(lastICLayer - iCLayer) > m_maximalLayerJump) {
+              continue;
           }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        } else if (std::abs(lastICLayer - iCLayer) > m_maximalLayerJump) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          continue;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
-        if (! lastState.isSeed()) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          double deltaPhi = TrackFindingCDC::AngleUtil::normalised(lastPhi - m_wireHitCache[idx].phi);
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          if (fabs(deltaPhi)  > m_maximalDeltaPhi)  {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            continue;
+          if (! lastState.isSeed()) {
+              double deltaPhi = TrackFindingCDC::AngleUtil::normalised(lastPhi - m_wireHitCache[idx].phi);
+              if (fabs(deltaPhi)  > m_maximalDeltaPhi)  {
+                  continue;
+              }
           }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
-        const TrackFindingCDC::CDCWireHit* wireHit = wireHits[idx];
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          const TrackFindingCDC::CDCWireHit* wireHit = wireHits[idx];
 
-        if (std::binary_search(wireHitsOnPath.begin(), wireHitsOnPath.end(), wireHit)) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
-          continue;
-        }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          if (std::binary_search(wireHitsOnPath.begin(), wireHitsOnPath.end(), wireHit)) {
+              continue;
+          }
 
-        nextStates.emplace_back(wireHit);
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
+          nextStates.emplace_back(wireHit);
       }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
     }
 
-  private:
+          private:
     /// Maximum allowed step over layers
     int m_maximalLayerJump = 2;
     /// Maximum allowed step over layers (if outside->in CKF) for first step after seed (e.g. ECLShower)
@@ -278,5 +203,5 @@ namespace Belle2 {
     /// Cache to store frequently used information
     std::vector<CDCCKFWireHitCache> m_wireHitCache = {};
 
-  };
+      };
 }

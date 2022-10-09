@@ -68,6 +68,12 @@ namespace Belle2 {
         return m_param_filterName;
       }
 
+      std::string setFilterName(std::string filterName)
+      {
+        m_param_filterName = filterName;
+        return m_param_filterName;
+      }
+
     private:
       /// Parameters : Name of the selected filter
       std::string m_param_filterName;

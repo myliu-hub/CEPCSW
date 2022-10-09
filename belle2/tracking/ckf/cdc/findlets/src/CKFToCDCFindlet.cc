@@ -57,6 +57,7 @@ void CKFToCDCFindlet::apply(const std::vector<TrackFindingCDC::CDCWireHit>& wire
 {
     //m_trackHandler.apply(m_vxdRecoTrackVector);
     std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
+    std::cout << " m_vxdRecoTrackVector[0] = " << m_vxdRecoTrackVector[0] << std::endl;
     std::cout << __FILE__ << " " << __LINE__ << std::endl;
     m_seedCreator.apply(m_vxdRecoTrackVector, m_seeds);
     std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
@@ -78,6 +79,8 @@ void CKFToCDCFindlet::apply(const std::vector<TrackFindingCDC::CDCWireHit>& wire
     std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     }
 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    m_resultStorer.initialize();
     std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     m_resultStorer.apply(m_results);
     std::cout << __FILE__ << " " << __LINE__ << std::endl; 

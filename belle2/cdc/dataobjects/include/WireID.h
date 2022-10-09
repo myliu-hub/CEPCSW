@@ -109,9 +109,7 @@ namespace Belle2 {
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
       //B2DEBUG(250, "setWireID called with " << iSuperLayer << ", " << iLayer << ", " << iWire);
-        std::cout << " WireID setWireID = " << iSuperLayer << " , "<< iLayer << " , " << iWire << std::endl;
         m_eWire = iWire + 1024 * iLayer + 1000000000 * iSuperLayer;
-        std::cout << " WireID m_eWire = "  << m_eWire << std::endl;
     }
 
     /** Setter using numbering of geometry build-up. */
@@ -128,14 +126,12 @@ namespace Belle2 {
     /** Getter for Super-Layer. */
     unsigned short getISuperLayer() const
     {
-        std::cout << " WireID getISuperLayer = " << m_eWire / 1000000000 << std::endl;
         return (m_eWire / 1000000000);
     }
 
     /** Getter for layer within the Super-Layer. */
     unsigned short getILayer() const
     {
-        std::cout << " WireID  getILayer:  (m_eWire % 1000000000) = " << m_eWire % 1000000000 << "  , ((m_eWire % 1000000000) / 1024) = " << ((m_eWire % 1000000000) / 1024) << std::endl;
       return ((m_eWire % 1000000000) / 1024);
     }
 
@@ -145,7 +141,6 @@ namespace Belle2 {
      */
     unsigned short getIWire() const
     {
-        std::cout << " WireID  getIWire = " << m_eWire % 1024 << std::endl;
       return (m_eWire % 1024);
     }
 

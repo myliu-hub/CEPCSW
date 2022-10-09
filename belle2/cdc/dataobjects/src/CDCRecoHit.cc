@@ -8,6 +8,8 @@
 
 #include <cdc/dataobjects/CDCRecoHit.h>
 
+#include<stdlib.h>
+
 //Comment out the following line since it introduces dependence on cdclib (or circular dependence betw. cdc_objects and cdclib).
 //#include <cdc/geometry/CDCGeometryPar.h>
 #include "WireTrackCandHit.h"
@@ -17,6 +19,8 @@
 #include "AbsFitterInfo.h"
 #include "Exception.h"
 #include "HMatrixU.h"
+#include "DataHelper/GeomeryHelper.h"
+
 
 using namespace std;
 using namespace Belle2;
@@ -87,25 +91,53 @@ genfit::SharedPlanePtr CDCRecoHit::constructPlane(const genfit::StateOnPlane& st
   // Don't use clone: we don't want to extrapolate covariances if
   // state is a genfit::MeasuredStateOnPlane.
   genfit::StateOnPlane st(state);
+  std::cout << __FILE__ <<" " << __LINE__ << " state = " << std::endl;
+  state.Print();
 
-  const TVector3& noSagWire1(s_cdcGeometryTranslator->getWireBackwardPosition(m_wireID));
-  const TVector3& noSagWire2(s_cdcGeometryTranslator->getWireForwardPosition(m_wireID));
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  const GeomeryWire* geomeryWire = GeomeryWire::Get();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+
+  TVector3 noSagWire1,noSagWire2;
+  geomeryWire->getWirePos(m_wireID.getILayer(),m_wireID.getIWire(),noSagWire1,noSagWire2);
+  //const TVector3& noSagWire1(s_cdcGeometryTranslator->getWireBackwardPosition(m_wireID));
+  std::cout << __FILE__ <<" " << __LINE__ << " noSagWire1 = " << std::endl;
+  noSagWire1.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  //const TVector3& noSagWire2(s_cdcGeometryTranslator->getWireForwardPosition(m_wireID));
+  std::cout << __FILE__ <<" " << __LINE__ << " noSagWire2 = " << std::endl;
+  noSagWire2.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // unit vector along the wire
   TVector3 noSagWireDirection = noSagWire2 - noSagWire1;
+  std::cout << __FILE__ <<" " << __LINE__ << " noSagWireDirection = " << std::endl;
+  noSagWireDirection.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   noSagWireDirection.SetMag(1.);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // point of closest approach
   const genfit::AbsTrackRep* rep = state.getRep();
+  std::cout << __FILE__ <<" " << __LINE__ << " rep = " << std::endl;
+  rep->Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   rep->extrapolateToLine(st, noSagWire1, noSagWireDirection);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const TVector3& noSagPoca = rep->getPos(st);
+  std::cout << __FILE__ <<" " << __LINE__ << " noSagPoca = " << std::endl;
+  noSagPoca.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   double zPOCA = (noSagWire1.Z()
                   + noSagWireDirection.Dot(noSagPoca - noSagWire1) * noSagWireDirection.Z());
+  std::cout << __FILE__ <<" " << __LINE__ << " zPOCA = " <<zPOCA << std::endl;
 
   // Now re-extrapolate taking Z of trajectory into account.
-  const TVector3& wire1(s_cdcGeometryTranslator->getWireBackwardPosition(m_wireID, zPOCA));
-  const TVector3& wire2(s_cdcGeometryTranslator->getWireForwardPosition(m_wireID, zPOCA));
+  //const TVector3& wire1(s_cdcGeometryTranslator->getWireBackwardPosition(m_wireID, zPOCA));
+  //const TVector3& wire2(s_cdcGeometryTranslator->getWireForwardPosition(m_wireID, zPOCA));
+    TVector3 wire1,wire2;
+    geomeryWire->getWirePos(m_wireID.getILayer(),m_wireID.getIWire(),wire1,wire2);
 
   // unit vector along the wire (will become V of plane)
   TVector3 wireDirection = wire2 - wire1;
@@ -114,9 +146,18 @@ genfit::SharedPlanePtr CDCRecoHit::constructPlane(const genfit::StateOnPlane& st
   // point of closest approach
   rep->extrapolateToLine(st, wire1, wireDirection);
   const TVector3& poca = rep->getPos(st);
+  std::cout << __FILE__ <<" " << __LINE__ << " poca = " << std::endl;
+  poca.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   TVector3 dirInPoca = rep->getMom(st);
+  std::cout << __FILE__ <<" " << __LINE__ << " dirInPoca = " << std::endl;
+  dirInPoca.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   dirInPoca.SetMag(1.);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const TVector3& pocaOnWire = wire1 + wireDirection.Dot(poca - wire1) * wireDirection;
+  std::cout << __FILE__ <<" " << __LINE__ << " pocaOnWire = " << std::endl;
+  pocaOnWire.Print();
   //temp
   //  std::cout << (noSagWire1 + noSagWireDirection.Dot(noSagPoca - noSagWire1) * noSagWireDirection).y() <<" "<< pocaOnWire.y() <<" " << (noSagWire1 + noSagWireDirection.Dot(noSagPoca - noSagWire1) * noSagWireDirection - pocaOnWire).y() << std::endl;
   //  std::cout << (noSagWire1 + noSagWireDirection.Dot(noSagPoca - noSagWire1) * noSagWireDirection).Perp() <<" "<< pocaOnWire.Perp() << std::endl;
@@ -130,17 +171,26 @@ genfit::SharedPlanePtr CDCRecoHit::constructPlane(const genfit::StateOnPlane& st
   }
 
   // construct orthogonal (unit) vector
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const TVector3& U = wireDirection.Cross(dirInPoca);
+  std::cout << __FILE__ <<" " << __LINE__ << " U = " << std::endl;
+  U.Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   genfit::SharedPlanePtr pl = genfit::SharedPlanePtr(new genfit::DetPlane(pocaOnWire, U, wireDirection));
-  //pl->Print();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  if(!pl) std::cout << "genfit::SharedPlanePtr pl = nullptr !!!!!!!!!!!!!AAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
+  pl->Print();
   return pl;
 }
 
 std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlane(const genfit::StateOnPlane& state) const
 {
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   double z = state.getPos().Z();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const TVector3& p = state.getMom();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   // Calculate alpha and theta.  A description was given in
   // https://indico.mpp.mpg.de/getFile.py/access?contribId=5&sessionId=3&resId=0&materialId=slides&confId=3195
 
@@ -149,14 +199,23 @@ std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlan
 //  double theta = CDCGeometryPar::Instance().getTheta(p);
 
 //N.B. The folowing 8 lines are tentative to avoid the circular dependence mentioned above ! The definitions of alpha and theta should be identical to those defined in CDCGeometryPar.
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double wx = state.getPlane()->getO().x();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double wy = state.getPlane()->getO().y();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double px = p.x();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double py = p.y();
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double cross = wx * py - wy * px;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   const double dot   = wx * px + wy * py;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   double alpha = atan2(cross, dot);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   double theta = atan2(p.Perp(), p.z());
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   /*
   double alpha0 =  CDCGeometryPar::Instance().getAlpha(state.getPlane()->getO(), p);
   double theta0 =  CDCGeometryPar::Instance().getTheta(p);
@@ -170,52 +229,76 @@ std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlan
   }
   */
 
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   double trackTime = s_useTrackTime ? state.getTime() : 0;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   //temp4cosmics
   //  std::cout <<"phi,trackTime= " << atan2(py,px) <<" "<< trackTime << std::endl;
   if (s_cosmics) {
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     if (atan2(py, px) > 0.) {
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
       //    if (atan2(wy,wx) > 0.) {
       trackTime *= -1.;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     }
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   }
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // The meaning of the left / right flag (called
   // 'ambiguityDiscriminator' in TDCCounTranslatorBase) is inferred
   // from CDCGeometryPar::getNewLeftRightRaw().
-  double mL = s_tdcCountTranslator->getDriftLength(m_tdcCount, m_wireID, trackTime,
-                                                   false, //left
-                                                   z, alpha, theta, m_adcCount);
-  double mR = s_tdcCountTranslator->getDriftLength(m_tdcCount, m_wireID, trackTime,
-                                                   true, //right
-                                                   z, alpha, theta, m_adcCount);
-  double VL = s_tdcCountTranslator->getDriftLengthResolution(mL, m_wireID,
-                                                             false, //left
-                                                             z, alpha, theta);
-  double VR = s_tdcCountTranslator->getDriftLengthResolution(mR, m_wireID,
-                                                             true, //right
-                                                             z, alpha, theta);
+  double mL = m_adcCount*40*1e-4;//cm //s_tdcCountTranslator->getDriftLength(m_tdcCount, m_wireID, trackTime,
+              //                                     false, //left
+              //                                     z, alpha, theta, m_adcCount);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  double mR = m_adcCount*40*1e-4;//cm //s_tdcCountTranslator->getDriftLength(m_tdcCount, m_wireID, trackTime,
+              //                                     true, //right
+              //                                     z, alpha, theta, m_adcCount);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  double VL = 0.011;//cm //s_tdcCountTranslator->getDriftLengthResolution(mL, m_wireID,
+              //                                               false, //left
+              //                                               z, alpha, theta);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
+  double VR = 0.011;//cm //s_tdcCountTranslator->getDriftLengthResolution(mR, m_wireID,
+              //                                               true, //right
+              //                                               z, alpha, theta);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // static to avoid constructing these over and over.
   static TVectorD m(1);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   static TMatrixDSym cov(1);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   m(0) = mR;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   cov(0, 0) = VR;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   auto mopR = new genfit::MeasurementOnPlane(m, cov, state.getPlane(), state.getRep(),
                                              constructHMatrix(state.getRep()));
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   m(0) = -mL; // Convert from unsigned drift length to signed coordinate.
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   cov(0, 0) = VL;
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   auto mopL = new genfit::MeasurementOnPlane(m, cov, state.getPlane(), state.getRep(),
                                              constructHMatrix(state.getRep()));
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // set left/right weights
   if (m_leftRight < 0) {
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopL->setWeight(1);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopR->setWeight(0);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   } else if (m_leftRight > 0) {
     mopL->setWeight(0);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopR->setWeight(1);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   } else {
     // In absence of L/R information set equal weight for mirror hits.
     // We have this weight decrease as the drift distance increases.
@@ -230,19 +313,29 @@ std::vector<genfit::MeasurementOnPlane*> CDCRecoHit::constructMeasurementsOnPlan
     // times a safety margin of 1.5 as upper bound for the drift
     // radii.  The max distance between the mirror hits is twice the
     // maximal drift radius.
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     double rMax = 1.5 * (m_wireID.getISuperLayer() == 0 ? 1. : 1.8);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     double weight = 0.5 * pow(std::max(0., 1 - (mR + mL) / 2 / rMax), 2);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopL->setWeight(weight);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopR->setWeight(weight);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   }
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   // Ignore hits with negative drift times.  For these, the
   // TDCCountTranslator returns a negative drift length.
   if (mL < 0. || mR < 0.) {
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     //B2DEBUG(150, "Ignoring hit with negative drift time.");
     mopL->setWeight(0);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
     mopR->setWeight(0);
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
   }
+  std::cout << __FILE__ <<" " << __LINE__ << std::endl;
 
   return {mopL, mopR};
 }

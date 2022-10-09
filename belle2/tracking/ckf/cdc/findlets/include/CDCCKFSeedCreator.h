@@ -23,17 +23,21 @@ namespace Belle2 {
     /// Main method of the findlet, loop over reco tracks, create seeds for each of them.
     void apply(const std::vector<RecoTrack*>& recoTracks, std::vector<CDCCKFPath>& seeds) override
     {
-        std::cout << " recoTracks size = " << recoTracks.size() << std::endl;
+        std::cout << " CDCCKFSeedCreator recoTracks size = " << recoTracks.size() << std::endl;
+        std::cout << " CDCCKFSeedCreator seed size = " << seeds.size() << std::endl;
         for (RecoTrack* recoTrack : recoTracks) {
             std::cout << " recoTracks size = " << recoTracks.size() << std::endl;
             std::cout << __FILE__ << " " << __LINE__ << std::endl;
             CDCCKFState seedState(recoTrack, recoTrack->getMeasuredStateOnPlaneFromLastHit());
+            std::cout << __FILE__ << " getArcLength = " << seedState.getArcLength() << " getHitDistance = " << seedState.getHitDistance() << std::endl;
             std::cout << " recoTracks size = " << recoTracks.size() << std::endl;
             std::cout << __FILE__ << " " << __LINE__ << std::endl;
             seeds.push_back({seedState});
             std::cout << " recoTracks size = " << recoTracks.size() << std::endl;
             std::cout << __FILE__ << " " << __LINE__ << std::endl;
         }
+        std::cout << " CDCCKFSeedCreator seed size = " << seeds.size() << std::endl;
+        std::cout << " CDCCKFSeedCreator seed[0] = " << seeds[0] << std::endl;
     }
   };
 }

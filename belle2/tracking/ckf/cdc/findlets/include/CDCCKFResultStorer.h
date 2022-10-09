@@ -62,5 +62,6 @@ namespace Belle2 {
     // Store Arrays
     /// Output Reco Tracks Store Array
     //StoreArray<RecoTrack> m_outputRecoTracks;
+    std::vector<RecoTrack> m_outputRecoTracks;
   };
 }

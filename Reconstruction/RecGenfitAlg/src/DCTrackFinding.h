@@ -24,6 +24,8 @@
 #include <vector>
 #include "AbsKalmanFitter.h"
 
+#include "DataHelper/GeomeryHelper.h"
+
 #include "GenfitTrack.h"
 #include "GenfitFitter.h"
 #include "GenfitField.h"
@@ -40,6 +42,7 @@ class GenfitTrack;
 class GenfitFitter;
 class GenfitField;
 class IGeomSvc;
+//class GeomeryWire;
 
 namespace dd4hep {
     class Detector;
@@ -70,6 +73,7 @@ class DCTrackFinding:public GaudiAlgorithm {
 
     private:
         //genfit::AbsKalmanFitter* m_genfitFitter;
+        GeomeryWire* geomery_wire;
         GenfitFitter* m_genfitFitter;
         const GenfitField* m_genfitField;
         SmartIF<IGeomSvc> m_geomSvc;

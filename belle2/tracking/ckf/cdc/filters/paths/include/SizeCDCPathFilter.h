@@ -17,8 +17,6 @@ namespace Belle2 {
   public:
     /// Main function: return the size of the path
     TrackFindingCDC::Weight operator()(const BaseCDCPathFilter::Object& path) final {
-        std::cout << __FILE__ <<" " << __LINE__ << std::endl;
-        std::cout << __FILE__ << " " << __LINE__ << " path size = " << path.size() << std::endl;
         return path.size();
     }
   };

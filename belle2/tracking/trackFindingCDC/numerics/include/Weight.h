@@ -25,7 +25,6 @@ namespace Belle2 {
       template<class T, class SFINAE = decltype(&T::getWeight)>
       Weight operator()(const T& t) const
       {
-          std::cout << __FILE__ << " " << __LINE__ << std::endl;
           return t.getWeight();
       }
     };

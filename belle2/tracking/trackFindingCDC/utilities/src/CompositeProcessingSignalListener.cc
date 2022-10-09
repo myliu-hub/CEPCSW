@@ -15,14 +15,10 @@ using namespace TrackFindingCDC;
 
 void CompositeProcessingSignalListener::initialize()
 {
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   Super::initialize();
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
   //for (ProcessingSignalListener* psl : m_subordinaryProcessingSignalListeners) {
-  //  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   //  psl->initialize();
   //}
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 }
 
 void CompositeProcessingSignalListener::beginRun()

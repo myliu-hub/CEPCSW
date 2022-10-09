@@ -21,7 +21,7 @@ using namespace Belle2;
 
 TrackFindingCDC::Weight DistanceCDCStateFilter::operator()(const BaseCDCStateFilter::Object& pair)
 {
-  const CDCCKFState& state = *(pair.second);
+    const CDCCKFState& state = *(pair.second);
 
   double dist = std::abs(state.getHitDistance());
 

@@ -42,6 +42,16 @@ void CDCWireTopology::initialize()
 //    }
 //  }
 
+// create all wires
+  int LayerWire[55] = {291, 298, 304, 310, 317, 323, 329, 335, 342, 348, 354, 361, 367, 373, 379, 386, 392, 398, 404, 411, 417, 423, 430, 436, 442, 448, 455, 461, 467, 474, 480, 486, 492, 499, 505, 511, 518, 524, 530, 536, 543, 549, 555, 562, 568, 574, 580, 587, 593, 599, 606, 612, 618, 624, 631};
+  //CDC::CDCGeometryPar& cdcGeo = CDC::CDCGeometryPar::Instance();
+  for (size_t iCLayer = 0; iCLayer < 55; ++iCLayer) {
+   for (size_t iWire = 0; iWire < LayerWire[iCLayer]; ++iWire) {
+      m_wires.push_back(CDCWire(WireID(iCLayer, iWire)));
+    }
+  }
+
+
   // create all wire layers
   std::vector<VectorRange<CDCWire>> wiresByILayer =
                                    adjacent_groupby(m_wires.begin(), m_wires.end(), GetILayer());

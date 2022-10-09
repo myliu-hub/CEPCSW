@@ -73,7 +73,6 @@ namespace Belle2 {
         //B2ERROR("Could not create filter with name " << m_param_filterName);
         return;
       }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
       /// Transfer parameters
       //ModuleParamList filterModuleParamList;
@@ -81,9 +80,7 @@ namespace Belle2 {
       //m_filter->exposeParameters(&filterModuleParamList, prefix);
       //m_param_filterParameters.assignTo(&filterModuleParamList);
       this->addProcessingSignalListener(m_filter.get());
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       Super::initialize();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
     }
 
     template <class AFilter>
@@ -95,7 +92,6 @@ namespace Belle2 {
     template <class AFilter>
     Weight Chooseable<AFilter>::operator()(const Object& object)
     {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
       return (*m_filter)(object);
     }
 

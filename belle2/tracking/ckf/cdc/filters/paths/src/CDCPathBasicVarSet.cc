@@ -103,7 +103,7 @@ bool CDCPathBasicVarSet::extract(const BaseCDCPathFilter::Object* path)
   int seedICLayer = -1;
   const float seedPosZ = seedPos.z();
   if (seedPosZ < maxForwardZ && seedPosZ > maxBackwardZ) {
-    seedICLayer = 56;
+    seedICLayer = 55;
   } else {
     // do straight extrapolation of seed momentum to CDC outer walls
     TVector3 seedMomZOne(seedMom * (1. / seedMom.Z()));

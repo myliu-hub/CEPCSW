@@ -24,6 +24,8 @@ namespace Belle2 {
 
       const auto lhsArcLength = lhsLastState.getArcLength();
       const auto rhsArcLength = rhsLastState.getArcLength();
+      std::cout << __FILE__ << " " << __LINE__ << " rhsArcLength = " << rhsArcLength << std::endl;
+      std::cout << __FILE__ << " " << __LINE__ << " lhs size  = " << lhs.size() << " rhs size = " << rhs.size()  << std::endl;
 
       // priority is most hits
       if (lhs.size() != rhs.size())
