@@ -4,7 +4,7 @@
 #include "DataHelper/Navigation.h"
 
 #include "edm4hep/TrackerHit.h"
-#include "edm4hep/TrackerHitConst.h"
+#include "edm4hep/TrackerHit.h"
 #include "edm4hep/Track.h"
 
 #include "UTIL/ILDConf.h"
@@ -31,6 +31,8 @@
 #include "Tools/KiTrackMarlinTools.h"
 //#include "Tools/KiTrackMarlinCEDTools.h"
 #include "Tools/FTDHelixFitter.h"
+
+#include <TStopwatch.h>
 
 using namespace MarlinTrk ;
 
@@ -63,6 +65,23 @@ StatusCode ForwardTrackingAlg::initialize(){
   _useCED = false; // Setting this to on will initialise CED in the processor and tracks or segments (from the CA)
   // can be printed. As this is mainly used for debugging it is not a steerable parameter.
   //if( _useCED )MarlinCED::init(this) ;    //CED
+
+  if(m_dumpTime){
+    NTuplePtr nt1(ntupleSvc(), "MyTuples/Time"+name());
+    if ( !nt1 ) {
+      m_tuple = ntupleSvc()->book("MyTuples/Time"+name(),CLID_ColumnWiseTuple,"Tracking time");
+      if ( 0 != m_tuple ) {
+	m_tuple->addItem ("timeTotal",  m_timeTotal ).ignore();
+      }
+      else {
+	fatal() << "Cannot book MyTuples/Time"+name() <<endmsg;
+	return StatusCode::FAILURE;
+      }
+    }
+    else{
+      m_tuple = nt1;
+    }
+  }
 
   // Now set min and max values for all the criteria
   for( unsigned i=0; i < _criteriaNames.size(); i++ ){
@@ -181,6 +200,8 @@ StatusCode ForwardTrackingAlg::initialize(){
 StatusCode ForwardTrackingAlg::execute(){
   debug() << " processing event number " << _nEvt << endmsg;
 
+  auto stopwatch = TStopwatch();
+
   auto trkCol = _outColHdl.createAndPut();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //                                                                                                              //
@@ -266,7 +287,7 @@ StatusCode ForwardTrackingAlg::execute(){
       if(pixelCollectionID==hitFTDCollections[iCol]->getID()){
 	if ( UTIL::BitSet32( trackerHit.getType() )[ UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL ] ) continue;
       }
-      edm4hep::ConstTrackerHit hit = trackerHit;
+      edm4hep::TrackerHit hit = trackerHit;
       debug() << "hit " << trackerHit.id() << " " << KiTrackMarlin::getCellID0Info( trackerHit.getCellID() ) 
 	      << " " << KiTrackMarlin::getPositionInfo( hit )<< endmsg;
          
@@ -637,7 +658,7 @@ StatusCode ForwardTrackingAlg::execute(){
       FTDTrack* myTrack = dynamic_cast< FTDTrack* >( tracks[i] );
          
       if( myTrack != NULL ){
-	edm4hep::Track trackImpl( *(myTrack->getLcioTrack()) );
+	edm4hep::MutableTrack trackImpl( *(myTrack->getLcioTrack()) );
             
 	try{
 	  finaliseTrack( &trackImpl );
@@ -683,6 +704,12 @@ StatusCode ForwardTrackingAlg::execute(){
   //if( _useCED ) MarlinCED::draw(this);
   
   _nEvt ++ ;
+
+  if(m_dumpTime&&m_tuple){
+    m_timeTotal = stopwatch.RealTime()*1000;
+    m_tuple->write();
+  }
+
   return StatusCode::SUCCESS;
 }
 
@@ -906,7 +933,7 @@ bool ForwardTrackingAlg::setCriteria( unsigned round ){
   return newValuesGotUsed;
 }
 
-void ForwardTrackingAlg::finaliseTrack( edm4hep::Track* trackImpl ){
+void ForwardTrackingAlg::finaliseTrack( edm4hep::MutableTrack* trackImpl ){
      
   Fitter fitter( trackImpl , _trkSystem );
    
@@ -953,7 +980,7 @@ void ForwardTrackingAlg::finaliseTrack( edm4hep::Track* trackImpl ){
   
   unsigned int nHits = trackImpl->trackerHits_size();
   for( unsigned j=0; j<nHits; j++ ){
-    const edm4hep::ConstTrackerHit& hit = trackImpl->getTrackerHits(j);
+    const edm4hep::TrackerHit& hit = trackImpl->getTrackerHits(j);
     UTIL::BitField64 encoder( UTIL::ILDCellID0::encoder_string );
     encoder.setValue( hit.getCellID() );
     int subdet =  encoder[UTIL::ILDCellID0::subdet];

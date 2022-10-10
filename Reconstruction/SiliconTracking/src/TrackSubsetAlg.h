@@ -11,6 +11,7 @@
 
 #include "Math/ProbFunc.h"
 
+#include "GaudiKernel/NTuple.h"
 /**  Processor that takes tracks from multiple sources and outputs them (or modified versions, or a subset of them)
  * as one track collection.
  * 
@@ -74,17 +75,21 @@ class TrackSubsetAlg : public GaudiAlgorithm {
   Gaudi::Property<float> _initialTrackError_tanL{this, "InitialTrackErrorTanL",1e2};
   Gaudi::Property<double> _maxChi2PerHit{this, "MaxChi2PerHit", 1e2};
   Gaudi::Property<double> _omega{this, "Omega", 0.75};
+  Gaudi::Property<bool> m_dumpTime{this, "DumpTime", true};
   
   float _bField;
   
   int _nRun ;
   int _nEvt ;
+
+  NTuple::Tuple*       m_tuple;
+  NTuple::Item<float>  m_timeTotal;
 };
 
 /** A functor to return whether two tracks are compatible: The criterion is if the share a TrackerHit or more */
 class TrackCompatibility{
  public:
-  inline bool operator()( edm4hep::ConstTrack* trackA, edm4hep::ConstTrack* trackB ){
+  inline bool operator()( edm4hep::Track* trackA, edm4hep::Track* trackB ){
     unsigned nHitsA = trackA->trackerHits_size();
     unsigned nHitsB = trackB->trackerHits_size();
     for( unsigned i=0; i < nHitsA; i++){
@@ -104,7 +109,7 @@ class TrackQI{
   /** @param trkSystem a pointer to an IMarlinTrkSystem, needed for fitting of tracks */
   TrackQI( MarlinTrk::IMarlinTrkSystem* trkSystem ): _trkSystem(trkSystem){}
   
-  inline double operator()( edm4hep::ConstTrack* track ){
+  inline double operator()( edm4hep::Track* track ){
     return ROOT::Math::chisquared_cdf_c( track->getChi2() , track->getNdf() );   
   }
   

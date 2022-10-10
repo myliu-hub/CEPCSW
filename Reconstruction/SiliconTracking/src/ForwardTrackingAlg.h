@@ -21,6 +21,8 @@
 #include "Criteria/Criteria.h"
 #include "ILDImpl/SectorSystemFTD.h"
 
+#include "GaudiKernel/NTuple.h"
+
 using namespace KiTrack;
 using namespace KiTrackMarlin;
 
@@ -200,7 +202,7 @@ class ForwardTrackingAlg : public GaudiAlgorithm {
    * Sets the subdetector hit numbers and the radius of the innermost hit.
    * Also sets chi2 and Ndf.
    */
-  void finaliseTrack( edm4hep::Track* track );
+  void finaliseTrack( edm4hep::MutableTrack* track );
   
   /* Sets the cut off values for all the criteria
    * 
@@ -234,7 +236,10 @@ class ForwardTrackingAlg : public GaudiAlgorithm {
   
   int _nRun ;
   int _nEvt ;
-  
+
+  NTuple::Tuple*       m_tuple;
+  NTuple::Item<float>  m_timeTotal;
+
   /** B field in z direction */
   double _Bz;
 
@@ -255,6 +260,7 @@ class ForwardTrackingAlg : public GaudiAlgorithm {
   Gaudi::Property<std::vector<std::string> > _criteriaNames{this, "Criteria", Criteria::getAllCriteriaNamesVec()};
   Gaudi::Property<std::vector<float> > _critMinimaInit{this, "CriteriaMin", {} };
   Gaudi::Property<std::vector<float> > _critMaximaInit{this, "CriteriaMax", {} };
+  Gaudi::Property<bool>   m_dumpTime{this, "DumpTime", true};
 
   std::map<std::string, std::vector<float> > _critMinima;
   std::map<std::string, std::vector<float> > _critMaxima;

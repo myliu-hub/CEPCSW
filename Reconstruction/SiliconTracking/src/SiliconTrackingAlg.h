@@ -27,6 +27,7 @@
 #include <UTIL/BitField64.h>
 #include <UTIL/ILDConf.h>
 
+#include "GaudiKernel/NTuple.h"
 //using namespace edm4hep ;
 
 namespace gear{
@@ -252,7 +253,7 @@ class SiliconTrackingAlg : public GaudiAlgorithm {
   Gaudi::Property<bool> _ElossOn{this, "EnergyLossOn", true};
   Gaudi::Property<bool> _SmoothOn{this, "SmoothOn", true};
   Gaudi::Property<float> _helix_max_r{this, "HelixMaxR", 2000.};
-  
+  Gaudi::Property<bool> m_dumpTime{this, "DumpTime", true}; 
   //std::vector<int> _colours;  
   
   /** helper function to get collection using try catch block */
@@ -300,7 +301,11 @@ class SiliconTrackingAlg : public GaudiAlgorithm {
   
   std::vector<TrackerHitExtendedVec> _sectors;
   std::vector<TrackerHitExtendedVec> _sectorsFTD;
-  
+
+  NTuple::Tuple*       m_tuple;
+  NTuple::Item<float>  m_timeTotal;
+  NTuple::Item<float>  m_timeKalman;
+
   /**
    * A helper class to allow good code readability by accessing tracks with N hits.
    * As the smalest valid track contains three hits, but the first index in a vector is 0,
@@ -402,11 +407,11 @@ class SiliconTrackingAlg : public GaudiAlgorithm {
   //  int _createMap;
   
   UTIL::BitField64* _encoder;
-  int getDetectorID(edm4hep::ConstTrackerHit hit) { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::subdet]; }
-  int getSideID(edm4hep::ConstTrackerHit hit)     { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::side]; };
-  int getLayerID(edm4hep::ConstTrackerHit hit)    { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::layer]; };
-  int getModuleID(edm4hep::ConstTrackerHit hit)   { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::module]; };
-  int getSensorID(edm4hep::ConstTrackerHit hit)   { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::sensor]; };
+  int getDetectorID(edm4hep::TrackerHit hit) { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::subdet]; }
+  int getSideID(edm4hep::TrackerHit hit)     { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::side]; };
+  int getLayerID(edm4hep::TrackerHit hit)    { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::layer]; };
+  int getModuleID(edm4hep::TrackerHit hit)   { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::module]; };
+  int getSensorID(edm4hep::TrackerHit hit)   { _encoder->setValue(hit.getCellID()); return (*_encoder)[lcio::ILDCellID0::sensor]; };
   
   StatusCode setupGearGeom() ;
   

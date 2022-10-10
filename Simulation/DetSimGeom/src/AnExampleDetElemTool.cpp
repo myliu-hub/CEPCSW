@@ -76,6 +76,14 @@ AnExampleDetElemTool::getLV() {
 
 void
 AnExampleDetElemTool::ConstructSDandField() {
+
+    // DEBUG ONLY: turn off all the SD.
+    if (not m_SD_enabled) {
+        warning() << "All the Sensitive Detectors will be disabled by default. " << endmsg;
+        return;
+    }
+
+
     //
     // Construct SD using DD4hep.
     // Refer to FCCSW/Detector/DetComponents/src/
@@ -130,7 +138,16 @@ AnExampleDetElemTool::ConstructSDandField() {
 		    warning() << "TimeProjectionChamberSensDetTool is not found, and default tracker SD will be used" << endmsg;
 		  }
 		}
-
+		else {
+		  m_tracker_sdtool = ToolHandle<ISensDetTool>("GenericTrackerSensDetTool");
+		  if (m_tracker_sdtool) {
+		    info() << "Find the GenericTrackerSensDetTool" << endmsg;
+		    g4sd = m_tracker_sdtool->createSD(nam);
+		  }
+		  else {
+		    warning() << "GenericTrackerSensDetTool is not found. " << endmsg;
+		  }
+		}
             }
         }
         

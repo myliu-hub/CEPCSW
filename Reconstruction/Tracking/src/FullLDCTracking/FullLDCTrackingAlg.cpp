@@ -5,9 +5,8 @@
 
 #include <GearSvc/IGearSvc.h>
 
-#include <edm4hep/TrackerHitConst.h>
 #include <edm4hep/TrackerHit.h>
-#include <edm4hep/TrackConst.h>
+#include <edm4hep/TrackerHit.h>
 #include <edm4hep/Track.h>
 
 #include <iostream>
@@ -54,13 +53,15 @@
 #include <vector>
 #include <bitset>
 
-typedef std::vector<edm4hep::ConstTrackerHit> ConstTrackerHitVec;
+#include <TStopwatch.h>
+
+typedef std::vector<edm4hep::TrackerHit> TrackerHitVec;
 
 using namespace edm4hep ;
 using namespace MarlinTrk ;
 
 /** debug printout helper method */
-std::string toString( int iTrk, edm4hep::ConstTrack tpcTrack, float bField=3.5 ) {
+std::string toString( int iTrk, edm4hep::Track tpcTrack, float bField=3.5 ) {
   
   int   nHits    = int( tpcTrack.trackerHits_size() );
   float d0TPC    = getD0(tpcTrack);
@@ -144,7 +145,24 @@ StatusCode FullLDCTrackingAlg::initialize() {
   PI = acos(-1.);
   PIOVER2 = 0.5*PI;
   TWOPI = 2*PI;
-  
+
+  if(m_dumpTime){
+    NTuplePtr nt1(ntupleSvc(), "MyTuples/Time"+name());
+    if ( !nt1 ) {
+      m_tuple = ntupleSvc()->book("MyTuples/Time"+name(),CLID_ColumnWiseTuple,"Tracking time");
+      if ( 0 != m_tuple ) {
+	m_tuple->addItem ("timeTotal", m_timeTotal ).ignore();
+	m_tuple->addItem ("timeKalman", m_timeKalman ).ignore();
+      }
+      else {
+	fatal() << "Cannot book MyTuples/Time"+name() <<endmsg;
+	return StatusCode::FAILURE;
+      }
+    }
+    else{
+      m_tuple = nt1;
+    }
+  }
   // set up the geometery needed by KalTest
   //FIXME: for now do KalTest only - make this a steering parameter to use other fitters
   auto _trackSystemSvc = service<ITrackSystemSvc>("TrackSystemSvc");
@@ -182,6 +200,8 @@ StatusCode FullLDCTrackingAlg::execute() {
   
   // debug() << endmsg;
   info() << "FullLDCTrackingAlg -> run = " << 0/*evt->getRunNumber()*/ << "  event = " << _nEvt << endmsg;
+
+  auto stopwatch = TStopwatch();
   // debug() << endmsg;
   auto outCol = _OutputTrackColHdl.createAndPut();
   
@@ -223,6 +243,11 @@ StatusCode FullLDCTrackingAlg::execute() {
   debug() << "Cleanup is done." << endmsg;
   _nEvt++;
   //  getchar();
+  if(m_tuple){
+    m_timeTotal = stopwatch.RealTime()*1000;
+    m_tuple->write();
+  }
+
   debug() << "FullLDCTrackingAlg execute() finished" << endmsg;
   return StatusCode::SUCCESS;
   
@@ -249,12 +274,13 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
   //SJA:FIXME: So here we are going to do one final refit. This can certainly be optimised, but rather than worry about the mememory management right now lets make it work, and optimise it later ...
   
   debug() << "Total " << nTrkCand << " trkCand to deal" << endmsg;
+  auto stopwatch = TStopwatch();
   for (int iTRK=0;iTRK<nTrkCand;++iTRK) {
     
     TrackExtended * trkCand = trkVec[iTRK];
     TrackerHitExtendedVec& hitVec = trkCand->getTrackerHitExtendedVec();
     
-    std::vector<edm4hep::ConstTrackerHit> trkHits;
+    std::vector<edm4hep::TrackerHit> trkHits;
     
     //debug() << " Trying to add track " << trkCand << "(" << iTRK << ")" << " to final lcio collection " << endmsg;
         
@@ -269,7 +295,7 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
         continue;
       }
 
-      edm4hep::ConstTrackerHit trkHit = hitVec[ihit]->getTrackerHit();
+      edm4hep::TrackerHit trkHit = hitVec[ihit]->getTrackerHit();
       
       if(trkHit.isAvailable()) {
         trkHits.push_back(trkHit);
@@ -286,10 +312,10 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
       continue ;
     }
     
-    edm4hep::Track track;// = new edm4hep::Track;
+    edm4hep::MutableTrack track;// = new edm4hep::Track;
     
     // setup initial dummy covariance matrix
-    std::array<float,15> covMatrix;
+    decltype(edm4hep::TrackState::covMatrix) covMatrix;
     
     for (unsigned icov = 0; icov<covMatrix.size(); ++icov) {
       covMatrix[icov] = 0;
@@ -354,11 +380,11 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
     ts_initial.covMatrix = covMatrix;
         
     // sort hits in R
-    std::vector< std::pair<float, edm4hep::ConstTrackerHit> > r2_values;
+    std::vector< std::pair<float, edm4hep::TrackerHit> > r2_values;
     r2_values.reserve(trkHits.size());
     
-    for (std::vector<edm4hep::ConstTrackerHit>::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
-      edm4hep::ConstTrackerHit h = *it;
+    for (std::vector<edm4hep::TrackerHit>::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
+      edm4hep::TrackerHit h = *it;
       float r2 = h.getPosition()[0]*h.getPosition()[0]+h.getPosition()[1]*h.getPosition()[1];
       r2_values.push_back(std::make_pair(r2, *it));
     }
@@ -368,7 +394,7 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
     trkHits.clear();
     trkHits.reserve(r2_values.size());
     
-    for (std::vector< std::pair<float, edm4hep::ConstTrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
+    for (std::vector< std::pair<float, edm4hep::TrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
       trkHits.push_back(it->second);
     }
 
@@ -386,9 +412,7 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
     int error_code = 0;
     
     try {
-      
       error_code = MarlinTrk::createFinalisedLCIOTrack(marlinTrk, trkHits, &track, fit_backwards, &ts_initial, _bField, _maxChi2PerHit);
-      
     } catch (...) {
       
       //      delete track;
@@ -408,9 +432,9 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
 #endif
     
     
-    std::vector<std::pair<edm4hep::ConstTrackerHit , double> > hits_in_fit ;
-    std::vector<std::pair<edm4hep::ConstTrackerHit , double> > outliers ;
-    std::vector<edm4hep::ConstTrackerHit> all_hits;
+    std::vector<std::pair<edm4hep::TrackerHit , double> > hits_in_fit ;
+    std::vector<std::pair<edm4hep::TrackerHit , double> > outliers ;
+    std::vector<edm4hep::TrackerHit> all_hits;
     all_hits.reserve(hits_in_fit.size());
     
     marlinTrk->getHitsInFit(hits_in_fit);
@@ -471,7 +495,7 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
 	    track.addToTracks(subTrack->getTrack().getTracks(iSeg));
 	  }
           //const TrackVec segments = subTrack->getTrack().getTracks();
-	  //std::vector<edm4hep::ConstTrack> segments;
+	  //std::vector<edm4hep::Track> segments;
 	  //std::copy(subTrack->getTrack().tracks_begin(), subTrack->getTrack().tracks_end(), std::back_inserter(segments));
           //if ( segments.empty() == false ) {
             
@@ -555,7 +579,7 @@ void FullLDCTrackingAlg::AddTrackColToEvt(TrackExtendedVec & trkVec, edm4hep::Tr
       debug() << " Add Track to final Collection: ID = " << track.id() << " for trkCand "<< trkCand << endmsg;
     }
   }
-  
+  if(m_tuple) m_timeKalman = stopwatch.RealTime()*1000;
   // streamlog_out(DEBUG5) << endmsg;
   debug() << "Number of accepted " << _OutputTrackColHdl.fullKey() << " = " << nTotTracks << endmsg;
   debug() << "Total 4-momentum of " << _OutputTrackColHdl.fullKey() << " : E = " << eTot
@@ -581,7 +605,7 @@ void FullLDCTrackingAlg::prepareVectors() {
   _trkImplVec.clear();
   _candidateCombinedTracks.clear();
   
-  std::map <edm4hep::ConstTrackerHit,TrackerHitExtended*> mapTrackerHits;
+  std::map <edm4hep::TrackerHit,TrackerHitExtended*> mapTrackerHits;
 
   // Reading TPC hits
   const edm4hep::TrackerHitCollection* hitTPCCol = nullptr;
@@ -594,7 +618,7 @@ void FullLDCTrackingAlg::prepareVectors() {
   if(hitTPCCol){
     int nelem = hitTPCCol->size();
     debug() << "Number of TPC hits = " << nelem << endmsg;
-    for (edm4hep::ConstTrackerHit hit : *hitTPCCol) {
+    for (edm4hep::TrackerHit hit : *hitTPCCol) {
       TrackerHitExtended * hitExt = new TrackerHitExtended(hit);
       //info() << "TPC hit " << hit.id() << " " << hitExt << endmsg;
       // Covariance Matrix in LCIO is defined in XYZ convert to R-Phi-Z
@@ -639,7 +663,7 @@ void FullLDCTrackingAlg::prepareVectors() {
   if(hitFTDPixelCol){
     int nelem = hitFTDPixelCol->size();
     debug() << "Number of FTD Pixel Hits = " << nelem << endmsg;
-    for(edm4hep::ConstTrackerHit hit : *hitFTDPixelCol){
+    for(edm4hep::TrackerHit hit : *hitFTDPixelCol){
       if ( UTIL::BitSet32( hit.getType() )[ UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL ] ) continue;
 
       TrackerHitExtended * hitExt = new TrackerHitExtended( hit );
@@ -716,7 +740,7 @@ void FullLDCTrackingAlg::prepareVectors() {
     Navigation::Instance()->AddTrackerHitCollection(rawFTDCol);
     int nelem = hitFTDSpacePointCol->size();
     debug() << "Number of FTD SpacePoints = " << nelem << endmsg;
-    for(edm4hep::ConstTrackerHit hit : *hitFTDSpacePointCol){
+    for(edm4hep::TrackerHit hit : *hitFTDSpacePointCol){
       TrackerHitExtended * hitExt = new TrackerHitExtended( hit );
       
       // SJA:FIXME: fudge for now by a factor of two and ignore covariance
@@ -797,7 +821,7 @@ void FullLDCTrackingAlg::prepareVectors() {
     double drphi(NAN);
     double dz(NAN);
     
-    for(edm4hep::ConstTrackerHit trkhit : *hitSITCol){
+    for(edm4hep::TrackerHit trkhit : *hitSITCol){
       
       // hit could be of the following type
       // 1) TrackerHit, either ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT or just standard TrackerHit
@@ -931,7 +955,7 @@ void FullLDCTrackingAlg::prepareVectors() {
     double drphi(NAN);
     double dz(NAN);
 
-    for(edm4hep::ConstTrackerHit trkhit : *hitSETCol){
+    for(edm4hep::TrackerHit trkhit : *hitSETCol){
       // hit could be of the following type
       // 1) TrackerHit, either ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT or just standard TrackerHit
       // 2) TrackerHitPlane, either 1D or 2D
@@ -1050,7 +1074,7 @@ void FullLDCTrackingAlg::prepareVectors() {
   if(hitVTXCol){
     int nelem = hitVTXCol->size();
     debug() << "Number of VTX hits = " << nelem << endmsg;
-    for(edm4hep::ConstTrackerHit trkhit : *hitVTXCol){
+    for(edm4hep::TrackerHit trkhit : *hitVTXCol){
       // FIXME tracker hit plane type of the hit
       TrackerHitExtended* hitExt = new TrackerHitExtended(trkhit);
       
@@ -1092,7 +1116,7 @@ void FullLDCTrackingAlg::prepareVectors() {
     debug() << "Number of TPC Tracks = " << nelem << endmsg;
     debug() << " Trk    ID        p          D0         Z0       Px       Py       Pz   ntpc ndf  Chi2/ndf nlinkedTracks" << endmsg;
     int iTrk = -1;
-    for(edm4hep::ConstTrack tpcTrack : *tpcTrackCol){
+    for(edm4hep::Track tpcTrack : *tpcTrackCol){
       iTrk++;
       //ConstTrackerHitVec hitVec(tpcTrack.trackerHits_begin(), tpcTrack.trackerHits_end());
       int nHits = tpcTrack.trackerHits_size();//int(hitVec.size());
@@ -1116,7 +1140,7 @@ void FullLDCTrackingAlg::prepareVectors() {
       //param[3] = getD0(tpcTrack);
       //param[4] = getZ0(tpcTrack);
       
-      std::array<float, 15> Cov = getCovMatrix(tpcTrack);
+      auto Cov = getCovMatrix(tpcTrack);
       int NC = int(Cov.size());
       for (int ic=0;ic<NC;ic++) {
         cov[ic] =  Cov[ic];
@@ -1126,7 +1150,7 @@ void FullLDCTrackingAlg::prepareVectors() {
       trackExt->setNDF(tpcTrack.getNdf());
       trackExt->setChi2(tpcTrack.getChi2());
       for (int iHit=0;iHit<nHits;++iHit) {
-	edm4hep::ConstTrackerHit hit = tpcTrack.getTrackerHits(iHit);//hitVec[iHit];
+	edm4hep::TrackerHit hit = tpcTrack.getTrackerHits(iHit);//hitVec[iHit];
 	if(!hit.isAvailable()) error() << "Tracker hit not available" << endmsg;
 	//info() << "hit " << hit.id() << " " << hit.getCellID() << " " << hit.getPosition()[0] << " " << hit.getPosition()[1] << " " << hit.getPosition()[2] << endmsg;
 	auto it = mapTrackerHits.find(hit);
@@ -1154,7 +1178,7 @@ void FullLDCTrackingAlg::prepareVectors() {
     debug() << "Number of Si Tracks = " << nelem << endmsg;
     debug() << " Trk    ID        p          D0         Z0       Px       Py       Pz   ntpc ndf  Chi2/ndf nlinkedTracks" << endmsg;
     int iTrk = -1;
-    for(edm4hep::ConstTrack siTrack : *siTrackCol){
+    for(edm4hep::Track siTrack : *siTrackCol){
       iTrk++;
       double prob = ( siTrack.getNdf() > 0 ? gsl_cdf_chisq_Q(  siTrack.getChi2() ,  (double) siTrack.getNdf() )  : 0. ) ;
       if( prob < _minChi2ProbForSiliconTracks ) {
@@ -1180,7 +1204,7 @@ void FullLDCTrackingAlg::prepareVectors() {
       //param[3] = getD0(siTrack);
       //param[4] = getZ0(siTrack);
             
-      std::array<float, 15> Cov = getCovMatrix(siTrack);
+      auto Cov = getCovMatrix(siTrack);
       int NC = int(Cov.size());
       for (int ic=0;ic<NC;ic++) {
         cov[ic] =  Cov[ic];
@@ -1191,7 +1215,7 @@ void FullLDCTrackingAlg::prepareVectors() {
       char strg[200];
       HelixClass helixSi;
       for (int iHit=0;iHit<nHits;++iHit) {
-	edm4hep::ConstTrackerHit hit = siTrack.getTrackerHits(iHit);//hitVec[iHit];
+	edm4hep::TrackerHit hit = siTrack.getTrackerHits(iHit);//hitVec[iHit];
         TrackerHitExtended * hitExt = mapTrackerHits[hit];
         hitExt->setTrackExtended( trackExt );
         
@@ -1497,11 +1521,11 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
   //std::cout << "FullLDCTrackingAlg::CombineTracks nSiHits = " << nSiHits << endmsg;
   //std::cout << "FullLDCTrackingAlg::CombineTracks nTPCHits = " << nTPCHits << endmsg;
   
-  ConstTrackerHitVec trkHits;
+  TrackerHitVec trkHits;
   trkHits.reserve(nHits);
   
   for (int ih=0;ih<nSiHits;++ih) {
-    edm4hep::ConstTrackerHit trkHit = siHitVec[ih]->getTrackerHit();
+    edm4hep::TrackerHit trkHit = siHitVec[ih]->getTrackerHit();
     if(trkHit.isAvailable()) {
       trkHits.push_back(trkHit);
     }
@@ -1511,7 +1535,7 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
   }
   
   for (int ih=0;ih<nTPCHits;++ih) {
-    edm4hep::ConstTrackerHit trkHit = tpcHitVec[ih]->getTrackerHit();
+    edm4hep::TrackerHit trkHit = tpcHitVec[ih]->getTrackerHit();
     if(trkHit.isAvailable()) {
       trkHits.push_back(trkHit);
     }
@@ -1531,11 +1555,11 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
   
   debug() << "FullLDCTrackingAlg::CombineTracks: Sorting Hits " << trkHits.size() << endmsg;
   
-  std::vector< std::pair<float, edm4hep::ConstTrackerHit> > r2_values;
+  std::vector< std::pair<float, edm4hep::TrackerHit> > r2_values;
   r2_values.reserve(trkHits.size());
   
-  for (ConstTrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
-    edm4hep::ConstTrackerHit h = *it;
+  for (TrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
+    edm4hep::TrackerHit h = *it;
     float r2 = h.getPosition()[0]*h.getPosition()[0]+h.getPosition()[1]*h.getPosition()[1];
     r2_values.push_back(std::make_pair(r2, *it));
   }
@@ -1545,7 +1569,7 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
   trkHits.clear();
   trkHits.reserve(r2_values.size());
   
-  for (std::vector< std::pair<float, edm4hep::ConstTrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
+  for (std::vector< std::pair<float, edm4hep::TrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
     trkHits.push_back(it->second);
   }
   
@@ -1572,7 +1596,7 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
   }
   
   // setup initial dummy covariance matrix
-  std::array<float,15> covMatrix;
+  decltype(edm4hep::TrackState::covMatrix) covMatrix;
   
   for (unsigned icov = 0; icov<covMatrix.size(); ++icov) {
     covMatrix[icov] = 0;
@@ -1617,7 +1641,7 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
     
   debug() << "FullLDCTrackingAlg::CombineTracks: Check for outliers " << endmsg;
   
-  std::vector<std::pair<edm4hep::ConstTrackerHit, double> > outliers ;
+  std::vector<std::pair<edm4hep::TrackerHit, double> > outliers ;
   marlin_trk.getOutliers(outliers);
   
   float outlier_pct = outliers.size()/float(trkHits.size()) ;
@@ -1639,10 +1663,10 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
     bool hit_is_outlier = false;
     
     // we need to make sure that in the case of a composite hit we reject this as well
-    ConstTrackerHitVec hits;
+    TrackerHitVec hits;
     
     // all hits, both the 2D tracker hit, as well as any raw hits which belong to it
-    ConstTrackerHit hit = siHitVec[i]->getTrackerHit();
+    TrackerHit hit = siHitVec[i]->getTrackerHit();
     hits.push_back(hit);
     
     // add the raw hits ...
@@ -1652,7 +1676,7 @@ TrackExtended * FullLDCTrackingAlg::CombineTracks(TrackExtended * tpcTrack, Trac
 	try{
 	  int type = hit.getType();
 	  if(UTIL::BitSet32(type)[UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT]){
-	    edm4hep::ConstTrackerHit rawHit = Navigation::Instance()->GetTrackerHit(hit.getRawHits(ihit));
+	    edm4hep::TrackerHit rawHit = Navigation::Instance()->GetTrackerHit(hit.getRawHits(ihit));
 	    hits.push_back(rawHit);
 	  }
 	  else debug() << "not space point, id=" << hit.id() << endmsg;
@@ -1885,7 +1909,7 @@ void FullLDCTrackingAlg::SelectCombinedTracks() {
         // get min and max z for the first sub track
         for (int iF=0;iF<nFirst;++iF) {
           TrackerHitExtended * trkHitExt = firstVec[iF];
-	  edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+	  edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
           float zpos = float(trkHit.getPosition()[2]);
           if (zpos>edges[1])
             edges[1] = zpos;
@@ -1896,7 +1920,7 @@ void FullLDCTrackingAlg::SelectCombinedTracks() {
         // get min and max z for the second sub track
         for (int iS=0;iS<nSecond;++iS) {
           TrackerHitExtended * trkHitExt = secondVec[iS];
-	  edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+	  edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
           float zpos = float(trkHit.getPosition()[2]);
           if (zpos>edges[1])
             edges[1] = zpos;
@@ -2044,7 +2068,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
             TrackerHitExtended * hitExt = siHitVec[iH];
             OutputTrack->addTrackerHitExtended(hitExt);
             hitExt->setUsedInFit(true);
-	    edm4hep::ConstTrackerHit hit = hitExt->getTrackerHit();
+	    edm4hep::TrackerHit hit = hitExt->getTrackerHit();
             float zpos = float(hit.getPosition()[2]);
             if (zpos<edges[0])
               edges[0] = zpos;
@@ -2055,7 +2079,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
             TrackerHitExtended * hitExt = tpcHitVec[iH];
             OutputTrack->addTrackerHitExtended(hitExt);
             hitExt->setUsedInFit(true);
-	    edm4hep::ConstTrackerHit hit = hitExt->getTrackerHit();
+	    edm4hep::TrackerHit hit = hitExt->getTrackerHit();
             float zpos = float(hit.getPosition()[2]);
             if (zpos<edges[0])
               edges[0] = zpos;
@@ -2169,7 +2193,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
 
         for (int iCur=0;iCur<nCur;++iCur) {
           TrackerHitExtended * curTrkHitExt = currentVec[iCur];
-	  edm4hep::ConstTrackerHit curTrkHit = curTrkHitExt->getTrackerHit();
+	  edm4hep::TrackerHit curTrkHit = curTrkHitExt->getTrackerHit();
           float zpos = float(curTrkHit.getPosition()[2]);
           if (zpos < zmin)
             zmin = zpos;
@@ -2213,7 +2237,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
               for (int iHitInGrp=0;iHitInGrp<nHitsInGrp;iHitInGrp++) {
 
                 TrackerHitExtended * xTrkExt = hitInGroupVec[iHitInGrp];
-		edm4hep::ConstTrackerHit xTrk = xTrkExt->getTrackerHit();
+		edm4hep::TrackerHit xTrk = xTrkExt->getTrackerHit();
 
                 float xZ = float(xTrk.getPosition()[2]);
                 if (xZ>zmin&&xZ<zmax) {
@@ -2459,7 +2483,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
             TrackExtended * segment = segVec[iTrk];
 
             // get the lcio track which is behind this segemnt
-	    edm4hep::ConstTrack track = segment->getTrack();
+	    edm4hep::Track track = segment->getTrack();
             //ConstTrackerHitVec hitVec(track.trackerHits_begin(), track.trackerHits_end());
 
             debug() << "Group of orphaned TPC tracks: trying track " << track.id() << endmsg;
@@ -2530,7 +2554,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
   else { // adding all TPC segments to the list of tracks (track splitting is allowed)
     for (int i=0;i<nTPCTrk;++i) {
       TrackExtended * trkExt = _allTPCTracks[i];
-      edm4hep::ConstTrack track = trkExt->getTrack();
+      edm4hep::Track track = trkExt->getTrack();
       GroupTracks * group = trkExt->getGroupTracks();
 
       if (group == NULL) {
@@ -2555,7 +2579,7 @@ void FullLDCTrackingAlg::AddNotCombinedTracks() {
   
   for (int i=0;i<nSiTrk;++i) { // adding left-over Si segments to the list of tracks
     TrackExtended * trkExt = _allSiTracks[i];
-    edm4hep::ConstTrack track = trkExt->getTrack();
+    edm4hep::Track track = trkExt->getTrack();
     GroupTracks * group = trkExt->getGroupTracks();
 
     if (group == NULL) {
@@ -3006,8 +3030,8 @@ float FullLDCTrackingAlg::CompareTrk(TrackExtended * first, TrackExtended * seco
         
         int nTrkGrpFirst = 0;
         int nTrkGrpSecond = 0;
-        ConstTrackerHitVec hitvecFirst;
-        ConstTrackerHitVec hitvecSecond;
+        TrackerHitVec hitvecFirst;
+        TrackerHitVec hitvecSecond;
         GroupTracks * groupFirst = first->getGroupTracks();
         GroupTracks * groupSecond = second->getGroupTracks();
 
@@ -3204,7 +3228,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
   //    
   //    for (int iSET=0;iSET<nSETHits;++iSET) {
   //      TrackerHitExtended * trkHit = _allSETHits[iSET];
-  //      edm4hep::ConstTrackerHit hit = trkHit->getTrackerHit();
+  //      edm4hep::TrackerHit hit = trkHit->getTrackerHit();
   //      int layer = getLayerID(trkHit);
   //      if (layer>=0&&layer<nLayersSET) 
   //        SETHits[layer].push_back(trkHit);
@@ -3227,7 +3251,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
   //    
   //    for (int iETD=0;iETD<nETDHits;++iETD) {
   //      TrackerHitExtended * trkHit = _allETDHits[iETD];
-  //      edm4hep::ConstTrackerHit hit = trkHit->getTrackerHit();
+  //      edm4hep::TrackerHit hit = trkHit->getTrackerHit();
   //      int layer = getLayerID(trkHit);
   //      if (layer>=0 && layer < nLayersETD) 
   //        ETDHits[layer].push_back(trkHit);
@@ -3261,7 +3285,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
  
      for (int iSET=0;iSET<nSETHits;++iSET) {
        TrackerHitExtended * trkHitExt = _allSETHits[iSET];
-       edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+       edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
        int layer = getLayerID(trkHit);
        if (layer>=0 && (unsigned)layer < _nLayersSET)
          SETHits[layer].push_back(trkHitExt);
@@ -3293,7 +3317,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
       
       // check if this hit has not already been assigned to a track
       if (trkExt == NULL) {
-	edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+	edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
         
         int layer = getLayerID(trkHit);
         
@@ -3332,7 +3356,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
       
       // check if this hit has not already been assigned to a track
       if (trkExt == NULL) {
-	edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+	edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
                 
         // get the layer number
         int layer = getLayerID(trkHit);
@@ -3383,7 +3407,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
       
       // check if this hit has not already been assigned to a track
       if (trkExt == NULL) {
-	edm4hep::ConstTrackerHit trkHit = trkHitExt->getTrackerHit();
+	edm4hep::TrackerHit trkHit = trkHitExt->getTrackerHit();
         
         int layer = getLayerID(trkHit);
         
@@ -3412,7 +3436,7 @@ void FullLDCTrackingAlg::AddNotAssignedHits() {
         nonAssignedTPCHits.push_back(trkHitExt);
       }
     }
-    debug() << "AddNotAssignedHits : Number of Non Assigned TPC hits = " <<  nonAssignedTPCHits.size() << endmsg;
+    debug() << "AddNotAssignedHits : Number of Non Assigned TPC hits = " <<  nonAssignedTPCHits.size() << " distance cut = " << _distCutForTPCHits << endmsg;
     AssignTPCHitsToTracks(nonAssignedTPCHits, _distCutForTPCHits);
   }
   
@@ -3470,7 +3494,7 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
     float pos[3];
     
     TrackerHitExtended * trkHitExt = hitVec[iH];
-    edm4hep::ConstTrackerHit hit = trkHitExt->getTrackerHit();
+    edm4hep::TrackerHit hit = trkHitExt->getTrackerHit();
     
     for (int ip=0;ip<3;++ip) {
       pos[ip] = float(hit.getPosition()[ip]);
@@ -3563,13 +3587,13 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
           
           // add the previously used hits from the track to the vectors
           
-          ConstTrackerHitVec trkHits;
+          TrackerHitVec trkHits;
           
           for (int iHit=0;iHit<nTotH;++iHit) {
             
             TrackerHitExtended * hitInTrack = hitsInTrack[iHit];
             if (hitInTrack->getUsedInFit()) {
-	      edm4hep::ConstTrackerHit hit = hitInTrack->getTrackerHit();
+	      edm4hep::TrackerHit hit = hitInTrack->getTrackerHit();
               iHitInFit++;
               if(hit.isAvailable()) {
                 trkHits.push_back(hit);
@@ -3581,7 +3605,7 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
           }
           
           // add the hit to be attached to the vectors
-	  edm4hep::ConstTrackerHit remainHit = trkHitExt->getTrackerHit();
+	  edm4hep::TrackerHit remainHit = trkHitExt->getTrackerHit();
           iHitInFit++;
           trkHits.push_back(remainHit);
           
@@ -3593,11 +3617,11 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
           if( trkHits.size() < 3 ) return ;
           
           // sort the hits in R
-          std::vector< std::pair<float, edm4hep::ConstTrackerHit> > r2_values;
+          std::vector< std::pair<float, edm4hep::TrackerHit> > r2_values;
           r2_values.reserve(trkHits.size());
           
-          for (ConstTrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
-	    edm4hep::ConstTrackerHit h = *it;
+          for (TrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
+	    edm4hep::TrackerHit h = *it;
             float r2 = h.getPosition()[0]*h.getPosition()[0]+h.getPosition()[1]*h.getPosition()[1];
             r2_values.push_back(std::make_pair(r2, *it));
           }
@@ -3607,7 +3631,7 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
           trkHits.clear();
           trkHits.reserve(r2_values.size());
           
-          for (std::vector< std::pair<float, edm4hep::ConstTrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
+          for (std::vector< std::pair<float, edm4hep::TrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
             trkHits.push_back(it->second);
           }
                     
@@ -3629,7 +3653,7 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
           
           pre_fit.location = 1/*lcio::TrackState::AtIP*/;
           // setup initial dummy covariance matrix
-          std::array<float,15> covMatrix;
+          decltype(edm4hep::TrackState::covMatrix) covMatrix;
           
           for (unsigned icov = 0; icov<covMatrix.size(); ++icov) {
             covMatrix[icov] = 0;
@@ -3652,7 +3676,7 @@ void FullLDCTrackingAlg::AssignOuterHitsToTracks(TrackerHitExtendedVec hitVec, f
             continue ;
 	  }
          
-          std::vector<std::pair<edm4hep::ConstTrackerHit , double> > outliers ;
+          std::vector<std::pair<edm4hep::TrackerHit , double> > outliers ;
           marlin_trk->getOutliers(outliers);
           
           float outlier_pct = outliers.size()/float(trkHits.size()) ;
@@ -3749,7 +3773,7 @@ HelixClass * FullLDCTrackingAlg::GetExtrapolationHelix( TrackExtended * track) {
   
   for (unsigned itrk=0; itrk<trk_vec.size(); ++itrk) {
 
-    edm4hep::ConstTrack trk_lcio = trk_vec[itrk]->getTrack();
+    edm4hep::Track trk_lcio = trk_vec[itrk]->getTrack();
     
     if (trk_lcio.isAvailable()) {
   
@@ -3844,7 +3868,7 @@ void FullLDCTrackingAlg::AssignTPCHitsToTracks(TrackerHitExtendedVec hitVec,
   for (int iH=0;iH<nHits;++iH) { // loop over leftover TPC hits
     tracksToAttach[iH]=NULL;
     //Get all TrackerHit positions, so we only have to get them once
-    edm4hep::ConstTrackerHit temphit = hitVec[iH]->getTrackerHit();
+    edm4hep::TrackerHit temphit = hitVec[iH]->getTrackerHit();
     const edm4hep::Vector3d temppos = temphit.getPosition();
     HitPositions[iH].push_back(float(temppos[0]));
     HitPositions[iH].push_back(float(temppos[1]));
@@ -3855,6 +3879,7 @@ void FullLDCTrackingAlg::AssignTPCHitsToTracks(TrackerHitExtendedVec hitVec,
   debug() << "AssignTPCHitsToTracks: Starting loop " << nTrk << " tracks   and  " << nHits << " hits" << endmsg;
   
   for (int iT=0;iT<nTrk;++iT) { // loop over all tracks
+    debug() << "  track " << iT << endmsg;
     TrackExtended * foundTrack = _trkImplVec[iT];
     int tanlambdaSign = std::signbit(foundTrack->getTanLambda());//we only care about positive or negative
     GroupTracks * group = foundTrack->getGroupTracks();
@@ -3873,7 +3898,7 @@ void FullLDCTrackingAlg::AssignTPCHitsToTracks(TrackerHitExtendedVec hitVec,
       HelixClass helix;
       helix.Initialize_Canonical(phi0,d0,z0,omega,tanLambda,_bField);
       float OnePFivehalfPeriodZ = 1.5*fabs(acos(-1.)*tanLambda/omega);
-      
+      debug() << "    OnePFivehalfPeriodZ = " << OnePFivehalfPeriodZ << endmsg;
       for (int iH=0;iH<nHits;++iH) { // loop over leftover TPC hits
         
         //check if the hit and the track or on the same side
@@ -3885,9 +3910,10 @@ void FullLDCTrackingAlg::AssignTPCHitsToTracks(TrackerHitExtendedVec hitVec,
         bool consider = DeltaStart <= OnePFivehalfPeriodZ;
         consider = consider || (DeltaEnd <= OnePFivehalfPeriodZ);
         consider = consider || ( (HitPositions[iH][2]>=startPointZ) && (HitPositions[iH][2]<=endPointZ) );
-        
+        debug() << "     hit " << iH << " " << consider << " DeltaStart = " << DeltaStart << " DeltaEnd = " << DeltaEnd << endmsg;
         if(consider){
           float distance = helix.getDistanceToPoint(HitPositions[iH], minDistances[iH]);
+	  debug() << "     distance = " << distance << " cut = " << minDistances[iH] << endmsg;
           if (distance < minDistances[iH]) {
             minDistances[iH] = distance;
             tracksToAttach[iH] = foundTrack;
@@ -3902,7 +3928,9 @@ void FullLDCTrackingAlg::AssignTPCHitsToTracks(TrackerHitExtendedVec hitVec,
     if (tracksToAttach[iH]!=NULL) {
       tracksToAttach[iH]->addTrackerHitExtended(trkHitExt);
       trkHitExt->setTrackExtended( tracksToAttach[iH] );
-      trkHitExt->setUsedInFit( false );
+      //by fucd
+      //trkHitExt->setUsedInFit( false );
+      trkHitExt->setUsedInFit( true );
     }
   }
   
@@ -3992,7 +4020,7 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
     
     float pos[3];
     TrackerHitExtended * trkHitExt = hitVec[iH];
-    edm4hep::ConstTrackerHit hit = trkHitExt->getTrackerHit();
+    edm4hep::TrackerHit hit = trkHitExt->getTrackerHit();
     
     for (int ip=0;ip<3;++ip) {
       pos[ip] = float(hit.getPosition()[ip]);
@@ -4069,13 +4097,13 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
         
         // add the previously used hits from the track to the vectors 
         
-        ConstTrackerHitVec trkHits;
+        TrackerHitVec trkHits;
         
         for (int iHit=0;iHit<nTotH;++iHit) {
           
           TrackerHitExtended * hitInTrack = hitsInTrack[iHit];
           if (hitInTrack->getUsedInFit()) {
-	    edm4hep::ConstTrackerHit hit = hitInTrack->getTrackerHit();
+	    edm4hep::TrackerHit hit = hitInTrack->getTrackerHit();
             iHitInFit++;
             if(hit.isAvailable()) {
               trkHits.push_back(hit);
@@ -4087,7 +4115,7 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
         }
         
         // add the hit to be attached to the vectors 
-	edm4hep::ConstTrackerHit remainHit = trkHitExt->getTrackerHit();
+	edm4hep::TrackerHit remainHit = trkHitExt->getTrackerHit();
         iHitInFit++;
         trkHits.push_back(remainHit);
         
@@ -4098,11 +4126,11 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
         if( trkHits.size() < 3 ) return ;
         
         // sort the hits in R
-        std::vector< std::pair<float, edm4hep::ConstTrackerHit> > r2_values;
+        std::vector< std::pair<float, edm4hep::TrackerHit> > r2_values;
         r2_values.reserve(trkHits.size());
         
-        for (ConstTrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
-	  edm4hep::ConstTrackerHit h = *it;
+        for (TrackerHitVec::iterator it=trkHits.begin(); it!=trkHits.end(); ++it) {
+	  edm4hep::TrackerHit h = *it;
           float r2 = h.getPosition()[0]*h.getPosition()[0]+h.getPosition()[1]*h.getPosition()[1];
           r2_values.push_back(std::make_pair(r2, *it));
         }
@@ -4112,7 +4140,7 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
         trkHits.clear();
         trkHits.reserve(r2_values.size());
         
-        for (std::vector< std::pair<float, edm4hep::ConstTrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
+        for (std::vector< std::pair<float, edm4hep::TrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
           trkHits.push_back(it->second);
         }
 
@@ -4135,7 +4163,7 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
         pre_fit.location = 1/*lcio::TrackState::AtIP*/;
         
         // setup initial dummy covariance matrix
-        std::array<float,15> covMatrix;
+        decltype(edm4hep::TrackState::covMatrix) covMatrix;
 
         for (unsigned icov = 0; icov<covMatrix.size(); ++icov) {
           covMatrix[icov] = 0;
@@ -4158,7 +4186,7 @@ void FullLDCTrackingAlg::AssignSiHitsToTracks(TrackerHitExtendedVec hitVec,
           continue ;
 	}
         
-        std::vector<std::pair<edm4hep::ConstTrackerHit , double> > outliers ;
+        std::vector<std::pair<edm4hep::TrackerHit , double> > outliers ;
         marlin_trk->getOutliers(outliers);
         
         float outlier_pct = outliers.size()/float(trkHits.size());
@@ -4656,8 +4684,8 @@ int FullLDCTrackingAlg::SegmentRadialOverlap(TrackExtended* first, TrackExtended
   
   int nTrkGrpFirst = 0;
   int nTrkGrpSecond = 0;
-  ConstTrackerHitVec hitvecFirst;
-  ConstTrackerHitVec hitvecSecond;
+  TrackerHitVec hitvecFirst;
+  TrackerHitVec hitvecSecond;
   GroupTracks * groupFirst = first->getGroupTracks();
   GroupTracks * groupSecond = second->getGroupTracks();
   

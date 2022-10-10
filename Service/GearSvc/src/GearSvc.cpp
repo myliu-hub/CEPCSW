@@ -12,11 +12,13 @@
 #include "gearimpl/FixedPadSizeDiskLayout.h"
 #include "gearimpl/CalorimeterParametersImpl.h"
 #include "gearimpl/SimpleMaterialImpl.h"
+#include "gear/VXDLayerLayout.h"
 #include "gearxml/tinyxml.h"
 
 #include "DD4hep/Detector.h"
 #include "DD4hep/DetElement.h"
 #include "DDRec/DetectorData.h"
+#include "DDRec/MaterialManager.h"
 #include "DD4hep/DD4hepUnits.h"
 #include "CLHEP/Units/SystemOfUnits.h"
 
@@ -194,6 +196,49 @@ StatusCode GearSvc::convertVXD(dd4hep::DetElement& vxd){
     extensionDataValid = false;
     info() << e.what() << " " << vxdData << endmsg;
   }
+  if(vxdData){
+    int vxdType =  gear::ZPlanarParameters::CMOS;
+    gear::ZPlanarParametersImpl* gearVXD = new gear::ZPlanarParametersImpl( vxdType, vxdData->rInnerShell/dd4hep::mm,  vxdData->rOuterShell/dd4hep::mm,
+									    vxdData->zHalfShell/dd4hep::mm , vxdData->gapShell/dd4hep::mm , 0.  ) ;
+    for(unsigned i=0,n=vxdData->layers.size() ; i<n; ++i){
+      const dd4hep::rec::ZPlanarData::LayerLayout& l = vxdData->layers[i];
+      // FIXME set rad lengths to 0 -> need to get from dd4hep ....
+      gearVXD->addLayer(l.ladderNumber, l.phi0,
+			l.distanceSupport/dd4hep::mm, l.offsetSupport/dd4hep::mm, l.thicknessSupport/dd4hep::mm, l.zHalfSupport/dd4hep::mm, l.widthSupport/dd4hep::mm, 0.,
+			l.distanceSensitive/dd4hep::mm, l.offsetSensitive/dd4hep::mm, l.thicknessSensitive/dd4hep::mm, l.zHalfSensitive/dd4hep::mm, l.widthSensitive/dd4hep::mm, 0.);
+    }
+    m_gearMgr->setVXDParameters(gearVXD);
+
+    dd4hep::rec::MaterialManager matMgr( dd4hep::Detector::getInstance().world().volume() ) ;
+    const dd4hep::rec::ZPlanarData::LayerLayout& l = vxdData->layers[0] ;
+    dd4hep::rec::Vector3D a( l.distanceSensitive + l.thicknessSensitive, l.phi0 , 0. ,  dd4hep::rec::Vector3D::cylindrical ) ;
+    dd4hep::rec::Vector3D b( l.distanceSupport   + l.thicknessSupport,   l.phi0 , 0. ,  dd4hep::rec::Vector3D::cylindrical ) ;
+    const dd4hep::rec::MaterialVec& materials = matMgr.materialsBetween( a , b  ) ;
+    dd4hep::rec::MaterialData mat = ( materials.size() > 1  ? matMgr.createAveragedMaterial( materials ) : materials[0].first  ) ;
+
+    std::cout << " ####### found materials between points : " << a << " and " << b << " : " ;
+    for( unsigned i=0,n=materials.size();i<n;++i){
+      std::cout <<  materials[i].first.name() << "[" <<   materials[i].second << "], " ;
+    }
+    std::cout << std::endl ;
+    std::cout << "   averaged material : " << mat << std::endl ;
+    gear::SimpleMaterialImpl* VXDSupportMaterial = new gear::SimpleMaterialImpl("VXDSupportMaterial", mat.A(), mat.Z(),
+										mat.density()/(dd4hep::kg/(dd4hep::g*dd4hep::m3)),
+										mat.radiationLength()/dd4hep::mm,
+										mat.interactionLength()/dd4hep::mm);
+    m_gearMgr->registerSimpleMaterial(VXDSupportMaterial);
+
+    info() << vxdData->rInnerShell << " " << vxdData->rOuterShell << " " << vxdData->zHalfShell << " " << vxdData->gapShell << endmsg;
+    for(int i=0,n=vxdData->layers.size(); i<n; i++){
+      const dd4hep::rec::ZPlanarData::LayerLayout& thisLayer = vxdData->layers[i];
+      info() << i << ": " << thisLayer.ladderNumber << "," << thisLayer.phi0 << ","
+	     << thisLayer.distanceSupport/dd4hep::mm << "," << thisLayer.offsetSupport/dd4hep::mm << "," << thisLayer.thicknessSupport/dd4hep::mm << ","
+	     << thisLayer.zHalfSupport/dd4hep::mm << "," << thisLayer.widthSupport/dd4hep::mm << "," << "NULL,"
+             << thisLayer.distanceSensitive/dd4hep::mm << "," << thisLayer.offsetSensitive/dd4hep::mm << "," << thisLayer.thicknessSensitive/dd4hep::mm << ","
+	     << thisLayer.zHalfSensitive/dd4hep::mm << "," << thisLayer.widthSensitive/dd4hep::mm << ",NULL" << endmsg;
+    }
+    return sc;
+  }
 
   std::vector<helpLayer> helpSensitives;
   std::vector<helpLayer> helpLadders;
@@ -206,9 +251,9 @@ StatusCode GearSvc::convertVXD(dd4hep::DetElement& vxd){
   double phi0=0;
   helpLayer thisLadder;
   double beryllium_ladder_block_length=0,end_electronics_half_z=0,side_band_electronics_width=0;
-  double rAlu=0, drAlu, rSty, drSty, dzSty, rInner, aluEndcapZ, aluHalfZ, alu_RadLen, Cryostat_dEdx;
-  double VXDSupportDensity, VXDSupportZeff, VXDSupportAeff, VXDSupportRadLen, VXDSupportIntLen=0;
-  double styDensity, styZeff, styAeff, styRadLen, styIntLen; 
+  double rAlu=0, drAlu=0, rSty=0, drSty=0, dzSty=0, rInner=0, aluEndcapZ=0, aluHalfZ=0, alu_RadLen=0, Cryostat_dEdx=0;
+  double VXDSupportDensity=0, VXDSupportZeff=0, VXDSupportAeff=0, VXDSupportRadLen=0, VXDSupportIntLen=0;
+  double styDensity=0, styZeff=0, styAeff=0, styRadLen=0, styIntLen=0; 
   dd4hep::Volume vxd_vol = vxd.volume();
   for(int i=0;i<vxd_vol->GetNdaughters();i++){
     TGeoNode* daughter = vxd_vol->GetNode(i);
@@ -402,11 +447,11 @@ StatusCode GearSvc::convertVXD(dd4hep::DetElement& vxd){
 
       int nFlexCable = 0, nFoamSpacer=0, nMetalTraces=0;
       int currentLayer = -1;
-      double tFlexCable, tFoamSpacer, tMetalTraces;
-      double radLFlexCable, radLFoamSpacer, radLMetalTraces;
-      double intLFlexCable, intLFoamSpacer, intLMetalTraces;
-      double dFlexCable, dFoamSpacer, dMetalTraces;
-      double metalZeff, metalZAeff, foamZeff, foamZAeff, flexZeff, flexZAeff;
+      double tFlexCable=0, tFoamSpacer=0, tMetalTraces=0;
+      double radLFlexCable=0, radLFoamSpacer=0, radLMetalTraces=0;
+      double intLFlexCable=0, intLFoamSpacer=0, intLMetalTraces=0;
+      double dFlexCable=0, dFoamSpacer=0, dMetalTraces=0;
+      double metalZeff=0, metalZAeff=0, foamZeff=0, foamZAeff=0, flexZeff=0, flexZAeff=0;
       for(int i=0;i<vol->GetNdaughters();i++){
 	TGeoNode* daughter = vol->GetNode(i);
         TGeoMaterial* matDaughter = daughter->GetMedium()->GetMaterial();
@@ -575,30 +620,34 @@ StatusCode GearSvc::convertVXD(dd4hep::DetElement& vxd){
     gearParameters->setDoubleVal("CryostatAlHalfZ",     dzSty+drSty);
     m_gearMgr->setGearParameters("VXDInfra", gearParameters);
   }
+
+  dd4hep::rec::MaterialManager matMgr( dd4hep::Detector::getInstance().world().volume() ) ;
+  const gear::VXDLayerLayout& l = m_gearMgr->getVXDParameters().getVXDLayerLayout();
+  dd4hep::rec::Vector3D a( l.getSensitiveDistance(0)+l.getSensitiveThickness(0), l.getPhi0(0), 0. ,  dd4hep::rec::Vector3D::cylindrical ) ;
+  dd4hep::rec::Vector3D b( l.getLadderDistance(0)+l.getLadderThickness(0), l.getPhi0(0), 0. ,  dd4hep::rec::Vector3D::cylindrical ) ;
+  const dd4hep::rec::MaterialVec& materials = matMgr.materialsBetween( a , b  ) ;
+  dd4hep::rec::MaterialData mat = ( materials.size() > 1  ? matMgr.createAveragedMaterial( materials ) : materials[0].first  ) ;
+
+  std::cout << " ####### found materials between points : " << a << " and " << b << " : " ;
+  for( unsigned i=0,n=materials.size();i<n;++i){
+    std::cout <<  materials[i].first.name() << "[" <<   materials[i].second << "], " ;
+  }
+  std::cout << std::endl ;
+  std::cout << "   averaged material : " << mat << std::endl ;
+  gear::SimpleMaterialImpl* VXDSupportMaterial = new gear::SimpleMaterialImpl("VXDSupportMaterial", mat.A(), mat.Z(),
+									      mat.density()/(dd4hep::kg/(dd4hep::g*dd4hep::m3)),
+									      mat.radiationLength()/dd4hep::mm,
+									      mat.interactionLength()/dd4hep::mm);
+
   //effective A different with what in Mokka, fix them as Mokka's
   gear::SimpleMaterialImpl* VXDFoamShellMaterial_old = new gear::SimpleMaterialImpl("VXDFoamShellMaterial_old", 1.043890843e+01, 5.612886646e+00, 2.500000000e+01, 1.751650267e+04, 0);
   m_gearMgr->registerSimpleMaterial(VXDFoamShellMaterial_old);
   gear::SimpleMaterialImpl* VXDFoamShellMaterial = new gear::SimpleMaterialImpl("VXDFoamShellMaterial", styAeff, styZeff, styDensity*(CLHEP::g/CLHEP::cm3)/(CLHEP::kg/CLHEP::m3),
 										styRadLen, styIntLen);
   m_gearMgr->registerSimpleMaterial(VXDFoamShellMaterial);
-  gear::SimpleMaterialImpl* VXDSupportMaterial_old = new gear::SimpleMaterialImpl("VXDSupportMaterial_old", 2.075865162e+01, 1.039383117e+01, 2.765900000e+02, 1.014262421e+03, 3.341388059e+03);
-  m_gearMgr->registerSimpleMaterial(VXDSupportMaterial_old);
-  gear::SimpleMaterialImpl* VXDSupportMaterial = new gear::SimpleMaterialImpl("VXDSupportMaterial", VXDSupportAeff, VXDSupportZeff, VXDSupportDensity, VXDSupportRadLen, VXDSupportIntLen);
   m_gearMgr->registerSimpleMaterial(VXDSupportMaterial);
-  info() << "=====================from ZPlanarData==============================" << endmsg;
-  if(vxdData){
-    info() << vxdData->rInnerShell << " " << vxdData->rOuterShell << " " << vxdData->zHalfShell << " " << vxdData->gapShell << endmsg;
-    const std::vector<dd4hep::rec::ZPlanarData::LayerLayout>& layers = vxdData->layers;
-    for(int i=0;i<layers.size();i++){
-      const dd4hep::rec::ZPlanarData::LayerLayout& thisLayer = layers[i];
-      info() << i << ": " << thisLayer.ladderNumber << "," << thisLayer.phi0 << "," << thisLayer.distanceSupport << "," << thisLayer.offsetSupport << ","
-             << thisLayer.thicknessSupport << "," << thisLayer.zHalfSupport << "," << thisLayer.widthSupport << "," << "NULL,"
-             << thisLayer.distanceSensitive << "," << thisLayer.offsetSensitive << "," << thisLayer.thicknessSensitive << "," << thisLayer.zHalfSensitive << ","
-             << thisLayer.widthSensitive << ",NULL" << endmsg;
-    }
-  }
-  info() << rAlu << " " << drAlu << " " << rInner << " " << aluEndcapZ << " " << aluHalfZ << endmsg;
-  //info() << m_materials["VXDSupportMaterial"] << endmsg;
+  info() << "cryostat parameters: " << rAlu << " " << drAlu << " " << rInner << " " << aluEndcapZ << " " << aluHalfZ << endmsg;
+
   return sc;
 }
 
@@ -853,7 +902,7 @@ StatusCode GearSvc::convertDC(dd4hep::DetElement& dc){
     }
     info() << (*dcData) << endmsg;
   }
-
+  debug() << dcData->maxRow << ": " << dcData->rMinReadout*CLHEP::cm << " " << dcData->rMaxReadout*CLHEP::cm << endmsg;
   // regard as TPCParameters, TODO: drift chamber parameters
   gear::TPCParametersImpl *tpcParameters = new gear::TPCParametersImpl();
   gear::PadRowLayout2D *padLayout = new gear::FixedPadSizeDiskLayout(dcData->rMinReadout*CLHEP::cm, dcData->rMaxReadout*CLHEP::cm,

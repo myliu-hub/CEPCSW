@@ -1,6 +1,8 @@
 #include "GtBeamBackgroundTool.h"
 #include "IBeamBackgroundFileParser.h"
+
 #include "BeamBackgroundFileParserV0.h"
+#include "GuineaPigPairsFileParser.h"
 
 #include "TVector3.h" // for rotation
 DECLARE_COMPONENT(GtBeamBackgroundTool)
@@ -11,17 +13,21 @@ StatusCode GtBeamBackgroundTool::initialize() {
     // create the instances of the background parsers
 
     for (auto& [label, inputfn]: m_inputmaps) {
-        double beamE = 120.;
-        auto itBeamE = m_Ebeammaps.find(label);
-        if (itBeamE != m_Ebeammaps.end()) {
-            beamE = itBeamE->second;
+        std::string format = "BeamBackgroundFileParserV0";
+
+        auto itFormat = m_formatmaps.find(label);
+        if (itFormat != m_formatmaps.end()) {
+            format = itFormat->second;
         }
-        info() << "Initializing beam background ... "
-               << label << " "
-               << beamE << " "
-               << inputfn
-               << endmsg;
-        m_beaminputs[label] = std::make_shared<BeamBackgroundFileParserV0>(inputfn, 11, beamE);
+
+        if (format == "BeamBackgroundFileParserV0") {
+            init_BeamBackgroundFileParserV0(label, inputfn);
+        } else if (format == "GuineaPigPairsFileParser") {
+            init_GuineaPigPairsFileParser(label, inputfn);
+        } else {
+            init_BeamBackgroundFileParserV0(label, inputfn);
+        }
+        
     }
 
     // check the size
@@ -66,7 +72,7 @@ bool GtBeamBackgroundTool::mutate(MyHepMC::GenEvent& event) {
         }
 
         // create the MC particle
-        edm4hep::MCParticle mcp = event.m_mc_vec.create();
+        auto mcp = event.m_mc_vec.create();
         mcp.setPDG(beamdata.pdgid);
         mcp.setGeneratorStatus(1);
         mcp.setSimulatorStatus(1);
@@ -86,6 +92,31 @@ bool GtBeamBackgroundTool::finish() {
 }
 
 bool GtBeamBackgroundTool::configure_gentool() {
+
+    return true;
+}
+
+bool GtBeamBackgroundTool::init_BeamBackgroundFileParserV0(const std::string& label,
+                                                           const std::string& inputfn) {
+    double beamE = 120.;
+    auto itBeamE = m_Ebeammaps.find(label);
+    if (itBeamE != m_Ebeammaps.end()) {
+        beamE = itBeamE->second;
+    }
+    info() << "Initializing beam background ... "
+           << label << " "
+           << beamE << " "
+           << inputfn
+           << endmsg;
+    m_beaminputs[label] = std::make_shared<BeamBackgroundFileParserV0>(inputfn, 11, beamE);
+
+    return true;
+}
+
+bool GtBeamBackgroundTool::init_GuineaPigPairsFileParser(const std::string& label,
+                                                         const std::string& inputfn) {
+
+    m_beaminputs[label] = std::make_shared<GuineaPigPairsFileParser>(inputfn);
 
     return true;
 }

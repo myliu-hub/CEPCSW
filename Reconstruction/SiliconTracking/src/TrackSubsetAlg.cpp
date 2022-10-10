@@ -15,6 +15,8 @@
 
 #include "TrackSystemSvc/MarlinTrkUtils.h"
 
+#include <TStopwatch.h>
+
 using namespace KiTrack;
 
 DECLARE_COMPONENT(TrackSubsetAlg)
@@ -38,6 +40,23 @@ StatusCode TrackSubsetAlg::initialize() {
 
   _nRun = 0 ;
   _nEvt = 0 ;
+
+  if(m_dumpTime){
+    NTuplePtr nt1(ntupleSvc(), "MyTuples/Time"+name());
+    if ( !nt1 ) {
+      m_tuple = ntupleSvc()->book("MyTuples/Time"+name(),CLID_ColumnWiseTuple,"Tracking time");
+      if ( 0 != m_tuple ) {
+	m_tuple->addItem ("timeTotal", m_timeTotal ).ignore();
+      }
+      else {
+	fatal() << "Cannot book MyTuples/Time"+name() <<endmsg;
+	return StatusCode::FAILURE;
+      }
+    }
+    else{
+      m_tuple = nt1;
+    }
+  }
 
   for(unsigned i=0; i<_trackInputColNames.size(); i++){
     _inTrackColHdls.push_back(new DataHandle<edm4hep::TrackCollection> (_trackInputColNames[i], Gaudi::DataHandle::Reader, this));
@@ -96,7 +115,9 @@ StatusCode TrackSubsetAlg::finalize(){
 }
 
 StatusCode TrackSubsetAlg::execute(){ 
-  std::vector<edm4hep::ConstTrack> tracks;
+  auto stopwatch = TStopwatch();
+
+  std::vector<edm4hep::Track> tracks;
 
   auto trkCol = _outColHdl.createAndPut();
   /**********************************************************************************************/
@@ -151,13 +172,13 @@ StatusCode TrackSubsetAlg::execute(){
   
   debug() << "The tracks and their qualities (and their hits ): " << endmsg;
 
-  std::vector<edm4hep::ConstTrack*> tracks_p;
+  std::vector<edm4hep::Track*> tracks_p;
   for( unsigned i=0; i < tracks.size(); i++ ){
     auto* track = &tracks[i];
     tracks_p.push_back(track);
     double qi = trackQI( track );
     debug() << "Track " << track->id() << " address " << track << "\t" << qi << "( ";
-    std::vector<edm4hep::ConstTrackerHit> hits;
+    std::vector<edm4hep::TrackerHit> hits;
     std::copy(track->trackerHits_begin(), track->trackerHits_end(), std::back_inserter(hits));
     
     std::sort( hits.begin(), hits.end(), KiTrackMarlin::compare_TrackerHit_z );
@@ -174,7 +195,7 @@ StatusCode TrackSubsetAlg::execute(){
   
   TrackCompatibility comp;
   
-  SubsetHopfieldNN<edm4hep::ConstTrack*> subset;
+  SubsetHopfieldNN<edm4hep::Track*> subset;
   //SubsetSimple<edm4hep::Track* > subset;
   subset.add( tracks_p );
   subset.setOmega( _omega );
@@ -201,12 +222,12 @@ StatusCode TrackSubsetAlg::execute(){
   //auto trkCol = _outColHdl.createAndPut();
 
   for( unsigned i=0; i < accepted.size(); i++ ){
-    edm4hep::Track trackImpl;
+    edm4hep::MutableTrack trackImpl;
     
     auto track = accepted[i];
     
-    std::vector<edm4hep::ConstTrackerHit> trackerHitsObj;
-    std::vector<edm4hep::ConstTrackerHit> trackerHits;
+    std::vector<edm4hep::TrackerHit> trackerHitsObj;
+    std::vector<edm4hep::TrackerHit> trackerHits;
     std::copy(track->trackerHits_begin(), track->trackerHits_end(), std::back_inserter(trackerHitsObj));
 
     for(unsigned i=0; i<trackerHitsObj.size(); i++){
@@ -214,7 +235,7 @@ StatusCode TrackSubsetAlg::execute(){
       trackerHits.push_back(Navigation::Instance()->GetTrackerHit(trackerHitsObj[i].getObjectID()));
     } 
     // setup initial dummy covariance matrix
-    std::array<float,15> covMatrix;
+    decltype(edm4hep::TrackState::covMatrix) covMatrix;
     for (unsigned icov = 0; icov<covMatrix.size(); ++icov) {
       covMatrix[icov] = 0;
     }
@@ -225,11 +246,11 @@ StatusCode TrackSubsetAlg::execute(){
     covMatrix[9]  = ( _initialTrackError_z0    ); //sigma_z0^2
     covMatrix[14] = ( _initialTrackError_tanL  ); //sigma_tanl^2
     
-    std::vector< std::pair<float, edm4hep::ConstTrackerHit> > r2_values;
+    std::vector< std::pair<float, edm4hep::TrackerHit> > r2_values;
     r2_values.reserve(trackerHits.size());
     
-    for (std::vector<edm4hep::ConstTrackerHit>::iterator it=trackerHits.begin(); it!=trackerHits.end(); ++it) {
-      edm4hep::ConstTrackerHit h = *it;
+    for (std::vector<edm4hep::TrackerHit>::iterator it=trackerHits.begin(); it!=trackerHits.end(); ++it) {
+      edm4hep::TrackerHit h = *it;
       float r2 = h.getPosition()[0]*h.getPosition()[0]+h.getPosition()[1]*h.getPosition()[1];
       r2_values.push_back(std::make_pair(r2, *it));
     }
@@ -239,7 +260,7 @@ StatusCode TrackSubsetAlg::execute(){
     trackerHits.clear();
     trackerHits.reserve(r2_values.size());
     
-    for (std::vector< std::pair<float, edm4hep::ConstTrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
+    for (std::vector< std::pair<float, edm4hep::TrackerHit> >::iterator it=r2_values.begin(); it!=r2_values.end(); ++it) {
       trackerHits.push_back(it->second);
     }
 
@@ -264,9 +285,9 @@ StatusCode TrackSubsetAlg::execute(){
     
     // Add hit numbers 
     
-    std::vector<std::pair<edm4hep::ConstTrackerHit , double> > hits_in_fit ;
-    std::vector<std::pair<edm4hep::ConstTrackerHit , double> > outliers ;
-    std::vector<edm4hep::ConstTrackerHit> all_hits;
+    std::vector<std::pair<edm4hep::TrackerHit , double> > hits_in_fit ;
+    std::vector<std::pair<edm4hep::TrackerHit , double> > outliers ;
+    std::vector<edm4hep::TrackerHit> all_hits;
     all_hits.reserve(300);
     
     marlinTrk->getHitsInFit(hits_in_fit);
@@ -331,6 +352,12 @@ StatusCode TrackSubsetAlg::execute(){
   Navigation::Instance()->Initialize();
 
   _nEvt ++ ;
+
+  if(m_dumpTime&&m_tuple){
+    m_timeTotal = stopwatch.RealTime()*1000;
+    m_tuple->write();
+  }
+
   return StatusCode::SUCCESS;
 }
 

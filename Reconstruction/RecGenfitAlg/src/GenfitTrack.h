@@ -47,6 +47,7 @@ namespace edm4hep{
     class MCParticle;
     class SimTrackerHitCollection;
     class ReconstructedParticle;
+    class MutableReconstructedParticle;
     class MCRecoTrackerAssociationCollection;
     class Track;
     class TrackCollection;
