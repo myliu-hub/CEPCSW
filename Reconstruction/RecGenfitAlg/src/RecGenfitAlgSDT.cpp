@@ -483,12 +483,12 @@ std::cout << " sdtTrack size = " << sdtTrack.trackerHits_size() << std::endl;
                         assoDCHitsCol,m_sigmaHitU,m_sigmaHitV);
             }else if(1==m_measurementTypeDC.value()){
                 if(m_selectDCHit){
-                    std::vector<edm4hep::ConstTrackerHit*> selectedHits;
+                    std::vector<edm4hep::TrackerHit*> selectedHits;
                     selectHits(sdtTrack,selectedHits);
                     nHitAdded+=genfitTrack->addWireMeasurementsFromList(selectedHits,
                             m_sigmaHitU[0],assoDCHitsCol,m_sortMethod,m_truthAmbig,
                             m_skipCorner,m_skipNear);//mm
-                    std::vector<edm4hep::ConstTrackerHit*> tmp;
+                    std::vector<edm4hep::TrackerHit*> tmp;
                     selectedHits.swap(tmp);
                 }else{
                     if(m_useNoiseDCHit){
@@ -733,7 +733,7 @@ void RecGenfitAlgSDT::debugTrack(int iStrack,int pidType,const GenfitTrack* genf
     edm4hep::TrackState trackState_Origin;
     CEPC::getTrackStateFromPosMom(trackState_Origin,m_genfitField->getBz(pocaToOrigin_POS.Vect())/GenfitUnit::tesla,pocaToOrigin_pos,
             pocaToOrigin_mom,charge,covMatrix_6);
-    std::array<float,15> errorCov_Origin;
+    std::array<float,21> errorCov_Origin;
     errorCov_Origin = trackState_Origin.covMatrix;
     for(int j=0; j<15; j++) {
         m_ErrorcovMatrix_Origin[iStrack][j] = errorCov_Origin[j];
@@ -794,7 +794,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     for(auto sdtTrack: *sdtTrackCol){
         m_nSdtTrackHit = sdtTrack.trackerHits_size();
         for(int ihit=0;ihit<sdtTrack.trackerHits_size();ihit++){
-            edm4hep::ConstTrackerHit sdtTrackHit = sdtTrack.getTrackerHits(ihit);
+            edm4hep::TrackerHit sdtTrackHit = sdtTrack.getTrackerHits(ihit);
         }
 
         //if(iSdtTrack>0) break;//TODO debug for some track only
@@ -881,7 +881,8 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
     int iHit=0;
     simHitCol=m_simDCHitCol.get();
     for(auto simHit: *simHitCol){
-        edm4hep::Vector3d pos=simHit.position();
+        //edm4hep::Vector3d pos=simHit.position();
+        edm4hep::Vector3d pos=simHit.getPosition();
         TVectorD p(3);
         p[0]=pos.x;//no unit conversion here
         p[1]=pos.y;
@@ -899,13 +900,13 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
         std::cout << " sdtRecTrack.trackerHits_size() = " << sdtRecTrack.trackerHits_size() << std::endl;
         for(int iHit=0;iHit<sdtRecTrack.trackerHits_size();iHit++)
         {
-            edm4hep::ConstTrackerHit sdtRecTrackHit = sdtRecTrack.getTrackerHits(iHit);
+            edm4hep::TrackerHit sdtRecTrackHit = sdtRecTrack.getTrackerHits(iHit);
             //std::cout << " sdtRecTrackHit eDep = " << sdtRecTrackHit.getEDep() << std::endl;
 
         }
         for(unsigned int i=0; i<sdtRecTrack.trackStates_size(); i++) {
             edm4hep::TrackState trackStat=sdtRecTrack.getTrackStates(i);
-            std::array<float,15> errorCov;
+            std::array<float,21> errorCov;
             errorCov = trackStat.covMatrix;
             for(int j=0; j<15; j++) {
                 m_ErrorcovMatrix[isdttrack][j] = errorCov[j];
@@ -945,7 +946,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 
 
         //get information from associated simTrackerHit
-        //edm4hep::ConstSimTrackerHit dcSimTrackerHit;
+        //edm4hep::SimTrackerHit dcSimTrackerHit;
         auto dcSimTrackerHit=CEPC::getAssoClosestSimTrackerHit(m_DCHitAssociationCol.get(),dcDigi,m_gridDriftChamber,0);
         //const edm4hep::MCRecoTrackerAssociationCollection* assoHits=m_DCHitAssociationCol.get();
         m_dcDigiMcMomX[iDCDigi]=dcSimTrackerHit.getMomentum().x*GenfitUnit::GeV;
@@ -995,7 +996,7 @@ void RecGenfitAlgSDT::debugEvent(const edm4hep::TrackCollection* sdtTrackCol,
 }
 
 void RecGenfitAlgSDT::selectHits(const edm4hep::Track&,
-        std::vector<edm4hep::ConstTrackerHit*>& dcDigiSelected)
+        std::vector<edm4hep::TrackerHit*>& dcDigiSelected)
 {
 
     //    time_t timep;
@@ -1021,7 +1022,7 @@ void RecGenfitAlgSDT::selectHits(const edm4hep::Track&,
         const edm4hep::TrackerHitCollection* dCDigiCol=nullptr;
         dCDigiCol=m_DCDigiCol.get();
         int iDCDigi=0;
-        for(auto &dcDigi:*dCDigiCol){
+        for(auto dcDigi:*dCDigiCol){
             TVector3 poca,pocaDir,pocaOnWire;
 
             double docaExt=1e9;
@@ -1056,7 +1057,7 @@ void RecGenfitAlgSDT::selectHits(const edm4hep::Track&,
                 debug()<<"Skip hit delta doca "<<fabs(docaExt-docaMC)<<endmsg;
                 continue;
             }
-            edm4hep::ConstTrackerHit* thisDigi = new edm4hep::ConstTrackerHit(dcDigi);
+            edm4hep::TrackerHit* thisDigi = new edm4hep::TrackerHit(dcDigi);
             dcDigiSelected.push_back(thisDigi);
             iDCDigi++;
         }//end loop over digi

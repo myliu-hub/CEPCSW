@@ -7,6 +7,7 @@
 
 #include "DetSimSD/DDG4SensitiveDetector.h"
 #include "DDG4/Defs.h"
+#include "DD4hep/DD4hepUnits.h"
 
 namespace dd4hep {
   namespace sim {

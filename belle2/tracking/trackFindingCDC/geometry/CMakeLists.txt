@@ -23,6 +23,7 @@ gaudi_add_library(geometry
             Eigen3::Eigen
             numerics
             ${ROOT_LIBRARIES}
+            Boost::boost
 )
 
 target_include_directories(geometry PUBLIC

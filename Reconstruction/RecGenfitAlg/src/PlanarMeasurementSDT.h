@@ -28,8 +28,8 @@
 #include "MeasurementOnPlane.h"
 
 namespace edm4hep{
-    class ConstTrackerHit;
-    class ConstSimTrackerHit;
+    class TrackerHit;
+    class SimTrackerHit;
 }
 
 namespace genfit {
@@ -73,15 +73,15 @@ class PlanarMeasurementSDT : public AbsMeasurement {
    */
   void setStripV(bool v = true) {stripV_ = v;}
 
-  void setTrackerHit(const edm4hep::ConstTrackerHit* hit){trackerHit_=hit;}
-  const edm4hep::ConstTrackerHit* getTrackerHit(){return trackerHit_;}
+  void setTrackerHit(const edm4hep::TrackerHit* hit){trackerHit_=hit;}
+  const edm4hep::TrackerHit* getTrackerHit(){return trackerHit_;}
 
  protected:
   SharedPlanePtr physicalPlane_;   //! This is persistent, but '!' makes ROOT shut up.
   int planeId_; // planeId id is -1 per default
   bool stripV_;
-  const edm4hep::ConstSimTrackerHit* simTrackerHit_;
-  const edm4hep::ConstTrackerHit* trackerHit_;
+  const edm4hep::SimTrackerHit* simTrackerHit_;
+  const edm4hep::TrackerHit* trackerHit_;
 
  public:
 

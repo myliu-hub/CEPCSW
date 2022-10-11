@@ -114,7 +114,7 @@ StatusCode MakeBackground::execute()
         trkHit.setCellID(wcellid);
         trkHit.setTime(pocaTime);
         trkHit.setEDep(mcHit.getEDep());
-        trkHit.setEdx(mcHit.getEdx());
+        //trkHit.setEdx(mcHit.getEdx());
         trkHit.setPosition(mcHit.getPosition());
         trkHit.setCovMatrix(mcHit.getCovMatrix());
 

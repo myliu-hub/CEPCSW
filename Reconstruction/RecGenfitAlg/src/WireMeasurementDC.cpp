@@ -23,7 +23,8 @@
 
 #include "WireMeasurementDC.h"
 #include "edm4hep/SimTrackerHit.h"
-#include "edm4hep/TrackerHitConst.h"
+#include "edm4hep/TrackerHit.h"
+//#include "edm4hep/TrackerHitConst.h"
 
 #include <iostream>
 #include <algorithm>

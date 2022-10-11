@@ -7,14 +7,14 @@
 #include "DD4hep/DetElement.h"
 #include "DD4hep/Segmentations.h"
 #include "DD4hep/DD4hepUnits.h"
-#include "edm4hep/TrackerHitConst.h"
-#include "edm4hep/SimTrackerHitConst.h"
+#include "edm4hep/TrackerHit.h"
+#include "edm4hep/SimTrackerHit.h"
 #include "TRandom.h"
 
 #include <iostream>
 
-GenfitHit::GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
-        const edm4hep::ConstSimTrackerHit* simTrackerHit,
+GenfitHit::GenfitHit(const edm4hep::TrackerHit* trackerHit,
+        const edm4hep::SimTrackerHit* simTrackerHit,
         const dd4hep::DDSegmentation::BitFieldCoder* decoder,
         const dd4hep::DDSegmentation::GridDriftChamber* gridDriftChamber,
         double driftVelocity,double driftDistanceErr){

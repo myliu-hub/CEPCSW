@@ -43,13 +43,15 @@ namespace dd4hep {
 namespace edm4hep{
     class EventHeaderCollection;
     class MCParticleCollection;
+    class MutableReconstructedParticle;
     class SimTrackerHitCollection;
     class TrackCollection;
     class TrackerHitCollection;
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticle;
     class ReconstructedParticleCollection;
-    class ConstTrackerHit;
+    class MutableReconstructedParticleCollection;
+    class TrackerHit;
     class Track;
 }
 
@@ -71,7 +73,7 @@ class RecGenfitAlgSDT:public GaudiAlgorithm {
                 const edm4hep::TrackCollection* sdtRecTrackCol,
                 double eventStartTime,int nFittedSDT);
 
-        void selectHits(const edm4hep::Track&, std::vector<edm4hep::ConstTrackerHit*>& dcDigiSelected);
+        void selectHits(const edm4hep::Track&, std::vector<edm4hep::TrackerHit*>& dcDigiSelected);
 
         DataHandle<edm4hep::EventHeaderCollection> m_headerCol{
             "EventHeaderCol", Gaudi::DataHandle::Reader, this};

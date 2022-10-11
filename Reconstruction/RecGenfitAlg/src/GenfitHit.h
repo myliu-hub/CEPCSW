@@ -12,8 +12,8 @@
 #include "TVector3.h"
 
 namespace edm4hep{
-    class ConstSimTrackerHit;
-    class ConstTrackerHit;
+    class SimTrackerHit;
+    class TrackerHit;
 }
 namespace dd4hep {
     namespace DDSegmentation{
@@ -25,8 +25,8 @@ namespace dd4hep {
 
 class GenfitHit{
     public:
-        GenfitHit(const edm4hep::ConstTrackerHit* trackerHit,
-                const edm4hep::ConstSimTrackerHit* simTrackerHit,
+        GenfitHit(const edm4hep::TrackerHit* trackerHit,
+                const edm4hep::SimTrackerHit* simTrackerHit,
                 const dd4hep::DDSegmentation::BitFieldCoder* decoder,
                 const dd4hep::DDSegmentation::GridDriftChamber* gridDriftChamber,
                 double driftVelocity,double driftDistanceErr);
@@ -37,8 +37,8 @@ class GenfitHit{
         double getDriftDistance()const{return m_driftDistance;}
         double getDriftDistanceErr()const{return m_driftDistanceErr;}
         double getDriftDistanceTruth()const{return m_driftDistanceTruth;}
-        const edm4hep::ConstSimTrackerHit* getSimTrackerHit()const{return m_simTrackerHit;}
-        const edm4hep::ConstTrackerHit* getTrackerHit()const{return m_trackerHit;}
+        const edm4hep::SimTrackerHit* getSimTrackerHit()const{return m_simTrackerHit;}
+        const edm4hep::TrackerHit* getTrackerHit()const{return m_trackerHit;}
         TVector3 getEnd0()const;
         TVector3 getEnd1()const;
         TVector3 getTruthPos()const;
@@ -54,8 +54,8 @@ class GenfitHit{
     private:
         const dd4hep::DDSegmentation::BitFieldCoder* m_decoder;
         const dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
-        const edm4hep::ConstTrackerHit* m_trackerHit;
-        const edm4hep::ConstSimTrackerHit* m_simTrackerHit;
+        const edm4hep::TrackerHit* m_trackerHit;
+        const edm4hep::SimTrackerHit* m_simTrackerHit;
         double m_driftDistance;
         double m_driftDistanceErr;
         double m_driftDistanceTruth;

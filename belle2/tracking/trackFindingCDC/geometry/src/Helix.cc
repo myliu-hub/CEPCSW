@@ -16,6 +16,7 @@
 #include <tracking/trackFindingCDC/geometry/Vector3D.h>
 
 #include <boost/math/tools/minima.hpp>
+#include <boost/cstdint.hpp>
 
 #include <utility>
 #include <algorithm>

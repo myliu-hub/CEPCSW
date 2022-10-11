@@ -238,13 +238,13 @@ StatusCode DCTrackFinding::execute()
 
         std::vector<Belle2::TrackFindingCDC::CDCWireHit> bestElement2;
 
-        edm4hep::ConstMCParticle mcParticle;
+        edm4hep::MCParticle mcParticle;
         bool flag = false;
         for(unsigned int iHit=0;iHit<siTk.trackerHits_size();iHit++)
         {
             std::cout << "No." << iHit << " is running " << std::endl;
-            edm4hep::ConstTrackerHit* trackerHit=
-                new edm4hep::ConstTrackerHit(siTk.getTrackerHits(iHit));
+            edm4hep::TrackerHit* trackerHit=
+                new edm4hep::TrackerHit(siTk.getTrackerHits(iHit));
             unsigned long long cellID=trackerHit->getCellID();
             ///getDetTypeID
             UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);

@@ -118,19 +118,19 @@ std::array<float, 6> CEPC::ConvertToCovXYZ(float dU, float thetaU, float phiU, f
   return cov;
 }
 
-const edm4hep::ConstSimTrackerHit CEPC::getAssoClosestSimTrackerHit(
+const edm4hep::SimTrackerHit CEPC::getAssoClosestSimTrackerHit(
         const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
-        const edm4hep::ConstTrackerHit trackerHit,
+        const edm4hep::TrackerHit trackerHit,
         const dd4hep::DDSegmentation::GridDriftChamber* segmentation,
         int docaMehtod)
 {
-  std::vector<edm4hep::ConstSimTrackerHit> hits;
+  std::vector<edm4hep::SimTrackerHit> hits;
   for(auto assoHit: *assoHits){
     if(assoHit.getRec()==trackerHit){
       hits.push_back(assoHit.getSim());
     }
   }
-  edm4hep::ConstSimTrackerHit minSimTrackerHit;
+  edm4hep::SimTrackerHit minSimTrackerHit;
   double min_distance = 999 ;
   double tmp_distance =0.;
   for(auto hit:hits){

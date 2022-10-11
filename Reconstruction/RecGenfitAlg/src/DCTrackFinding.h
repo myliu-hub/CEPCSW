@@ -60,7 +60,7 @@ namespace edm4hep{
     class MCRecoTrackerAssociationCollection;
     class ReconstructedParticle;
     class ReconstructedParticleCollection;
-    class ConstTrackerHit;
+    class TrackerHit;
     class Track;
 }
 
