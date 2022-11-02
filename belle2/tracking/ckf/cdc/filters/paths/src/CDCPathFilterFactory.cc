@@ -71,16 +71,12 @@ std::map<std::string, std::string> CDCPathFilterFactory::getValidFilterNamesAndD
 std::unique_ptr<BaseCDCPathFilter>
 CDCPathFilterFactory::create(const std::string& filterName) const
 {
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
   if (filterName == "none") {
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
     return std::make_unique<TrackFindingCDC::NoneFilter<BaseCDCPathFilter>>();
   } else if (filterName == "all") {
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
     return std::make_unique<TrackFindingCDC::AllFilter<BaseCDCPathFilter>>();
   } else if (filterName == "size") {
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
     return std::make_unique<SizeCDCPathFilter>();
     //} else if (filterName == "mc_truth") {
     //  return std::make_unique<MCTruthCDCPathFilter>();
@@ -99,7 +95,6 @@ CDCPathFilterFactory::create(const std::string& filterName) const
  //            std::make_unique<SizeCDCPathFilter>()
  //          );
   } else if (filterName == "seedCharge") {
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
     return std::make_unique<SeedChargeCDCPathFilter>();
   //} else if (filterName == "seedCharge_and_recording_fromEcl") {
   //  return std::make_unique<AndCDCPathFilter>(
@@ -108,8 +103,6 @@ CDCPathFilterFactory::create(const std::string& filterName) const
   //         );
 
   } else {
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
     return Super::create(filterName);
   }
-    std::cout << __FILE__ << " " << __LINE__ << " filterName = " << filterName << std::endl;
 }

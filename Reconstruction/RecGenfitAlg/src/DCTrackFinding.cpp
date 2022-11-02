@@ -175,7 +175,7 @@ StatusCode DCTrackFinding::initialize()
     if(""!=m_genfitHistRootName) m_genfitFitter->initHist(m_genfitHistRootName);
 
     ///Get Geom
-    geomery_wire = new GeomeryWire(m_geomSvc);
+    //geomery_wire = new GeomeryWire();
 
     return StatusCode::SUCCESS;
 }
@@ -213,6 +213,13 @@ StatusCode DCTrackFinding::execute()
     simSITHitCol=m_simSITHitCol.get();
     std::cout << " simSITHitCol size = " << simSITHitCol->size() << std::endl;
 
+    //FTD
+    auto assoFTDHitsCol=m_FTDHitAssociationCol.get();
+    std::cout << " assoFTDHitsCol size = " << assoFTDHitsCol->size() << std::endl;
+    const edm4hep::SimTrackerHitCollection* simFTDHitCol=nullptr;
+    simFTDHitCol=m_simFTDHitCol.get();
+    std::cout << " simFTDHitCol size = " << simFTDHitCol->size() << std::endl;
+
     for(auto siTk:*siTrackCol){
 
         edm4hep::TrackState trackStat=siTk.getTrackStates(1);
@@ -238,33 +245,8 @@ StatusCode DCTrackFinding::execute()
 
         std::vector<Belle2::TrackFindingCDC::CDCWireHit> bestElement2;
 
-        edm4hep::MCParticle mcParticle;
-        bool flag = false;
-        for(unsigned int iHit=0;iHit<siTk.trackerHits_size();iHit++)
-        {
-            std::cout << "No." << iHit << " is running " << std::endl;
-            edm4hep::TrackerHit* trackerHit=
-                new edm4hep::TrackerHit(siTk.getTrackerHits(iHit));
-            unsigned long long cellID=trackerHit->getCellID();
-            ///getDetTypeID
-            UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
-            encoder.setValue(cellID);
-            int detTypeID=encoder[lcio::ILDCellID0::subdet];
-
-            if(!(detTypeID==lcio::ILDDetID::SIT)) continue;
-            std::string detectorName = "SIT";
-            for(int iSim=0; iSim <(int) assoSITHitsCol->size();iSim++)
-            {
-                if(assoSITHitsCol->at(iSim).getRec()== *trackerHit)
-                {
-                    mcParticle = assoSITHitsCol->at(iSim).getSim().getMCParticle();
-                    flag = true;
-                    break;
-                }
-            }
-            if(flag) break;
-        }
-        std::cout << " MCParticle = " << mcParticle << std::endl;
+        std::cout << " dCDigiCol size = " << dCDigiCol->size() << std::endl;
+        std::cout << " assoDCHitsCol size = " << assoDCHitsCol->size() << std::endl;
 
         // DC digi hit find MCParticle
         int ndigi =0;
@@ -274,7 +256,6 @@ StatusCode DCTrackFinding::execute()
 
             unsigned short tdcCount = dcDigi.getTime();
             unsigned short adcCount = 0;
-            unsigned short charge;
             unsigned short iSuperLayer=0;
 
             unsigned short iLayer=0;
@@ -282,38 +263,27 @@ StatusCode DCTrackFinding::execute()
 
             genfit::TrackPoint* trackPoint =nullptr;
             bool insertPoint =false;
-            for(int iSim=0; iSim <(int) assoDCHitsCol->size();iSim++)
-            {
-                if(assoDCHitsCol->at(iSim).getRec()== dcDigi &&
-                        (assoDCHitsCol->at(iSim).getSim().getMCParticle() == mcParticle))
-                {
-                    std::cout << "DC  MCParticle = " << assoDCHitsCol->at(iSim).getSim().getMCParticle() << std::endl;
-                    unsigned long long dccellID=dcDigi.getCellID();
-                    iLayer = m_decoder->get(dccellID,"layer");
-                    iWire = m_decoder->get(dccellID,"cellID");
-                    charge = assoDCHitsCol->at(iSim).getSim().getMCParticle().getCharge();
+            unsigned long long dccellID=dcDigi.getCellID();
+            iLayer = m_decoder->get(dccellID,"layer");
+            iWire = m_decoder->get(dccellID,"cellID");
 
-                    hitpos[0]=dcDigi.getPosition()[0];
-                    hitpos[1]=dcDigi.getPosition()[1];
-                    hitpos[2]=dcDigi.getPosition()[2];
+            hitpos[0]=dcDigi.getPosition()[0];
+            hitpos[1]=dcDigi.getPosition()[1];
+            hitpos[2]=dcDigi.getPosition()[2];
 
-                    hitCov(0,0)=dcDigi.getCovMatrix().at(0);
-                    hitCov(1,1)=dcDigi.getCovMatrix().at(2);
-                    hitCov(2,2)=dcDigi.getCovMatrix().at(5);
+            hitCov(0,0)=dcDigi.getCovMatrix().at(0);
+            hitCov(1,1)=dcDigi.getCovMatrix().at(2);
+            hitCov(2,2)=dcDigi.getCovMatrix().at(5);
 
-                    trackPoint = new genfit::TrackPoint(
-                            new genfit::SpacepointMeasurement(hitpos,hitCov,dccellID,ndigi,nullptr),
-                            &(recoTrackGenfitAccess->getGenfitTrack(*newRecoTrack)));
-                    insertPoint = recoTrackGenfitAccess->InsertTrackPoint(*newRecoTrack,trackPoint);
-                    std::cout << " insertPoint = " << insertPoint << std::endl;
-                    ndigi++;
-                    break;
-                }//loop if
-            }// loop for Sim Hit over
+            trackPoint = new genfit::TrackPoint(
+                    new genfit::SpacepointMeasurement(hitpos,hitCov,dccellID,ndigi,nullptr),
+                    &(recoTrackGenfitAccess->getGenfitTrack(*newRecoTrack)));
+            insertPoint = recoTrackGenfitAccess->InsertTrackPoint(*newRecoTrack,trackPoint);
+            ndigi++;
+
             Belle2::CDCHit * cdchit = new Belle2::CDCHit(tdcCount,adcCount,
                     iSuperLayer,iLayer,iWire);
-            std::cout << " getIWire() = " << cdchit->getIWire() << " getILayer() = " << cdchit->getILayer() << " getICLayer() = " << cdchit->getICLayer() << " getISuperLayer() = " << cdchit->getISuperLayer() << " getID() = " << cdchit->getID() << std::endl;
-            std::cout << " tdcCount = " << tdcCount << " adcCount = " << adcCount << " iSuperLayer = " << iSuperLayer << " iLayer = " << iLayer << " iWire = " << iWire << std::endl;
+            std::cout << " DCTrackFinding input iSuperLayer = "<< iSuperLayer << ", iLayer = " << iLayer << ", iWire = " << iWire << std::endl;
             //Belle2::CDCHit cdchit(tdcCount,adcCount,iSuperLayer,iLayer,iWire);
             Belle2::TrackFindingCDC::CDCWireHit * cdcWireHit =
                 new Belle2::TrackFindingCDC::CDCWireHit(cdchit,
@@ -330,6 +300,7 @@ StatusCode DCTrackFinding::execute()
         int pointNum = (&(recoTrackGenfitAccess->getGenfitTrack(*newRecoTrack)))->getNumPoints();
         std::cout << " pointNum = " << pointNum << std::endl;
 
+        Belle2::CKFToCDCFindlet::clearSeedRecoTrack();
         Belle2::CKFToCDCFindlet::addSeedRecoTrack(newRecoTrack);
         std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
@@ -339,6 +310,7 @@ StatusCode DCTrackFinding::execute()
         std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
     }
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
     return StatusCode::SUCCESS;
 }
@@ -350,7 +322,7 @@ StatusCode DCTrackFinding::finalize()
     MsgStream log(msgSvc(), name());
     info()<< " DCTrackFinding in finalize()" << endmsg;
     delete m_genfitFitter;
-    delete geomery_wire;
+    //delete geomery_wire;
 
     return StatusCode::SUCCESS;
 }

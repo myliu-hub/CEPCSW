@@ -67,9 +67,7 @@ namespace Belle2 {
     void Chooseable<AFilter>::initialize()
     {
       m_filter = m_filterFactory->create(m_param_filterName);
-      std::cout << __FILE__  << " if m_filter, m_param_filterName = " <<  m_param_filterName << std::endl;
       if (not m_filter) {
-          std::cout << __FILE__  << " if no m_filter, m_param_filterName = " <<  m_param_filterName << std::endl;
         //B2ERROR("Could not create filter with name " << m_param_filterName);
         return;
       }

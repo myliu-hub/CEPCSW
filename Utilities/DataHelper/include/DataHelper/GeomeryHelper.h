@@ -2,15 +2,16 @@
 #define GeomeryHelper_H
 
 
-#include "edm4hep/TrackerHit.h"
-#include "edm4hep/TrackerHitConst.h"
-#include "edm4hep/SimTrackerHit.h"
-#include "edm4hep/MCRecoTrackerAssociationCollection.h"
 #include <array>
 #include "DDSegmentation/Segmentation.h"
 #include "DetSegmentation/GridDriftChamber.h"
 #include "TVector3.h"
+
 #include "GaudiKernel/SmartIF.h"
+#include "GaudiKernel/ISvcLocator.h"
+#include "GaudiKernel/Kernel.h"
+#include "GaudiKernel/Bootstrap.h"
+#include "DetInterface/IGeomSvc.h"
 
 class IGeomSvc;
 namespace dd4hep {
@@ -34,20 +35,20 @@ class GeomeryWire{
     public:
         static const GeomeryWire* Instance;
         static const GeomeryWire* Get();
-        GeomeryWire(SmartIF<IGeomSvc> geom);
-        virtual ~GeomeryWire();
 
-        void setCellID(int layerID,int wireID);
         void getWirePos(int layerID,int wireID,TVector3& Wstart,TVector3& Wend) const;
-
+        dd4hep::DDSegmentation::GridDriftChamber * getSeg() const;
     private:
 
-    SmartIF<IGeomSvc> m_geomSvc;
+        GeomeryWire();
+        virtual ~GeomeryWire();
 
-    dd4hep::Detector* m_dd4hepDetector;
-    dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
-    int m_layerID;
-    int m_wireID;
+        GeomeryWire(const GeomeryWire&);
+        GeomeryWire& operator=(const GeomeryWire&);
+
+        SmartIF<IGeomSvc> m_geomsvc;
+        dd4hep::Detector* m_dd4hepDetector;
+        dd4hep::DDSegmentation::GridDriftChamber* m_gridDriftChamber;
 
 };
 

@@ -57,8 +57,9 @@ function check-working-builddir() {
 
 function run-job() {
     local blddir=$(build-dir)
-
+    pwd
     $blddir/run gaudirun.py $*
+    #valgrind --tool=massif $blddir/run gaudirun.py $*
 }
 
 ##############################################################################

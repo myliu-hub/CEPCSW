@@ -48,7 +48,6 @@ namespace Belle2 {
 
     static void addSeedRecoTrack(RecoTrack* recoTrack){
         m_vxdRecoTrackVector.push_back(recoTrack);
-        std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
     }
 
     static void clearSeedRecoTrack(){

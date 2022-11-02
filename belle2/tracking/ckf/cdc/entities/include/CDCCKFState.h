@@ -61,7 +61,6 @@ namespace Belle2 {
     const genfit::MeasuredStateOnPlane& getTrackState() const
     {
       //B2ASSERT("State does not have a track state (yet)", static_cast<bool>(m_trackState));
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
       return *m_trackState;
     }
 
@@ -149,19 +148,9 @@ namespace Belle2 {
     {
       TVector3 pos, mom;
       TMatrixDSym cov;
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
       const auto& trackState = getTrackState();
-      std::cout << " trackState = " << trackState.getRep() <<std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
-      std::cout << " trackState Pos = " << std::endl;
-      trackState.getPos().Print();
-      std::cout << " trackState MOm = " << std::endl;
-      trackState.getMom().Print();
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
       const TrackFindingCDC::Vector3D trackPosition(trackState.getPos());
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
       const TrackFindingCDC::Vector3D trackMomentum(trackState.getMom());
-      std::cout << __FILE__ << " " << __LINE__ << std::endl;
       return TrackFindingCDC::CDCTrajectory3D(trackPosition, trackState.getTime(),
                                               trackMomentum, trackState.getCharge());
     }

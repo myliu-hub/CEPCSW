@@ -88,79 +88,50 @@ void CDCCKFResultStorer::initialize()
 
 void CDCCKFResultStorer::apply(const std::vector<CDCCKFResult>& results)
 {
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     for (const CDCCKFResult& result : results) {
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (result.size() < 2) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             continue;
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
         }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         genfit::MeasuredStateOnPlane const* trackState = nullptr;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (m_param_trackFindingDirection == TrackFindingCDC::EForwardBackward::c_Forward) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             trackState = &result.at(1).getTrackState();
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
         } else if (m_param_trackFindingDirection == TrackFindingCDC::EForwardBackward::c_Backward) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             trackState = &result.back().getTrackState();
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
         } else {
             //B2FATAL("CDCCKFResultStorer: No valid direction specified. Please use forward/backward.");
             std::cout << __FILE__ << "\n CDCCKFResultStorer: No valid direction specified. Please use forward/backward." << std::endl;
         }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         // only accept paths that reached the center of the CDC (for ECL seeding)
         if (not m_param_exportAllTracks
                 && m_param_trackFindingDirection == TrackFindingCDC::EForwardBackward::c_Backward
                 && result.back().getWireHit()->getWire().getICLayer() > 2) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             continue;
         }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         const TVector3& trackPosition = trackState->getPos();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         const TVector3& trackMomentum = trackState->getMom();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         const double trackCharge = trackState->getCharge();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         //RecoTrack* newRecoTrack = m_outputRecoTracks.appendNew(trackPosition, trackMomentum, trackCharge);
         RecoTrack* newRecoTrack = new RecoTrack(trackPosition, trackMomentum, trackCharge);
         RecoTrackGenfitAccess *recoTrackGenfitAccess = new RecoTrackGenfitAccess();
 
         unsigned int sortingParameter = 0;
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         for (const CDCCKFState& state : result) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             if (state.isSeed()) {
-                std::cout << __FILE__ << " " << __LINE__ << std::endl;
                 continue;
             }
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
             const TrackFindingCDC::CDCWireHit* wireHit = state.getWireHit();
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
             auto rl = state.getRLinfo()  == TrackFindingCDC::ERightLeft::c_Right ?
                 RecoHitInformation::RightLeftInformation::c_right :
                 RecoHitInformation::RightLeftInformation::c_left;
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             TVector3 pos,mom;
             TMatrixDSym cov;
             state.getTrackState().getPosMomCov(pos,mom,cov);
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
-            std::cout << __FILE__ << " pos = " << std::endl;
-            pos.Print();
-            std::cout << __FILE__ << " mom = " << std::endl;
-            mom.Print();
-            std::cout << __FILE__ << " cov = " << std::endl;
-            cov.Print();
 
             TVectorD hitpos(3);
             hitpos[0] = pos.X();
@@ -177,30 +148,20 @@ void CDCCKFResultStorer::apply(const std::vector<CDCCKFResult>& results)
             genfit::TrackPoint* trackPoint = new genfit::TrackPoint(
                     new genfit::SpacepointMeasurement(hitpos,hitCov,7,sortingParameter,nullptr),
                     &(recoTrackGenfitAccess->getGenfitTrack(*newRecoTrack)));
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             bool insertPoint = recoTrackGenfitAccess->InsertTrackPoint(*newRecoTrack,trackPoint);
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             sortingParameter++;
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
             if (m_param_setTakenFlag) {
-                std::cout << __FILE__ << " " << __LINE__ << std::endl;
                 //wireHit->getAutomatonCell().setTakenFlag();
             }
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
         }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         const RecoTrack* seed = result.front().getSeed();
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (not seed) {
-            std::cout << __FILE__ << " " << __LINE__ << std::endl;
             continue;
         }
-        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         //seed->addRelationTo(newRecoTrack, m_param_writeOutDirection);
         //newRecoTrack->addRelationTo(seed, m_param_writeOutDirection);
     }
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 }

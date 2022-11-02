@@ -403,9 +403,7 @@ bool RecoTrackGenfitAccess::InsertTrackPoint(RecoTrack& recoTrack,genfit::TrackP
 {
 
     if(nullptr==trackPoint) return false;
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     RecoTrackGenfitAccess::getGenfitTrack(recoTrack).insertPoint(trackPoint);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     return true;
 }
 
@@ -611,26 +609,16 @@ const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromFirstH
 
 const genfit::MeasuredStateOnPlane& RecoTrack::getMeasuredStateOnPlaneFromLastHit(const genfit::AbsTrackRep* representation) const
 {
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   int trackSize = m_genfitTrack.getNumPoints();
-  std::cout << " trackSize = " << trackSize << std::endl;
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   for (int i = -1; i >= -1*trackSize; i--) {
   //for (int i = 0; i <= trackSize; i++) {
-      std::cout << __FILE__ << " i = " << i << std::endl;
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
     try {
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
-  std::cout << " representation = " << std::endl;
   //representation->Print();
       return m_genfitTrack.getFittedState(i, representation);
     } catch (const genfit::Exception& exception) {
-        std::cout << __FILE__ << " " <<  exception.what() << std::endl;
         //B2DEBUG(50, "Can not get mSoP because of: " << exception.what());
     }
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
   }
-  std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
   //B2FATAL("There is no single hit with a valid mSoP in this track!");
 }

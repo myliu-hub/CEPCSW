@@ -56,32 +56,35 @@ std::vector<RecoTrack*> CKFToCDCFindlet::m_vxdRecoTrackVector;
 void CKFToCDCFindlet::apply(const std::vector<TrackFindingCDC::CDCWireHit>& wireHits)
 {
     //m_trackHandler.apply(m_vxdRecoTrackVector);
-    std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
-    std::cout << " m_vxdRecoTrackVector[0] = " << m_vxdRecoTrackVector[0] << std::endl;
     std::cout << __FILE__ << " " << __LINE__ << std::endl;
     m_seedCreator.apply(m_vxdRecoTrackVector, m_seeds);
-    std::cout << " m_vxdRecoTrackVector size = " << m_vxdRecoTrackVector.size() << std::endl;
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
     const auto& wireHitPtrs = TrackFindingCDC::as_pointers<const TrackFindingCDC::CDCWireHit>(wireHits);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << " m_seeds size = " << m_seeds.size() << std::endl;
 
+    int i =0;
     for (const auto& seed : m_seeds) {
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
         //B2DEBUG(29, "Starting new seed");
         m_paths.clear();
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    std::cout << " No." << i << " hit in seeds, and it's seed = \n" << seed << std::endl;
         m_paths.push_back(seed);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
         m_treeSearcher.apply(m_paths, wireHitPtrs);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
         m_resultFinalizer.apply(m_paths, m_results);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    i++;
     }
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
     m_resultStorer.initialize();
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
     m_resultStorer.apply(m_results);
-    std::cout << __FILE__ << " " << __LINE__ << std::endl; 
+    std::cout << " Result Size = " << m_results.size() << std::endl;
+    for(int i=0;i<m_results.size();i++){
+        std::cout << " No." << i << " hit in result, and it's result = \n" << m_results[i] << std::endl;
+    }
 }

@@ -59,6 +59,7 @@ namespace Belle2 {
         if (bestElement and not std::isnan(bestWeight)) {
             results.push_back(*bestElement);
         }
+        std::cout << __FILE__ << " " << __LINE__ << " input size = " << paths.size() << " out results size = " << results.size() << std::endl;
     }
 
       private:

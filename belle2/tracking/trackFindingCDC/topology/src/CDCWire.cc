@@ -33,7 +33,6 @@ const CDCWire* CDCWire::getInstance(ISuperLayer iSuperLayer, ILayer iLayer, IWir
 
 const CDCWire* CDCWire::getInstance(const CDCHit& hit)
 {
-    std::cout << " CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID())) = " << CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID())) << std::endl;
   if (not CDCWireTopology::getInstance().isValidWireID(WireID(hit.getID()))) {
     WireID wireID(hit.getID());
     //B2ERROR("Invalid encoded wire id of cdc hit " << wireID);

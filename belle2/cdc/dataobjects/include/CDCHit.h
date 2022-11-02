@@ -88,7 +88,6 @@ namespace Belle2 {
     void setWireID(unsigned short iSuperLayer, unsigned short iLayer, unsigned short iWire)
     {
       //B2DEBUG(29, "setWireId called with" << iSuperLayer << ", " << iLayer << ", " << iWire);
-        std::cout << " CDCHit setWireID = " << iSuperLayer << " , "<< iLayer << " , " << iWire << std::endl;
         m_eWire = WireID(iSuperLayer, iLayer, iWire).getEWire();
     }
 

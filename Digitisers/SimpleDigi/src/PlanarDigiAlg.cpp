@@ -168,7 +168,6 @@ StatusCode PlanarDigiAlg::execute()
   for( auto SimTHit : *STHcol ) {
 
     const int celId = SimTHit.getCellID() ;
-    std::cout << " Sim MCParticle = " << SimTHit.getMCParticle() << std::endl;
 
     encoder.setValue(celId) ;
     int side   = encoder[lcio::ILDCellID0::side];

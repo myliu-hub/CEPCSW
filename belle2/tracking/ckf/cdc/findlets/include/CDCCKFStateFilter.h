@@ -54,13 +54,8 @@ namespace Belle2 {
     /// Apply the findlet and do the state selection
     void apply(const CDCCKFPath& path, std::vector<CDCCKFState>& nextStates) override
     {
-      std::cout << " nextStates size = " << nextStates.size() << std::endl;
       const CDCCKFState& lastState = path.back();
       const TrackFindingCDC::CDCTrajectory3D& trajectory = lastState.getTrajectory();
-      std::cout << "check trajectory = " << trajectory.getTanLambda() << std::endl;
-
-      std::cout << " Checking Path:\n " << " path size = " << path.size() << "\n"
-                << " path[0] = " << path[0] << std::endl;
 
       TrackFindingCDC::Weight weight;
 
@@ -69,13 +64,9 @@ namespace Belle2 {
       for (CDCCKFState& nextState : nextStates) {
         //B2DEBUG(29, "Checking layer: " << nextState.getWireHit()->getWire().getICLayer());
 
-        std::cout << " Checking getArcLength : " << nextState.getArcLength()  << std::endl;
-        std::cout << " Checking iSseed = " << nextState.isSeed() << std::endl;
-        std::cout << " Checking getWeight = " << nextState.getWeight() << std::endl;
         m_preFilter.setFilterName("all");
         m_preFilter.initialize();
         weight = m_preFilter({&path, &nextState});
-        std::cout << " rough weight = " << weight << std::endl;
         nextState.setWeight(weight);
         if (std::isnan(weight)) {
           std::cout << "CDCCKFStateFilter Fails PreFilter !! " << std::endl;
@@ -84,11 +75,9 @@ namespace Belle2 {
 
         // Do a reconstruction based on the helix extrapolation from the last hit
         reconstruct(nextState, trajectory, lastState.getArcLength());
-        std::cout << " reconstruct lastState.getArcLength() = " << lastState.getArcLength() << std::endl;
         m_basicFilter.setFilterName("all");
         m_basicFilter.initialize();
         weight = m_basicFilter({&path, &nextState});
-        std::cout << " all weight = " << weight << std::endl;
         nextState.setWeight(weight);
         if (std::isnan(weight)) {
           //B2DEBUG(29, "Fails BasicFilter");
@@ -99,7 +88,6 @@ namespace Belle2 {
         m_extrapolationFilter.setFilterName("extrapolate_and_update");
         m_extrapolationFilter.initialize();
         weight = m_extrapolationFilter({&path, &nextState});
-        std::cout << " extrapolate_and_update weight = " << weight << std::endl;
         nextState.setWeight(weight);
         if (std::isnan(weight)) {
           //B2DEBUG(29, "Fails ExtrapolationFilter");
@@ -113,7 +101,6 @@ namespace Belle2 {
         m_finalSelection.setFilterName("extrapolate_and_update");
         m_finalSelection.initialize();
         weight = m_finalSelection({&path, &nextState});
-        std::cout << "final extrapolate_and_update weight = " << weight << std::endl;
         nextState.setWeight(weight);
         if (std::isnan(weight)) {
             std::cout << __FILE__ << " Fails FinalFilter ! " << std::endl;
@@ -169,21 +156,17 @@ namespace Belle2 {
 
         const TrackFindingCDC::Vector2D& recoPosOnTrajectory = trajectory2D.getClosest(wirePos2DAtZ);
         const double driftLength = wireHit->getRefDriftLength();
-        std::cout << " CDCCKFStateFilter driftLength = " << driftLength << std::endl;
         TrackFindingCDC::Vector2D disp2D = recoPosOnTrajectory - wirePos2DAtZ;
         disp2D.normalizeTo(driftLength);
         recoPos2D = wirePos2DAtZ + disp2D;
       }
 
       const double arcLength = trajectory2D.calcArcLength2D(recoPos2D);
-        std::cout << " CDCCKFStateFilter arcLength = " << arcLength << std::endl;
       const double z = trajectorySZ.mapSToZ(arcLength);
       const double distanceToHit = trajectory2D.getDist2D(recoPos2D);
 
       state.setArcLength(lastArcLength + arcLength);
-      std::cout << " (lastArcLength , arcLength ) = " << lastArcLength << " , " << arcLength << std::endl;
       state.setHitDistance(distanceToHit);
-      std::cout << " distanceToHit = " << distanceToHit << std::endl;
       state.setReconstructedZ(z);
     }
   };

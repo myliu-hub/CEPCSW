@@ -72,7 +72,6 @@ CDCPathPairFilterFactory::create(const std::string& filterName) const
   } else if (filterName == "hitDistance") {
     return std::make_unique<HitDistanceBasedCDCPathPairFilter>();
   } else if (filterName == "arc_length") {
-      std::cout << __FILE__ << " " << __LINE__ <<  " filterName = " << filterName << std::endl;
     return std::make_unique<ArcLengthBasedCDCPathPairFilter>();
   } else if (filterName == "arc_length_fromEcl") {
     return std::make_unique<ArcLengthBasedCDCfromEclPathPairFilter>();

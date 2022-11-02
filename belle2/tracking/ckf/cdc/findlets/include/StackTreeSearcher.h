@@ -47,55 +47,83 @@ namespace Belle2 {
                const std::vector<const TrackFindingCDC::CDCWireHit*>& wireHits) override
     {
 
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (paths.empty()) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             return;
         }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         std::vector<CDCCKFPath> newPaths;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         std::vector<CDCCKFState> nextStates;
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         for (CDCCKFPath& path : paths) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             //B2DEBUG(29, "Testing one path from " << path.back());
             m_stateCreator.apply(nextStates, path, wireHits);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             m_stateFilter.apply(path, nextStates);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
             // TODO: Attention: if there is no hit anymore, the path will not be added to the final set!
             for (const auto& nextState : nextStates) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
                 path.push_back(nextState);
 
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
                 //B2DEBUG(29, "will go to " << nextState);
                 newPaths.push_back(path);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
                 path.pop_back();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             //B2DEBUG(29, "Now having " << newPaths.size() << " in flight");
             nextStates.clear();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         //B2DEBUG(29, "Having found " << newPaths.size() << " new paths");
         for (const auto& path : newPaths) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             //B2DEBUG(29, path);
         }
 
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         m_pathMerger.apply(newPaths);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         //B2DEBUG(29, "Having found " << newPaths.size() << " new paths after merging");
         for (const auto& path : newPaths) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             //B2DEBUG(29, path);
         }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         m_pathSelector.apply(newPaths);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         //B2DEBUG(29, "Having found " << newPaths.size() << " new paths after selection");
         for (const auto& path : newPaths) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             //B2DEBUG(29, path);
         }
 
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         if (newPaths.empty()) {
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
             return;
         }
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         paths.swap(newPaths);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
         newPaths.clear();
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
         apply(paths, wireHits);
+        std::cout << __FILE__ << " " << __LINE__ << std::endl;
     }
 
         private:
