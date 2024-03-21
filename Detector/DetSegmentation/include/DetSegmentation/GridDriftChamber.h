@@ -61,15 +61,20 @@ public:
   virtual double distanceTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual double distanceTrackWire2(const CellID& cID, const TVector3& hit_pos) const;
   virtual void cellposition(const CellID& cID, TVector3& Wstart, TVector3& Wend) const;
+  virtual int maxWireID(int chamber,int layer) const;
+  virtual int GobalWireID(int layer,int cellID) const;
   virtual void cellposition2(int chamber, int layer, int cell, TVector3& Wstart, TVector3& Wend) const;
   TVector3 LineLineIntersect(TVector3& p1, TVector3& p2, TVector3& p3, TVector3& p4) const;
   virtual TVector3 distanceClosestApproach(const CellID& cID, const TVector3& hitPos, TVector3& PCA) const;
   virtual TVector3 Line_TrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual TVector3 IntersectionTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const;
   virtual TVector3 wirePos_vs_z(const CellID& cID, const double& zpos) const;
+  virtual TVector3 wirePos_vs_z2(const int layerID,const int wireID, const double& zpos) const;
   virtual double Distance(const CellID& cID, const TVector3& pointIn, const TVector3& pointOut, TVector3& hitPosition, TVector3& PCA) const;
   virtual TVector3 returnPhi0(int chamber,int layer, double z) const;
+  virtual void cellpositionZ(int layerID, int cellID,double z,TVector3& cellPos) const;
 
+  virtual int wireID_Z(int chamberID,int layerID,TVector3 posz) const;
 
 //  double phi(const CellID& cID) const;
   inline double cell_Size() const { return m_cellSize; }

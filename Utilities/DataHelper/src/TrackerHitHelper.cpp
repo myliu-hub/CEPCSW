@@ -148,13 +148,32 @@ const edm4hep::SimTrackerHit CEPC::getAssoClosestSimTrackerHit(
 
     if(tmp_distance < min_distance){
       min_distance = tmp_distance;
-      //pos_x = hitPosition.x();     //pos.x();
-      //pos_y = hitPosition.y();     //pos.y();
-      //pos_z = pos.z();
-      //momx = hit.getMomentum()[0];
-      //momy = hit.getMomentum()[1];
       minSimTrackerHit=hit;
     }
   }
   return minSimTrackerHit;
+}
+
+const edm4hep::TrackerHit CEPC::getAssoTrackerHit(
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        edm4hep::SimTrackerHit simTrackerHit){
+    edm4hep::TrackerHit trackerHit;
+    for(auto assoHit: *assoHits){
+        if(assoHit.getSim()==simTrackerHit){
+            trackerHit = assoHit.getRec();
+        }
+    }
+    return trackerHit;
+}
+
+const edm4hep::SimTrackerHit CEPC::getAssoSimTrackerHit(
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        edm4hep::TrackerHit trackerHit){
+    edm4hep::SimTrackerHit simTrackerHit;
+    for(auto assoHit: *assoHits){
+        if(assoHit.getRec()==trackerHit){
+            simTrackerHit = assoHit.getSim();
+        }
+    }
+    return simTrackerHit;
 }

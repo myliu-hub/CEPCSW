@@ -69,6 +69,29 @@ CellID GridDriftChamber::cellID(const Vector3D& /*localPosition*/, const Vector3
   return cID;
 }
 
+int GridDriftChamber::wireID_Z(int chamberID,int layerID,TVector3 poca_onwire) const{
+  
+    updateParams(chamberID,layerID);
+
+    TVector3 Phi0 = returnPhi0(chamberID,layerID,poca_onwire.Z());
+    double phi0 = phiFromXY2(Phi0);
+
+    double phi_hit = std::atan2(poca_onwire.Y(),poca_onwire.X());
+    if(phi_hit<0) phi_hit += 2 * M_PI;
+    double offsetphi= m_offset;
+    double _lphi;
+
+    _lphi = phi_hit - phi0 + _currentLayerphi/2.;
+    if(_lphi<0.){
+        _lphi+=2*M_PI;
+    }else if(_lphi>2*M_PI){
+        _lphi=fmod(_lphi,2*M_PI);
+    }
+    int cellID=floor(_lphi/_currentLayerphi);
+
+    return cellID;
+}
+
 double GridDriftChamber::phi(const CellID& cID) const {
     CellID phiValue = _decoder->get(cID, m_phiID);
     return binToPosition(phiValue, _currentLayerphi, m_offset);
@@ -88,6 +111,32 @@ void GridDriftChamber::cellposition(const CellID& cID, TVector3& Wstart,
     Wend = returnWirePosition(phi_end, 1);
 }
 
+//myliu:FIXME
+void GridDriftChamber::cellpositionZ(int layerID, int cellID,double z,
+        TVector3& cellPos) const{
+
+    int chamberID=0;
+    updateParams(chamberID,layerID);
+
+    TVector3 Phi0 = returnPhi0(chamberID,layerID,z);
+    double phi0 = phiFromXY2(Phi0);
+
+    double phi_hit = phi0+(cellID+0.5)*_currentLayerphi;
+    if(phi_hit<0.){
+        phi_hit+=2*M_PI;
+    }else if(phi_hit>2*M_PI){
+        phi_hit=fmod(phi_hit,2*M_PI);
+    }
+
+    double x = _currentRadius*std::cos(phi_hit);
+    double y = _currentRadius*std::sin(phi_hit);
+
+    cellPos.SetX(x);
+    cellPos.SetY(y);
+    cellPos.SetZ(z);
+
+}
+
 TVector3 GridDriftChamber::returnPhi0(int chamber,int layer, double z) const
 {
     updateParams(chamber,layer);
@@ -103,6 +152,18 @@ TVector3 GridDriftChamber::returnPhi0(int chamber,int layer, double z) const
     double y_pos = ratio * (wire_end.Y() - wire_start.Y()) + wire_start.Y();
 
     return TVector3(x_pos,y_pos,z);
+}
+
+int GridDriftChamber::maxWireID(int chamber,int layer) const
+{
+    updateParams(chamber,layer);
+    //    std::cout << " maxWireID = " << (int) ((2*3.1415926/_currentLayerphi)+1)  << std::endl;
+    return (int) ((2*3.1415926/_currentLayerphi)+1);
+}
+
+int GridDriftChamber::GobalWireID(int layer,int cellID) const
+{
+    return layer*1000000+cellID;
 }
 
 
@@ -250,6 +311,23 @@ TVector3 GridDriftChamber::wirePos_vs_z(const CellID& cID, const double& zpos) c
     TVector3 wireCoord(x, y, zpos);
     return wireCoord;
 }
+
+// Get the wire position for a z
+TVector3 GridDriftChamber::wirePos_vs_z2(const int layerID,const int wireID,
+        const double& zpos) const {
+
+    TVector3 Wstart = {0,0,0};
+    TVector3 Wend = {0,0,0};
+    cellposition2(0,layerID,wireID,Wstart,Wend);
+
+    double t = (zpos - Wstart.Z())/(Wend.Z()-Wstart.Z());
+    double x = Wstart.X()+t*(Wend.X()-Wstart.X());
+    double y = Wstart.Y()+t*(Wend.Y()-Wstart.Y());
+
+    TVector3 wireCoord(x, y, zpos);
+    return wireCoord;
+}
+
 
 TVector3 GridDriftChamber::IntersectionTrackWire(const CellID& cID, const TVector3& hit_start, const TVector3& hit_end) const {
     // Intersection between the particle track and the wire assuming that the track between hit_start and hit_end is linear

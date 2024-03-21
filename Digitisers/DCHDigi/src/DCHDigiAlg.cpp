@@ -21,6 +21,9 @@
 #include <algorithm>
 
 #include "time.h"
+#include <unordered_map>
+
+#include "DataHelper/HelixClass.h"
 
 DECLARE_COMPONENT( DCHDigiAlg )
 
@@ -34,6 +37,7 @@ DCHDigiAlg::DCHDigiAlg(const std::string& name, ISvcLocator* svcLoc)
   
   // Output collections
   declareProperty("DigiDCHitCollection", w_DigiDCHCol, "Handle of Digi DCHit collection");
+  declareProperty("TruthDigiDCHitCollection", w_TruthDigiDCHCol, "Handle of Truth Digi DCHit collection");
   
   declareProperty("AssociationCollection", w_AssociationCol, "Handle of Association collection");
    
@@ -89,8 +93,14 @@ StatusCode DCHDigiAlg::initialize()
             m_tuple->addItem( "poca_x"   , m_n_digi, m_poca_x    ).ignore();
             m_tuple->addItem( "poca_y"   , m_n_digi, m_poca_y    ).ignore();
             m_tuple->addItem( "hit_dE"   , m_n_digi,m_hit_dE    ).ignore();
-            m_tuple->addItem( "hit_dE_dx", m_n_digi,m_hit_dE_dx ).ignore();
             m_tuple->addItem( "truthlength", m_n_digi,m_truthlength).ignore();
+            m_tuple->addItem( "N_noise", m_n_noise, 0, 1000000 ).ignore();
+            m_tuple->addItem( "layer_noise", m_n_noise,m_noise_layer).ignore();
+            m_tuple->addItem( "cell_noise", m_n_noise,m_noise_cell).ignore();
+            m_tuple->addItem( "NoiseT", m_n_noise,m_noise_time).ignore();
+            m_tuple->addItem( "N_noiseCover", m_n_noiseCover, 0, 1000000 ).ignore();
+            m_tuple->addItem( "layer_noiseCover", m_n_noiseCover,m_noiseCover_layer).ignore();
+            m_tuple->addItem( "cell_noiseCover", m_n_noiseCover,m_noiseCover_cell).ignore();
           } else { // did not manage to book the N tuple....
             info() << "    Cannot book N-tuple:" << long( m_tuple ) << endmsg;
           }
@@ -108,6 +118,7 @@ StatusCode DCHDigiAlg::execute()
   info() << "Processing " << _nEvt << " events " << endmsg;
   if(m_WriteAna) m_evt = _nEvt;
   edm4hep::TrackerHitCollection* Vec   = w_DigiDCHCol.createAndPut();
+  edm4hep::TrackerHitCollection* TruthVec   = w_TruthDigiDCHCol.createAndPut();
   edm4hep::MCRecoTrackerAssociationCollection* AssoVec   = w_AssociationCol.createAndPut();
   const edm4hep::SimTrackerHitCollection* SimHitCol =  r_SimDCHCol.get();
   if (SimHitCol->size() == 0) {
@@ -129,7 +140,7 @@ StatusCode DCHDigiAlg::execute()
       if(SimHit.getEDep() <= m_edep_threshold) continue;
 
       //Wire efficiency
-      double hitProb = fRandom.Uniform(1.);
+      float hitProb = fRandom.Uniform(1.);
       if(hitProb > m_wireEff) continue;
 
       if ( id_hits_map.find(id) != id_hits_map.end()) id_hits_map[id].push_back(SimHit);
@@ -144,18 +155,25 @@ StatusCode DCHDigiAlg::execute()
       m_n_sim = 0;
       m_n_digi = 0 ;
   }
+
+  std::vector<TVector2> HitPosition2D;
+  bool ismixNoise[55] = {0};
+  std::cout << " id_hits_map  size = " << id_hits_map.size() << std::endl;
+
   for(auto iter = id_hits_map.begin(); iter != id_hits_map.end(); iter++)
   {
       unsigned long long wcellid = iter->first;
       auto trkHit = Vec->create();
+      auto TruthtrkHit = TruthVec->create();
       trkHit.setCellID(wcellid);
-      double tot_edep   = 0 ;
-      double tot_length = 0 ;
-      double pos_x = 0 ;
-      double pos_y = 0 ;
-      double pos_z = 0 ;
-      double momx,momy = 0;
-      int simhit_size = iter->second.size();
+      TruthtrkHit.setCellID(wcellid);
+      float tot_edep   = 0 ;
+      float tot_length = 0 ;
+      float pos_x = 0 ;
+      float pos_y = 0 ;
+      float pos_z = 0 ;
+      float momx,momy,momz = 0;
+      const int simhit_size = iter->second.size();
       for(unsigned int i=0; i< simhit_size; i++)
       {
           tot_edep += iter->second.at(i).getEDep();//GeV
@@ -173,15 +191,17 @@ StatusCode DCHDigiAlg::execute()
       float min_distance = 999 ;
       float sim_distance = 999 ;
       float tmp_distance =0;
-      float SMdca = 0;
-      float distance =0;
       TVector3 hitPosition;
       TVector3 PCA;
       for(unsigned int i=0; i< simhit_size; i++)
       {
           float sim_hit_mom = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] + iter->second.at(i).getMomentum()[2]*iter->second.at(i).getMomentum()[2] );//GeV
-          float sim_hit_pt = sqrt( iter->second.at(i).getMomentum()[0]*iter->second.at(i).getMomentum()[0] + iter->second.at(i).getMomentum()[1]*iter->second.at(i).getMomentum()[1] );//GeV
+          if(sim_hit_mom<1e-4) continue;
+
           TVector3  pos(iter->second.at(i).getPosition()[0]*dd4hep_mm, iter->second.at(i).getPosition()[1]*dd4hep_mm, iter->second.at(i).getPosition()[2]*dd4hep_mm);
+
+          float simpos[3] = {iter->second.at(i).getPosition()[0],iter->second.at(i).getPosition()[1],iter->second.at(i).getPosition()[2]};
+          float simmom[3] = {iter->second.at(i).getMomentum()[0],iter->second.at(i).getMomentum()[1],iter->second.at(i).getMomentum()[2]};
 
           TVector3 sim_mon(iter->second.at(i).getMomentum()[0],iter->second.at(i).getMomentum()[1],iter->second.at(i).getMomentum()[2]);
           float Steplength = iter->second.at(i).getPathLength();
@@ -190,7 +210,6 @@ StatusCode DCHDigiAlg::execute()
           tmp_distance = m_segmentation->Distance(wcellid,pos_start,pos_end,hitPosition,PCA);
           tmp_distance = tmp_distance/dd4hep_mm; //mm
           sim_distance = tmp_distance;
-
 
           if(tmp_distance < min_distance){
               min_distance = tmp_distance;
@@ -205,7 +224,6 @@ StatusCode DCHDigiAlg::execute()
           asso.setRec(trkHit);
           asso.setSim(iter->second.at(i));
           asso.setWeight(iter->second.at(i).getEDep()/tot_edep);
-          //std::cout<<" asso setRec setSim "<<trkHit<<" "<<iter->second.at(i)<<std::endl;
 
           if(m_WriteAna && (nullptr!=m_tuple)) {
               m_simhit_x[m_n_sim] = pos.x();
@@ -219,11 +237,25 @@ StatusCode DCHDigiAlg::execute()
           }
       }
 
+      //Smear drift distance
+      if(m_smear){
+          float dd = min_distance + gRandom->Gaus(0,fabs(m_res_x));
+          if(dd>=0) min_distance = dd;
+          else min_distance = -dd;
+      }
+
       trkHit.setTime(min_distance*1e3/m_velocity);//m_velocity is um/ns, drift time in ns
+      trkHit.setQuality(1);//1:singal   0:noise of overlap singal  -1:noise
       trkHit.setEDep(tot_edep);// GeV
-      //trkHit.setEdx (tot_edep/tot_length); // GeV/mm
       trkHit.setPosition (edm4hep::Vector3d(pos_x, pos_y, pos_z));//position of closest sim hit
       trkHit.setCovMatrix(std::array<float, 6>{m_res_x, 0, m_res_y, 0, 0, m_res_z});//cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z) in mm
+
+      //add noise every layer
+      if(m_mixNoise && !ismixNoise[layer]) mixNoise(layer,cellID,Vec,&trkHit,ismixNoise);
+
+      TruthtrkHit.setEDep(tot_edep);// GeV
+      TruthtrkHit.setPosition (edm4hep::Vector3d(pos_x, pos_y, pos_z));//position of closest sim hit
+      TruthtrkHit.setCovMatrix(std::array<float, 6>{m_res_x, 0, m_res_y, 0, 0, m_res_z});//cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z) in mm
 
       if(m_WriteAna && (nullptr!=m_tuple)) {
           m_chamber  [m_n_digi] = chamber;
@@ -242,7 +274,6 @@ StatusCode DCHDigiAlg::execute()
           m_poca_x   [m_n_digi] = PCA.x();
           m_poca_y   [m_n_digi] = PCA.y();
           m_hit_dE   [m_n_digi] = trkHit.getEDep();
-          //m_hit_dE_dx[m_n_digi] = trkHit.getEdx() ;
           m_truthlength[m_n_digi] = tot_length ;
           m_n_digi ++ ;
       }
@@ -271,3 +302,72 @@ StatusCode DCHDigiAlg::finalize()
     info() << "Processed " << _nEvt << " events " << endmsg;
     return GaudiAlgorithm::finalize();
 }
+
+void DCHDigiAlg::mixNoise(int layerID ,int wireID,
+        edm4hep::TrackerHitCollection* Vec,
+        edm4hep::MutableTrackerHit* trackerHitLayer,
+        bool ismixNoise[55]){
+
+    int maxCellID = m_segmentation->maxWireID(0,layerID);
+    int nNoiseHits = (int) maxCellID*m_noiseEff;
+
+    //loop over noise hits in this layer
+    for(int ic=0;ic<nNoiseHits;ic++){
+        int cellid = (int) maxCellID*fRandom.Uniform(1.);
+        float time = m_timeWindow*fRandom.Uniform(1.);
+        TVector3 Wstart,Wend;
+        m_segmentation->cellposition2(0,layerID,cellid,Wstart,Wend);
+        //found noise overlap with signal
+        if(!(cellid != wireID))
+        {
+            if(time<trackerHitLayer->getTime()){
+                //1. overlap with signal and time > signal time
+                if(!m_mixNoiseAndSkipOverlap){
+                    //set time
+                    trackerHitLayer->setTime(time);
+                    trackerHitLayer->setQuality(0);
+
+                    m_noiseCover_layer[m_n_noiseCover] = layerID;
+                    m_noiseCover_cell[m_n_noiseCover] = cellid;
+
+                    m_n_noiseCover++;
+
+                    m_noise_layer[m_n_noise] = layerID;
+                    m_noise_cell[m_n_noise] = cellid;
+                    m_noise_time[m_n_noise] = time;
+
+                    m_n_noise++;
+                } // end fo m_mixNoiseAndSkipOverlap
+            }else{
+                //2. overlap with signal and time > signal time
+                // TODO adc sum with signal
+                continue;
+            }
+        }else{ // not found noise overlap with signal
+            //3. create a noise hit
+            //create another trackerHit
+            if(!m_mixNoiseAndSkipNoOverlap){
+                auto trkNoiseHit = Vec->create();
+
+                dd4hep::rec::CellID ncellid;
+                m_decoder->set(ncellid,"chamber",0);
+                m_decoder->set(ncellid,"layer",layerID);
+                m_decoder->set(ncellid,"cellID",cellid);
+
+                trkNoiseHit.setCellID(ncellid);
+                trkNoiseHit.setTime(time);
+                trkNoiseHit.setQuality(-1);
+
+                m_noise_layer[m_n_noise] = layerID;
+                m_noise_cell[m_n_noise] = cellid;
+                m_noise_time[m_n_noise] = time;
+
+                m_n_noise++;
+
+            }// end of m_mixNoiseAndSkipNoOverlap
+        } // end of if
+
+
+    }// loop over noise hit
+    ismixNoise[layerID] = true;
+}//end of mixNoise

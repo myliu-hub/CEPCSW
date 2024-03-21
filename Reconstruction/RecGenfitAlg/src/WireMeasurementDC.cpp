@@ -160,17 +160,18 @@ void WireMeasurementDC::print(){
   std::cout<<"("<<layer_<<","<<cell_
     <<") wire(" <<wireEndPoint1_[0] <<wireEndPoint1_[1] <<wireEndPoint1_[2]
     <<wireEndPoint2_[0] <<wireEndPoint2_[1] <<wireEndPoint2_[2]
-    <<")cm dt "<<trackerHit_->getTime()
-    <<"ns time "<<simTrackerHit_->getTime()
+    <<")cm ptr: "<< trackerHit_
+    << " dt "<<time_
     <<"ns dd "<<getRawHitCoords()[0]
     <<"cm dd err "<< getRawHitCov()(0,0)
-    <<"cm lr "<<leftRight_;
-  //<<std::endl;
+    <<"cm lr "<<leftRight_
+  <<std::endl;
   //<<" ddSm "<<driftDistanceSmeared
 }
 
 
 WireMeasurementDC::WireMeasurementDC(const GenfitHit* genfitHit,int iHit):
+    genfitHit_(genfitHit),
     maxDistance_(genfitHit->getMaxDistance()),
     leftRight_(genfitHit->getLeftRightAmbig()),
     trackerHit_(genfitHit->getTrackerHit()),

@@ -32,6 +32,10 @@
 //STL
 #include <vector>
 
+#include "DataHelper/HelixClass.h"
+#include "WireMeasurementDC.h"
+#include "PlanarMeasurementSDT.h"
+
 class TLorentzVector;
 class IGeomSvc;
 class WireMeasurementDC;
@@ -42,6 +46,7 @@ namespace genfit{
     class AbsTrackRep;
     class RKTrackRep;
     class KalmanFittedStateOnPlane;
+    class PlanarMeasurementSDT;
 }
 namespace edm4hep{
     class MCParticle;
@@ -57,6 +62,7 @@ namespace edm4hep{
     class Vector3d;
     class Vector3f;
     class TrackerHitCollection;
+    class MCParticleCollection;
 }
 namespace dd4hep {
     namespace DDSegmentation{
@@ -72,6 +78,9 @@ class GenfitTrack {
     friend int GenfitFitter::processTrack(
             GenfitTrack* track, bool resort);
     
+    friend int GenfitFitter::processTrack(
+            genfit::Track* track, bool resort);
+
     friend int GenfitFitter::processTrackWithRep(
             GenfitTrack* track, int repID, bool resort);
 
@@ -115,8 +124,13 @@ class GenfitTrack {
     virtual int addWireMeasurementsFromListTrF(const edm4hep::TrackerHitCollection* trkHits,
             float sigma,int sortMethod);
 
+    //Add salhits
+    bool addWireMeasurements(const edm4hep::TrackerHit& trackerHit,
+            edm4hep::SimTrackerHit simTrackerHitAsso,int dcID,float sigma);
+    double checkGenfitTrack(int& dcFitNum);
+
     ///Add one silicon hits
-    bool addSiliconMeasurement(edm4hep::TrackerHit* hit,
+    bool addSiliconMeasurement(edm4hep::TrackerHit* hit,TVector3 pos,TVector3 mom,
             float sigmaU,float sigmaV,int cellID,int hitID);
 
     ///Add silicon measurements, return number of hits on track
@@ -129,6 +143,7 @@ class GenfitTrack {
             std::vector<double>& truthDistance,double driftVelocity);
     bool GetDocaRes(int hitID,  double& DriftDis,double& fittedDoca,
             double& res,int repID=0, bool biased=true) const;
+    void setNewHitCov(int hitID) const;
 
     ///Store track to ReconstructedParticle
     bool storeTrack(edm4hep::MutableReconstructedParticle& recParticle,
@@ -136,7 +151,7 @@ class GenfitTrack {
             TVector3& pocaToOrigin_pos,
             TVector3& pocaToOrigin_mom,
             TMatrixDSym& pocaToOrigin_cov,
-            int pidType, int ndfCut, double chi2Cut,
+            int pidType, int ndfCut, double chi2Cut,int& nDC, int& nSDT,
             int& nFittedDC, int& nFittedSDT,int& ngenfitHit,
             std::vector<double>& trackL, std::vector<double>& hitMom,
             std::vector<float>& truthMomEdep,
@@ -145,10 +160,12 @@ class GenfitTrack {
             std::vector<double>& FittedDoca,
             std::vector<double>& truthDoca,
             std::vector<double>& Res,
-            std::vector<double>& truthRes);
+            std::vector<double>& truthRes, std::vector<int>& isNoise,
+            std::vector<int>& isFitNoise,
+            std::vector<int>& layerFit,std::vector<int>& wireIDFit,
+            std::vector<int>& layer,std::vector<int>& wireID,std::vector<double>& extrapoLen);
 
     ///A tool to convert track to the first layer of DC
-  
     void pivotToFirstLayer(const edm4hep::Vector3d& pos,
             const edm4hep::Vector3f& mom, edm4hep::Vector3d& firstPos,
             edm4hep::Vector3f& firstMom);
@@ -159,7 +176,24 @@ class GenfitTrack {
     //return dd4hep unit
     double extrapolateToHit(TVector3& poca, TVector3& pocaDir,
             TVector3& pocaOnWire, double& doca,edm4hep::MCParticle mcParticle,
-            int cellID, int repID, bool stopAtBoundary, bool calcJacobianNoise)const;
+            unsigned long long cellID, int repID=1,
+            bool stopAtBoundary=false,
+            bool calcJacobianNoise=true);
+    //return dd4hep unit
+    double extrapolateToHit(TVector3& poca, TVector3& pocaDir,
+            TVector3& pocaOnWire, double& doca,edm4hep::MCParticle mcParticle,
+            HelixClass helix,unsigned long long cellID, int repID=1,
+            bool stopAtBoundary=false,
+            bool calcJacobianNoise=true);
+    //return dd4hep unit
+    double extrapolateToHit(TVector3& poca, TVector3& pocaDir,
+            TVector3& pocaOnWire, double& doca,TVector3 startPos,TVector3 startMom,
+            int chargeId, unsigned long long cellID, int repID=1, bool stopAtBoundary=false,
+            bool calcJacobianNoise=true)const;
+    double extrapolateToHit(TVector3& poca, TVector3& pocaDir,
+            TVector3& pocaOnWire, double& doca,TVector3 startPos,TVector3 startMom,
+            unsigned long long cellID,int pdg, bool stopAtBoundary=false,
+            bool calcJacobianNoise=true)const;
     /// Extrapolate the track to the point
     /// Output: pos and mom of POCA point to point
     /// Input: genfitTrack,point,repID,stopAtBoundary and calcAverageState
@@ -177,6 +211,9 @@ class GenfitTrack {
             const TVector3 lineDirection, int hitID =0, int repID=0,
             bool stopAtBoundary=false, bool calcJacobianNoise=true);
 
+    double extrapolateToPlane(TVector3 startPos, TVector3 startMom,
+            genfit::SharedPlanePtr plane,int pdg,
+            bool stopAtBoundary = false, bool calcJacobianNoise = true) const;
 
     bool getPosMomCovMOP(int hitID, TLorentzVector& pos, TVector3& mom,
             TMatrixDSym& cov, int repID=0) const;
@@ -186,7 +223,9 @@ class GenfitTrack {
     const TVector3 getSeedStateMom() const;
     void getSeedStateMom(TLorentzVector& pos, TVector3& mom) const;
     unsigned int getNumPoints() const;
+    unsigned int getNumPointsWithMeasurement() const;
     unsigned int getNumPointsDet(int cellID) const;
+    void getSeedStateCov(TVectorD& seedState,TMatrixDSym& covSeed);
 
     /// get the fitted track status
     const genfit::FitStatus* getFitStatus(int repID=0) const;
@@ -206,12 +245,16 @@ class GenfitTrack {
     void printSeed() const;//print seed
     void printFitted(int repID=0) const;//print seed
     void print(TLorentzVector pos, TVector3 mom, const char* comment="") const;
+    void print() const;
 
     /// set and get debug level
     void setDebug(int debug){m_debug=debug;}
     void setDebugGenfit(int debug);
     void setDebugLocal(int debug);
     int getDebug(void) const { return m_debug;}
+
+    bool sortedHitOnTrack(int pdg);
+    void checkTrackPoint();
 
     /// get name of this object
     const char* getName() const {return m_name;}
@@ -226,6 +269,14 @@ class GenfitTrack {
     static void getTrackFromEDMTrackFinding(const edm4hep::Track& edm4HepTrack,
             double& charge, TVectorD& trackParam, TMatrixDSym& cov,TVector3& pos,
             TVector3& mom);
+    int salvageHits(int PDG,
+            const edm4hep::MCParticleCollection* mcParticleCol,
+            const edm4hep::TrackerHitCollection* dCDigiCol,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            double sigma,bool truthAmbig,double skipCorner,double skipNear,
+            double extraCut,double extraDocaCut,
+            std::vector<double>& docaTrack,std::vector<int>& isNoise,
+            int& nDC);
     protected:
     //genfit::Track* getTrack() {return m_track;}
 
@@ -246,10 +297,14 @@ class GenfitTrack {
     const dd4hep::rec::ISurface* getISurface(edm4hep::TrackerHit* hit);
     void getSeedCov(TMatrixDSym& cov);
     void getAssoSimTrackerHit(
-            const edm4hep::MCRecoTrackerAssociationCollection*& assoHits,
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
             edm4hep::TrackerHit* trackerHit,
             edm4hep::SimTrackerHit& simTrackerHit) const;
-    void getEndPointsOfWire(int cellID,TVector3& end0,TVector3& end1)const;
+    void getAssoSimTrackerHit2(
+            const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+            const edm4hep::TrackerHit& trackerHit,
+            edm4hep::SimTrackerHit& simTrackerHit) const;
+    void getEndPointsOfWire(unsigned long long cellID,TVector3& end0,TVector3& end1)const;
     void getTrackFromEDMTrack(const edm4hep::Track& edm4HepTrack,
             double& charge, TVectorD& trackParam, TMatrixDSym& cov) const;
     void getTrackFromMCPartile(const edm4hep::MCParticle mcParticle,

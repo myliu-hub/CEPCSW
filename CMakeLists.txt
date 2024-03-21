@@ -9,6 +9,7 @@ include(cmake/CEPCSWEnv.cmake)
 find_package(ROOT COMPONENTS RIO Tree)
 
 find_package(Gaudi)
+find_package(Eigen3)
 
 
 include(GNUInstallDirs)

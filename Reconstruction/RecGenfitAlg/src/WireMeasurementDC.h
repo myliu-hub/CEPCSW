@@ -32,6 +32,8 @@
 #include "AbsHMatrix.h"
 #include "GenfitHit.h"
 
+
+#include "edm4hep/TrackerHit.h"
 namespace edm4hep{
     class TrackerHit;
     class SimTrackerHit;
@@ -109,10 +111,19 @@ class WireMeasurementDC : public genfit::AbsMeasurement{
   virtual bool isLeftRigthMeasurement() const {return true;}
   double getMaxDistance(){return maxDistance_;}
   int getLeftRightResolution() const override {return leftRight_;}
-  void setTrackerHit(const edm4hep::TrackerHit& trackerHit,int l,int c){
+  int getWireMeasurementDCLayer(){return layer_;}
+  void setTrackerHit(const edm4hep::TrackerHit& trackerHit,int l,int c,double t){
       trackerHit_=&trackerHit;
       layer_=l;
       cell_=c;
+      time_=t;
+  }
+  void setTrackerHitObj(const edm4hep::TrackerHit& trackerHit,int l,int c,double t){
+      trackerHit_= nullptr;
+      trackerHitObj_=trackerHit;
+      layer_=l;
+      cell_=c;
+      time_=t;
   }
   void setSimTrackerHit(const edm4hep::SimTrackerHit& simTrackerHit){
       simTrackerHit_=&simTrackerHit;
@@ -120,6 +131,8 @@ class WireMeasurementDC : public genfit::AbsMeasurement{
   void print();
 
   const edm4hep::TrackerHit* getTrackerHit(){return trackerHit_;}
+  edm4hep::TrackerHit getTrackerHitObj(){return trackerHitObj_;}
+  const GenfitHit* getGenfitHit(){return genfitHit_;}
 
  protected:
 
@@ -130,8 +143,11 @@ class WireMeasurementDC : public genfit::AbsMeasurement{
 
   int layer_;
   int cell_;
+  double time_;
   const edm4hep::SimTrackerHit* simTrackerHit_;
   const edm4hep::TrackerHit* trackerHit_;
+  edm4hep::TrackerHit trackerHitObj_;
+  const GenfitHit* genfitHit_;
 
  public:
 

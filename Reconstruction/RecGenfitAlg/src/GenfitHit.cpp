@@ -26,7 +26,7 @@ GenfitHit::GenfitHit(const edm4hep::TrackerHit* trackerHit,
     m_driftDistanceErr=driftDistanceErr*GenfitUnit::cm;
     //driftVelocity um/ns
     m_driftDistanceTruth=m_trackerHit->getTime()*driftVelocity*GenfitUnit::um;
-    m_driftDistance=m_driftDistanceTruth*GenfitUnit::cm;
+    m_driftDistance=fabs(m_driftDistanceTruth*GenfitUnit::cm);
 //    if(driftDistanceErr>0) m_driftDistance+=gRandom->Gaus(0,fabs(driftDistanceErr*GenfitUnit::cm));//FIXME
 }
 
@@ -50,7 +50,6 @@ int GenfitHit::getLeftRightAmbig() const {
     TVector3 pocaOnWire=
         m_gridDriftChamber->wirePos_vs_z(getCellID(),pocaOnTrack.Z());
     TVector3 pocaDir=(pocaOnWire-pocaOnTrack).Unit();
-    //TVector3 a=pocaDir.Cross(trackDir);
     int lrAmbig=(pocaDir.Cross(trackDir))*wireDir;
     return fabs(lrAmbig)/lrAmbig;
 }

@@ -58,10 +58,6 @@ void CEPC::getPosMomFromTrackState(const edm4hep::TrackState& trackState,
     const char* m_name="TrackHelper";
     int m_debug=0;
     if(m_debug>=2){
-        //std::cout<<m_name<<" covMatrix_5 " <<std::endl;
-        //covMatrix_5.Print();
-        //std::cout<<m_name<<" mS " <<std::endl;
-        //mS.Print();
         std::cout<<m_name<<" covMatrix_6 " <<std::endl;
         covMatrix_6.Print();
         std::cout<<m_name<<" pos " <<std::endl;
@@ -132,3 +128,32 @@ void CEPC::getTrackStateFromPosMom(edm4hep::TrackState& trackState,double Bz,
 
     trackState.covMatrix = covMatrix;
 }
+
+//Set 5 par from position, momentum and charge
+void CEPC::getHelixFromPosMom(HelixClass& helix,double& xc,double& yc,
+        double& R,double Bz,TVector3 seedPos,TVector3 seedMom,double charge){
+    //HelixClass helix;
+    double seedPos_t[3]={seedPos.X(),seedPos.Y(),seedPos.Z()};
+    double seedMom_t[3]={seedMom.X(),seedMom.Y(),seedMom.Z()};
+    helix.Initialize_VP(seedPos_t,seedMom_t,charge,Bz); //mm GeV
+
+    xc = helix.getXC();
+    yc = helix.getYC();
+
+    R = helix.getRadius();
+}
+
+void CEPC::getAssoMCParticle(
+        const edm4hep::MCRecoTrackerAssociationCollection* assoHits,
+        edm4hep::TrackerHit trackerHit,
+        edm4hep::MCParticle& mcParticle,edm4hep::SimTrackerHit& simTrackerHit)
+{
+    for(auto assoHit: *assoHits){
+        if(assoHit.getRec()==trackerHit)
+        {
+            simTrackerHit=assoHit.getSim();
+            mcParticle = simTrackerHit.getMCParticle();
+
+        }
+    }
+} 

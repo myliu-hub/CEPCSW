@@ -191,6 +191,28 @@ int GenfitFitter::processTrack(GenfitTrack* track, bool resort)
     return true;
 } // End of ProcessTrack
 
+/// Fit a genfit::track from a candidate track
+int GenfitFitter::processTrack(genfit::Track* track, bool resort)
+{
+    if(m_debug>=2)std::cout<<"In ProcessTrack"<<std::endl;
+    if(track->getNumPoints()<=0){
+        if(m_debug>=2)std::cout<<"skip track w.o. hit"<<std::endl;
+        return false;
+    }
+    if(getDebug()>2) print("");
+
+    /// Do the fitting
+    try{
+        m_absKalman->processTrack(track,resort);
+    }catch(genfit::Exception& e){
+        if(m_debug>=2)std::cout<<"Genfit exception caught "<<std::endl;
+        e.what();
+        return false;
+    }
+    if(m_debug>=2)std::cout<<"End of ProcessTrack"<<std::endl;
+    return true;
+} // End of Process genfit::Track
+
 
 void GenfitFitter::setFitterType(const char* val)
 {

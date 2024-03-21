@@ -11,6 +11,7 @@ gaudi_add_module(RecGenfitAlg
                 src/LSFitting.cpp
                 src/WireMeasurementDC.cpp
                 src/PlanarMeasurementSDT.cpp
+                src/DCTrackFinding.cpp
         LINK GearSvc
              Gaudi::GaudiAlgLib
              Gaudi::GaudiKernel
@@ -22,8 +23,11 @@ gaudi_add_module(RecGenfitAlg
              DataHelperLib
              EDM4HEP::edm4hep
              EDM4HEP::edm4hepDict
-             GenFit::genfit2
              k4FWCore::k4FWCore
+             tracking
+             cdcdataobjects
+             framework
+             GenFit::genfit2
 )
 
 target_include_directories(RecGenfitAlg PUBLIC
@@ -31,6 +35,8 @@ target_include_directories(RecGenfitAlg PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/include
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+set_target_properties(RecGenfitAlg PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS RecGenfitAlg
             EXPORT CEPCSWTargets
