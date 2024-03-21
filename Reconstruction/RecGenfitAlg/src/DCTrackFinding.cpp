@@ -240,9 +240,6 @@ StatusCode DCTrackFinding::initialize()
             sc=m_tuple->addItem("match_hit_ex",m_n_N_SiTrack,m_match_hit_ex,200);
             sc=m_tuple->addItem("match_hit_ey",m_n_N_SiTrack,m_match_hit_ey,200);
             sc=m_tuple->addItem("match_hit_ez",m_n_N_SiTrack,m_match_hit_ez,200);
-            //sc=m_tuple->addItem("n_reslayer",m_n_N_SiTrack,m_n_reslayer);
-            //sc=m_tuple->addItem("resLayer",m_n_N_SiTrack,m_reslayer,100);
-            //sc=m_tuple->addItem("resPhi",m_n_N_SiTrack,m_resPhi,100);
         }else{
             warning()<<"Tuple DCTrackFinding/dcTrackFinding not booked"<<endmsg;
         }
@@ -270,40 +267,31 @@ StatusCode DCTrackFinding::execute()
         return StatusCode::SUCCESS;
     }else{
         debug()<<"SiSubsetTrackCol size "<<siTrackCol->size()<<endmsg;
-        std::cout <<"DCTrackFinding SiSubsetTrackCol size "<<siTrackCol->size()<<std::endl;;
         if(0==siTrackCol->size()){
             return StatusCode::SUCCESS;
         }
     }
-    std::cout<<" DCTrackFinding in  execute eventNo  "<<m_eventNo<<std::endl;
 
     //DC
     auto assoDCHitsCol=m_DCHitAssociationCol.get();
-    std::cout << " assoDCHitsCol size = " << assoDCHitsCol->size() << std::endl;
     const edm4hep::TrackerHitCollection* dCDigiCol=nullptr;
     dCDigiCol=m_DCDigiCol.get();
-    std::cout << " dCDigiCol size = " << dCDigiCol->size() << std::endl;
 
     // Truth DC hit
     const edm4hep::TrackerHitCollection* TruthdCDigiCol=m_TruthDCDigiCol.get();
     int truthNumdc = TruthdCDigiCol->size();
     m_n_TruthDigi = truthNumdc;
-    std::cout << " TruthdCDigiCol size = " << TruthdCDigiCol->size() << std::endl;
    //VXDAssoHits
     const edm4hep::MCRecoTrackerAssociationCollection* VXDAssoVec = m_VXDHitAssociationCol.get();
     //SIT
     auto assoSITHitsCol=m_SITHitAssociationCol.get();
-    std::cout << " assoSITHitsCol size = " << assoSITHitsCol->size() << std::endl;
     const edm4hep::SimTrackerHitCollection* simSITHitCol=nullptr;
     simSITHitCol=m_simSITHitCol.get();
-    std::cout << " simSITHitCol size = " << simSITHitCol->size() << std::endl;
 
     //FTD
     auto assoFTDHitsCol=m_FTDHitAssociationCol.get();
-    std::cout << " assoFTDHitsCol size = " << assoFTDHitsCol->size() << std::endl;
     const edm4hep::SimTrackerHitCollection* simFTDHitCol=nullptr;
     simFTDHitCol=m_simFTDHitCol.get();
-    std::cout << " simFTDHitCol size = " << simFTDHitCol->size() << std::endl;
 
     //SDTtrackCollection
     const edm4hep::TrackCollection* sdtTrackCol=nullptr;
@@ -313,9 +301,6 @@ StatusCode DCTrackFinding::execute()
         return StatusCode::SUCCESS;
     }
 
-    //std::vector<int> testLayer;
-    //std::vector<double> testPhi;
-    //std::vector<double> testWirePhi;
     std::vector<std::vector<int>> truthDChit;
     for(auto trudchit: *TruthdCDigiCol){
         unsigned short iLayer=0;
@@ -345,7 +330,6 @@ StatusCode DCTrackFinding::execute()
         edm4hep::MCParticle mcParticle;
         edm4hep::SimTrackerHit simTrackerHit;
         CEPC::getAssoMCParticle(VXDAssoVec,trackHit,mcParticle,simTrackerHit);
-        std::cout << "DCTrackFinding  mcParticle PDG = " << mcParticle.getPDG() << std::endl;
         TVector3 seedPos,seedMom;
         TMatrixDSym seedCov;
         double charge_double;
@@ -380,9 +364,6 @@ StatusCode DCTrackFinding::execute()
         std::vector<Belle2::TrackFindingCDC::CDCWireHit> bestElement2;
 
         if(m_tuple) m_n_Digi = dCDigiCol->size();
-
-        std::cout << " dCDigiCol size = " << dCDigiCol->size() << std::endl;
-        std::cout << " assoDCHitsCol size = " << assoDCHitsCol->size() << std::endl;
 
         // DC digi hit find MCParticle
         int ndigi =0;
@@ -454,23 +435,7 @@ StatusCode DCTrackFinding::execute()
 
             bestElement2.push_back(cdcWireHit);
         }
-        std::cout << " ndigi = " << ndigi << std::endl;
         if(ndigi<1e-5) return StatusCode::FAILURE;
-
-       // m_n_reslayer[siNum] = testLayer.size();
-       // for(int i=1;i<testLayer.size();i++){
-
-       //     int res = testLayer[i]-testLayer[i-1];
-       //     m_reslayer[siNum][i] = res;
-
-       // }
-       // for(int i=0;i<testPhi.size();i++){
-       //     double resphi = abs(testPhi[i]-testWirePhi[i+1]);
-       //     m_resPhi[siNum][i] = resphi;
-       // }
-       // testLayer.clear();
-       // testPhi.clear();
-       // testWirePhi.clear();
 
         Belle2::CKFToCDCFindlet::clearSeedRecoTrack();
         Belle2::CKFToCDCFindlet::addSeedRecoTrack(newRecoTrack);
@@ -496,7 +461,6 @@ StatusCode DCTrackFinding::execute()
 
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
-        std::cout << "Track finding Elapsed time: " << elapsed.count() << " s"<< std::endl;;
 
         m_CPUTime[siNum] = elapsed.count();
 
@@ -528,9 +492,6 @@ StatusCode DCTrackFinding::execute()
             m_centerX[siNum][i] = circleCenter[i][0];
             m_centerY[siNum][i] = circleCenter[i][1];
         }
-
-
-        std::cout << " DCTrackFinding output size = " << output.size() << std::endl;
 
         int num_match =0;
         //add sdtTk To sdtTFk
@@ -595,13 +556,7 @@ StatusCode DCTrackFinding::execute()
             sdtTFk.addToTrackerHits(trkHit);
         }
 
-        std::cout << "sdtTk size = " << sdtTk.trackerHits_size() << std::endl;
-        //int addTrkhits = addHitsToTk(TrF,sdtTk," DC TrackFinding ");
-        std::cout << "sdtTFk size = " << sdtTFk.trackerHits_size() << std::endl;
-
         m_n_match[siNum] = num_match;
-
-        std::cout << " DCTrackFinding col size = " << TrF->size() << std::endl;
 
         delete newRecoTrack;
         delete recoTrackGenfitAccess;
@@ -613,13 +568,10 @@ StatusCode DCTrackFinding::execute()
         siNum++;
     }
 
-
     m_n_N_SiTrack = siNum;
     if(m_tuple) sc=m_tuple->write();
 
-
     m_eventNo++;
-    //system("/scratchfs/bes/myliu/script/memory_rec.sh DCTrackFinding_execute_end");
 
     return StatusCode::SUCCESS;
 }
@@ -708,18 +660,13 @@ col, edm4hep::Track& track, const char* msg) const
 {
     //if(nHitAdded>0) return nHitAdded;
     int nHit=0;
-    //const edm4hep::TrackerHitCollection* col=colHandle->get();
     debug()<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<endmsg;
-    std::cout<<"add "<<msg<<" "<<col->size()<<" trackerHit"<<std::endl;
     //sort,FIXME
     edm4hep::MutableTrack sdtTrack = track.clone();
     for(auto hit:*col){
         sdtTrack.addToTrackerHits(hit);
-        //track.addToTrackerHits(hit);
         ++nHit;
     }
-    std::cout << " before addHitsToTk hit size = " << track.trackerHits_size() << std::endl;
     track = sdtTrack;
-    std::cout << " after addHitsToTk hit size = " << track.trackerHits_size() << std::endl;
     return nHit;
 }

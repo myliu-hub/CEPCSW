@@ -116,7 +116,6 @@ void CEPC::getTrackStateFromPosMom(edm4hep::TrackState& trackState,double Bz,
         for(int j=0;j<6;j++){
             if(i>=j) { 
                 k1=k++;
-                //covMatrix[k++]=covMatrix_5(i,j);
                 if(5==i){
                     covMatrix[k1]=-999;
                     continue;

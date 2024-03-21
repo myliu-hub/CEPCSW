@@ -376,7 +376,6 @@ StatusCode RecGenfitAlgSDT::execute()
     }
     const edm4hep::MCParticleCollection* mcParticleCol=nullptr;
     mcParticleCol=m_mcParticleCol.get();//FIXME get error when call exist()
-    std::cout << " MCParticleCol size = " << mcParticleCol->size() << std::endl;
     if(nullptr==mcParticleCol){
         debug()<<"MCParticleCollection not found"<<endmsg;
         return StatusCode::SUCCESS;

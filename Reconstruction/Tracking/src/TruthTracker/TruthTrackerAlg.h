@@ -174,7 +174,7 @@ class TruthTrackerAlg: public GaudiAlgorithm
         Gaudi::Property<bool> m_useSiSpacePoint{this,"useSiSpacePoint",false};
         Gaudi::Property<bool> m_useIdealHit{this,"useIdealHit",false};
 
-        Gaudi::Property<bool> m_useMultiTrack{this,"useMultiTrack",false};
+        Gaudi::Property<bool> m_useCutMom{this,"useCutMom",false};
         Gaudi::Property<bool> m_setSiTrackConditions{this,"SetSiTrackConditions",true};
 
         Gaudi::Property<bool> m_useTrackFinding{this,"DCTrackFinding",false};

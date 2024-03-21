@@ -1730,7 +1730,7 @@ void GenfitTrack::getTrackFromEDMTrackFinding(const edm4hep::Track& edm4HepTrack
     // FIXME
     double Bz=3*GenfitUnit::tesla;
     double charge_double;
-    CEPC::getPosMomFromTrackState(edm4HepTrack.getTrackStates(1),Bz,pos,mom,charge_double,cov);
+    CEPC::getPosMomFromTrackState(edm4HepTrack.getTrackStates(0),Bz,pos,mom,charge_double,cov);
 
     charge=(int) charge_double;
     trackParam[0]=pos[0]*GenfitUnit::mm;

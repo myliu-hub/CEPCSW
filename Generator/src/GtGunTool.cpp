@@ -208,9 +208,6 @@ GtGunTool::mutate(MyHepMC::GenEvent& event) {
         mcp.setVertex(edm4hep::Vector3d(x,y,z)); 
         // mcp.setEndpoint();
 
-        // assume energy is momentum
-        double p = energy;
-        
         // direction
         // by default, randomize the direction
 
@@ -238,10 +235,15 @@ GtGunTool::mutate(MyHepMC::GenEvent& event) {
         double costheta = cos(theta*acos(-1)/180);
         double phi_  = phi*acos(-1)/180;
         double sintheta = sqrt(1.-costheta*costheta);
+
+        // assume energy is momentum
+        if(m_usePT) energy = energy/sintheta;
+        double p = energy;
+
         double px = p*sintheta*cos(phi_);
         double py = p*sintheta*sin(phi_);
         double pz = p*costheta;
-        std::cout<<"GenGt p="<<p<<", px="<<px<<",py="<<py<<",pz="<<pz<<",theta="<<theta<<",phi="<<phi<<std::endl;
+        std::cout<<"GenGt p="<<p<<",pt=" << sqrt(px*px+py*py)<<", px="<<px<<",py="<<py<<",pz="<<pz<<",theta="<<theta<<",phi="<<phi<<std::endl;
         mcp.setMomentum(edm4hep::Vector3f(px,py,pz));
         // mcp.setMomentumAtEndpoint();
         // mcp.setSpin();

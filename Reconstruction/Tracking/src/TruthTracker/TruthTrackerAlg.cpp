@@ -220,7 +220,7 @@ StatusCode TruthTrackerAlg::execute()
         }
 
         //Test DCHit Mom
-        if(m_useMultiTrack){
+        if(m_useCutMom){
             const int dchitNum = digiDCHitsCol->size();
             float dchitMom[dchitNum] = {1e-9};
             int nloop =0;
@@ -253,7 +253,7 @@ StatusCode TruthTrackerAlg::execute()
                 return StatusCode::SUCCESS;
             if((std::abs(cutMom-cutMomLast)/mcP_Mom[0])>m_cutMomHit[m_debugPID])
                 return StatusCode::SUCCESS;
-        }// end loop of Multi Track
+        }// end loop of use cutMom
     }//end loop of useDC
 
     ///Retrieve silicon Track

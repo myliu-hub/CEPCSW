@@ -47,6 +47,7 @@ private:
     Gaudi::Property<std::vector<double>> m_posRmaxs{this, "PosRMaxs"};
 
     // For energies
+    Gaudi::Property<bool> m_usePT{this, "usePT", false};
     Gaudi::Property<std::vector<double>> m_energymins{this, "EnergyMins"};
     Gaudi::Property<std::vector<double>> m_energymaxs{this, "EnergyMaxs"};
 
